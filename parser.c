@@ -190,34 +190,34 @@ int resolve_operand(struct PLC_regs * p, const int type, const int idx)
 	{
     case LD_INPUT: //input
 		if (idx >= 0 && idx < Di * BYTESIZE)
-			r = resolve(p, DI, idx);
+			r = resolve(p, BOOL_DI, idx);
 		break;
     case LD_OUTPUT: //output value
 		if (idx >= 0 && idx < Dq * BYTESIZE)
-			r = resolve(p, DQ, idx);
+            r = resolve(p, BOOL_DQ, idx);
 		break;
     case LD_FALLING: //falling edge
 		if (idx >= 0 && idx < Di * BYTESIZE)
-			r = fe(p, DI, idx);
+			r = fe(p, BOOL_DI, idx);
 		break;
     case LD_RISING: //rising Edge
 		if (idx >= 0 && idx < Di * BYTESIZE)
-			r = re(p, DI, idx);
+			r = re(p, BOOL_DI, idx);
 		break;
     case LD_MEMORY: //memory variable
 		if (idx >= 0 && idx < Nm)
-			r = resolve(p, COUNTER, idx);
+            r = resolve(p, BOOL_COUNTER, idx);
 		break;
     case LD_TIMEOUT: //timer.q
 		if (idx >= 0 && idx < Nt)
-			r = resolve(p, TIMER, idx);
+            r = resolve(p, BOOL_TIMER, idx);
 		break;
     case LD_COMMAND: //read command serially: maximum 1 instance of this can be true
 		r = (Command == idx) ? 1 : 0;
 		break;
     case LD_BLINKOUT: //blinker
 		if (idx >= 0 && idx < Ns)
-			r = resolve(p, BLINKER, idx);
+            r = resolve(p, BOOL_BLINKER, idx);
 		break;
 	default:
 		r = ERROR; //this should never happen
@@ -232,7 +232,7 @@ int resolve_coil(struct PLC_regs * p, const int type, const int idx,const int va
 	{
     case LD_CONTACT:
 		if (idx >= 0 && idx < Dq * BYTESIZE)
-			r = contact(p, DQ, idx, val);
+            r = contact(p, BOOL_DQ, idx, val);
 		else
 			r = ERR_BADINDEX;
 		break;
@@ -240,7 +240,7 @@ int resolve_coil(struct PLC_regs * p, const int type, const int idx,const int va
 		if (idx >= 0 && idx < Nt)
 		{
 			if (val)
-				r = set(p, TIMER, idx);
+                r = set(p, BOOL_TIMER, idx);
 		}
 		else
 			r = ERR_BADINDEX;
@@ -256,7 +256,7 @@ int resolve_coil(struct PLC_regs * p, const int type, const int idx,const int va
 		break;
     case LD_PULSEIN:
 		if (idx >= 0 && idx < Nm)
-			r = contact(p, COUNTER, idx, val);
+            r = contact(p, BOOL_COUNTER, idx, val);
 		else
 			r = ERR_BADINDEX;
 		break;
@@ -278,7 +278,7 @@ int resolve_set(struct PLC_regs * p, const int type, const int idx, const int va
 		if (idx >= 0 && idx < Dq * BYTESIZE)
 		{
 			if (val)
-				r = set(p, DQ, idx);
+                r = set(p, BOOL_DQ, idx);
 		}
 		else
 			r = ERR_BADINDEX;
@@ -287,7 +287,7 @@ int resolve_set(struct PLC_regs * p, const int type, const int idx, const int va
 		if (idx >= 0 && idx < Nt)
 		{
 			if (val)
-				r = set(p, TIMER, idx);
+                r = set(p, BOOL_TIMER, idx);
 		}
 		else
 			r = ERR_BADINDEX;
@@ -296,7 +296,7 @@ int resolve_set(struct PLC_regs * p, const int type, const int idx, const int va
 		if (idx >= 0 && idx < Nm)
 		{
 			if (val)
-				r = set(p, COUNTER, idx);
+                r = set(p, BOOL_COUNTER, idx);
 		}
 		else
 			r = ERR_BADINDEX;
@@ -319,7 +319,7 @@ int resolve_reset(struct PLC_regs * p, const int type, const int idx, const int 
 		if (idx >= 0 && idx < Dq * BYTESIZE)
 		{
 			if (val)
-				r = reset(p, DQ, idx);
+                r = reset(p, BOOL_DQ, idx);
 		}
 		else
 			r = ERR_BADINDEX;
@@ -337,7 +337,7 @@ int resolve_reset(struct PLC_regs * p, const int type, const int idx, const int 
 		if (idx >= 0 && idx < Nm)
 		{
 			if (val)
-				r = reset(p, COUNTER, idx);
+                r = reset(p, BOOL_COUNTER, idx);
 		}
 		else
 			r = ERR_BADINDEX;
@@ -812,7 +812,7 @@ int parse_il_line(char * line, struct instruction * op, int pc)
  if '(' push stack
  4. switch operand
  valid ones:
- DI	digital input
+ BOOL_DI	digital input
  R	rising edge
  F	falling edge
  DQ	digital output
@@ -907,13 +907,13 @@ int instruct(struct PLC_regs *p, struct instruction *op, int *pc)
         case LD_CONTACT:	//set output %QX.Y
 			if (!boolflag)	//only gets called when bit is defined
 				return ERR_BADOPERAND;
-			set(p, DQ, (op->byte) / BYTESIZE + op->bit);
+            set(p, BOOL_DQ, (op->byte) / BYTESIZE + op->bit);
 			break;
         case LD_START:	//bits are irrelevant
-			set(p, TIMER, op->byte);
+            set(p, BOOL_TIMER, op->byte);
 			break;
         case LD_PULSEIN:	//same here
-			set(p, COUNTER, op->byte);
+            set(p, BOOL_COUNTER, op->byte);
 			break;
 		default:
 			return ERR_BADOPERAND;
@@ -925,13 +925,13 @@ int instruct(struct PLC_regs *p, struct instruction *op, int *pc)
         case LD_CONTACT:	//set output %QX.Y
 			if (!boolflag)	//only gets called when bit is defined
 				return ERR_BADOPERAND;
-			reset(p, DQ, (op->byte) / BYTESIZE + op->bit);
+            reset(p, BOOL_DQ, (op->byte) / BYTESIZE + op->bit);
 			break;
         case LD_START:	//bits are irrelevant
-			reset(p, TIMER, op->byte);
+            reset(p, BOOL_TIMER, op->byte);
 			break;
         case LD_PULSEIN:	//same here
-			reset(p, COUNTER, op->byte);
+            reset(p, BOOL_COUNTER, op->byte);
 			break;
 		default:
 			return ERR_BADOPERAND;
@@ -944,28 +944,28 @@ int instruct(struct PLC_regs *p, struct instruction *op, int *pc)
 			if (!boolflag)	//word
 				acc = p->outputs[op->byte];
 			else
-				acc = resolve(p, DQ, (op->byte) / BYTESIZE + op->bit);
+                acc = resolve(p, BOOL_DQ, (op->byte) / BYTESIZE + op->bit);
 			break;
         case LD_INPUT:	//load input %IX.Y
 			if (!boolflag)	//word
 				acc = p->inputs[op->byte];
 			else
-				acc = resolve(p, DI, (op->byte) / BYTESIZE + op->bit);
+				acc = resolve(p, BOOL_DI, (op->byte) / BYTESIZE + op->bit);
 			break;
         case LD_MEMORY:
 			if (!boolflag)	//word
 				acc = p->m[op->byte].V;
 			else
-				acc = resolve(p, COUNTER, op->byte);
+                acc = resolve(p, BOOL_COUNTER, op->byte);
 			break;
         case LD_TIMEOUT:
 			if (!boolflag)//a convention: bit is irrelevant, but defining it means we are referring to t.Q, otherwise t.V
 				acc = p->t[op->byte].V;
 			else
-				acc = resolve(p, TIMER, op->byte);
+                acc = resolve(p, BOOL_TIMER, op->byte);
 			break;
         case LD_BLINKOUT:	//bit is irrelevant
-			acc = resolve(p, BLINKER, op->byte);
+            acc = resolve(p, BOOL_BLINKER, op->byte);
 			break;
         case LD_COMMAND:
 			acc = p->command;
@@ -973,12 +973,12 @@ int instruct(struct PLC_regs *p, struct instruction *op, int *pc)
         case LD_RISING:	//only boolean
 			if (!boolflag)	//only gets called when bit is defined
 				return ERR_BADOPERAND;
-			acc = re(p, DI, (op->byte) / BYTESIZE + op->bit);
+			acc = re(p, BOOL_DI, (op->byte) / BYTESIZE + op->bit);
 			break;
         case LD_FALLING:	//only boolflagean
 			if (!boolflag)	//only gets called when bit is defined
 				return ERR_BADOPERAND;
-			acc = fe(p, DI, (op->byte) / BYTESIZE + op->bit);
+			acc = fe(p, BOOL_DI, (op->byte) / BYTESIZE + op->bit);
 			break;
 		default:
 			return ERR_BADOPERAND;
@@ -999,16 +999,16 @@ int instruct(struct PLC_regs *p, struct instruction *op, int *pc)
 			if (!boolflag)	    //word
 				p->outputs[op->byte] = acc;
 			else
-				contact(p, DQ, (op->byte) / BYTESIZE + op->bit, acc % 2);
+                contact(p, BOOL_DQ, (op->byte) / BYTESIZE + op->bit, acc % 2);
 			break;
         case LD_START:	    //bits are irrelevant
-			contact(p, TIMER, op->byte, acc % 2);
+            contact(p, BOOL_TIMER, op->byte, acc % 2);
 			break;
         case LD_PULSEIN:
 			if (!boolflag)	    //word
 				p->m[op->byte].V = acc;
 			else
-				contact(p, COUNTER, op->byte, acc % 2);
+                contact(p, BOOL_COUNTER, op->byte, acc % 2);
 			break;
         case LD_WRITE:
 			p->command = acc;

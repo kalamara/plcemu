@@ -1,5 +1,6 @@
 #ifndef _WEDIT_H_
 #define _WEDIT_H_
+/** @file wedit.h*/
 
 #define VER	1.01
 #define string	unsigned char

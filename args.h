@@ -1,7 +1,9 @@
-/*  Header file to be included in programms using args.c */
 #ifndef _ARGS_H_
 #define _ARGS_H_
-
+/**
+ *@file greek.h
+ *@brief Header file to be included in programms using args.c
+**/
 #define ARGS	48
 #define MAXARG	80
 extern char arg_s[ARGS][MAXARG];

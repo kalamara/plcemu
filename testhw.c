@@ -93,9 +93,9 @@ void dio_bitfield(BYTE * write_mask, BYTE * bits)
 	unsigned int w, b;
 	if (!USE_COMEDI)
 	{
-		for (i = 0; i < DQ; i++)
+        for (i = 0; i < BOOL_DQ; i++)
 			outb(bits[i] & write_mask[i], BASE + WR_OFFS + i);
-		for (i = 0; i < DI; i++)
+		for (i = 0; i < BOOL_DI; i++)
 			bits[i] = inb(BASE + RD_OFFS + i);
 	}
 	else
@@ -115,9 +115,9 @@ main()
 	for (;;)
 	{
 		printf("INPUTS:\n");
-		memset(buf, 48, 8 * DI);
-		buf[8 * DI] = 0;
-		for (i = 0; i < 8 * DI; i++)
+		memset(buf, 48, 8 * BOOL_DI);
+		buf[8 * BOOL_DI] = 0;
+		for (i = 0; i < 8 * BOOL_DI; i++)
 		{
 			dio_read(i, &b);
 			buf[i] = b ? 49 : 48;
@@ -127,7 +127,7 @@ main()
 		if (fgets(buf, 255, stdin) == NULL )
 			buf[0] = 0;
 		printf("OUTPUTS:\n");
-		for (i = 0; i < 8 * DQ; i++)
+        for (i = 0; i < 8 * BOOL_DQ; i++)
 		{
 			b = (buf[i / 8] >> i % 8) % 2;
 			dio_write(buf, i, b);

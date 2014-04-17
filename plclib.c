@@ -1,14 +1,6 @@
 #include "plcemu.h"
 #include "plclib.h"
-/**PLC helper fuctions**/
-#define FALSE 0
-#define TRUE 1
-//boolean function blocks supported
-#define DI 0 	//digital input
-#define DQ 1	//digital output
-#define COUNTER 2	//pulse of counter
-#define TIMER 	3 	//timer
-#define BLINKER 4	//blinker
+
 /***********INTERNAL FUNCTIONS***************************************/
 void dec_inp(struct PLC_regs * p)
 { //decode input bytes
@@ -64,15 +56,15 @@ void write_mvars(struct PLC_regs * p)
 }
 /**************USER FUNCTIONS*****************************************/
 
-int re(struct PLC_regs * p, int type, int idx)
+int re(const struct PLC_regs * p, const int type, const int idx)
 { //return rising edge of operand
 
 	switch (type)
 	{
-	case DI:
+    case BOOL_DI:
 		return (p->di[idx].RE);
 		break;
-	case COUNTER:
+    case BOOL_COUNTER:
 		return (p->m[idx].PULSE) && (p->m[idx].EDGE);
 		break;
 	default:
@@ -80,15 +72,15 @@ int re(struct PLC_regs * p, int type, int idx)
 	}
 }
 
-int fe(struct PLC_regs * p, int type, int idx)
+int fe(const struct PLC_regs * p, const int type, const int idx)
 { //return falling edge of operand
 
 	switch (type)
 	{
-	case DI:
+    case BOOL_DI:
 		return (p->di[idx].FE);
 		break;
-	case COUNTER:
+    case BOOL_COUNTER:
 		return (!p->m[idx].PULSE) && (p->m[idx].EDGE);
 		break;
 	default:
@@ -96,21 +88,21 @@ int fe(struct PLC_regs * p, int type, int idx)
 	}
 }
 
-int set(struct PLC_regs * p, int type, int idx)
+int set(struct PLC_regs * p, const int type, const int idx)
 { //set operand
 	switch (type)
 	{
-	case DQ:
+    case BOOL_DQ:
 		p->dq[idx].SET = TRUE;
 		p->dq[idx].RESET = FALSE;
 		break;
-	case COUNTER:
+    case BOOL_COUNTER:
 		p->m[idx].SET = TRUE;
 		p->m[idx].RESET = FALSE;
 		if (!p->m[idx].PULSE)
 			p->m[idx].EDGE = TRUE;
 		break;
-	case TIMER:
+    case BOOL_TIMER:
 		p->t[idx].START = TRUE;
 		break;
 	default:
@@ -119,21 +111,21 @@ int set(struct PLC_regs * p, int type, int idx)
 	return OK;
 }
 
-int reset(struct PLC_regs * p, int type, int idx)
+int reset(struct PLC_regs * p, const int type,const int idx)
 { //reset operand
 	switch (type)
 	{
-	case DQ:
+    case BOOL_DQ:
 		p->dq[idx].RESET = TRUE;
 		p->dq[idx].SET = FALSE;
 		break;
-	case COUNTER:
+    case BOOL_COUNTER:
 		p->m[idx].RESET = TRUE;
 		p->m[idx].SET = FALSE;
 		if (p->m[idx].PULSE)
 			p->m[idx].EDGE = TRUE;
 		break;
-	case TIMER:
+    case BOOL_TIMER:
 		p->t[idx].START = FALSE;
 		break;
 	default:
@@ -142,21 +134,21 @@ int reset(struct PLC_regs * p, int type, int idx)
 	return OK;
 }
 
-int contact(struct PLC_regs * p, int type, int idx, unsigned char val)
+int contact(struct PLC_regs * p, const int type, const int idx, const unsigned char val)
 { //contacts an output with a value
 	switch (type)
 	{
-	case DQ:
+    case BOOL_DQ:
 		p->dq[idx].Q = val;
 		break;
-	case COUNTER:
+    case BOOL_COUNTER:
 		if (p->m[idx].PULSE != val)
 			p->m[idx].EDGE = TRUE;
 		else
 			p->m[idx].EDGE = FALSE;
 		p->m[idx].PULSE = val;
 		break;
-	case TIMER:
+    case BOOL_TIMER:
 		p->t[idx].START = TRUE;
 		break;
 	default:
@@ -165,26 +157,26 @@ int contact(struct PLC_regs * p, int type, int idx, unsigned char val)
 	return OK;
 }
 
-int resolve(struct PLC_regs * p, int type, int idx)
+int resolve(struct PLC_regs * p, const int type, const int idx)
 { //return an operand value
 	switch (type)
 	{
-	case DQ:
+    case BOOL_DQ:
         return p->dq[idx].Q || (p->dq[idx].SET && !p->dq[idx].RESET);
-	case COUNTER:
+    case BOOL_COUNTER:
 		return p->m[idx].PULSE;
-	case DI:
+    case BOOL_DI:
 		return p->di[idx].I;
-	case BLINKER:
+    case BOOL_BLINKER:
 		return p->s[idx].Q;
-	case TIMER:
+    case BOOL_TIMER:
 		return p->t[idx].Q;
 	default:
 		return ERR;
 	}
 }
 
-int down_timer(struct PLC_regs * p, int idx)
+int down_timer(struct PLC_regs * p, const int idx)
 { //RESET timer
 	p->t[idx].START = FALSE;
 	p->t[idx].V = 0;

@@ -5,18 +5,18 @@ int PLC_task(struct PLC_regs * p)
 { //
 /**************start editing here***************************/
 	BYTE one, two, three;
-	one = resolve(p, DI, 1);
-	two = fe(p, DI, 2);
-	three = re(p, DI, 3);
-	/*  contact(p,DQ,1,one);
-	 contact(p,DQ,2,two);
-	 contact(p,DQ,3,three);      */
+    one = resolve(p, BOOL_DI, 1);
+    two = fe(p, BOOL_DI, 2);
+    three = re(p, BOOL_DI, 3);
+    /*  contact(p,BOOL_DQ,1,one);
+     contact(p,BOOL_DQ,2,two);
+     contact(p,BOOL_DQ,3,three);      */
 	if (one)
-		set(p, TIMER, 0);
+        set(p, BOOL_TIMER, 0);
 	if (three)
-		reset(p, TIMER, 0);
+        reset(p, BOOL_TIMER, 0);
 	if (two)
-		down_timer(p, 0);
+        down_timer(p, 0);
     return 0;
     /***************end of editable portion***********************/
 

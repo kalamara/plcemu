@@ -114,7 +114,7 @@ NM 		32 		;number of internal variables
 
 ;hardware
 HW 		Adlink_PCI-1756	;just a text tag that appears in a footer
-DI 		4 		;number of bytes of digital inputs
+BOOL_DI 		4 		;number of bytes of digital inputs
 DQ 		4 		;number of bytes of digital outputs
 
 ;user space interface:
@@ -321,7 +321,7 @@ int down_timer(struct PLC_regs * p, int idx)
 The argument "type" is the type of operand we are operating on, 
 and can be one of the following values:
 
-#define DI 0 	//digital input
+#define BOOL_DI 0 	//digital input
 #define DQ 1	//digital output
 #define COUNTER 2	//pulse of counter
 #define TIMER 	3 	//output of timer

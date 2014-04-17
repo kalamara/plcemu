@@ -2,35 +2,40 @@
 #define _PARSER_H_
 
 /**
+ *@file parser.h
+ *@brief LD / IL parsing functions
+*/
+
+/**
  *accepted LD symbols: 0-9 for digits, and
  */
 enum
 {
-    //operators:
-    LD_BLANK = 10,  //blank character
-    LD_COIL,        //(
-    LD_AND,         //-
-    LD_OR,          //|
-    LD_NOT,         //!
-    LD_NODE,        //+
-    LD_SET,         //[ set
-    LD_RESET,       //] reset,
-    LD_DOWN,    	//) negate coil
-    //operands
-    LD_INPUT,      	//i
-    LD_FALLING, 	//f
-    LD_MEMORY,  	//m
-    LD_COMMAND,     //c
-    LD_BLINKOUT,    //b
-    LD_RISING,      //r
-    LD_TIMEOUT,     //t
-    LD_OUTPUT,   	//q
-    //coils (work for IL too)
-    LD_CONTACT,     //Q
-    LD_START,       //T
-    LD_PULSEIN,     //M
-    LD_WRITE,       //W
-    LD_END,         //0
+    ///operators:
+    LD_BLANK = 10,  ///blank character
+    LD_COIL,        ///(
+    LD_AND,         ///-
+    LD_OR,          ///|
+    LD_NOT,         ///!
+    LD_NODE,        ///+
+    LD_SET,         ///[ set
+    LD_RESET,       ///] reset,
+    LD_DOWN,    	///) negate coil
+    ///operands
+    LD_INPUT,      	///i
+    LD_FALLING, 	///f
+    LD_MEMORY,  	///m
+    LD_COMMAND,     ///c
+    LD_BLINKOUT,    ///b
+    LD_RISING,      ///r
+    LD_TIMEOUT,     ///t
+    LD_OUTPUT,   	///q
+    ///coils (work for IL too)
+    LD_CONTACT,     ///Q
+    LD_START,       ///T
+    LD_PULSEIN,     ///M
+    LD_WRITE,       ///W
+    LD_END,         ///0
     N_LD_SYMBOLS
 }LD_SYMBOLS;
 
@@ -40,34 +45,34 @@ enum
  */
 enum
 {
-    //IL OPCODES: no operand
-    IL_POP = 1,     //)
-    IL_RET,         //RET
+    ///IL OPCODES: no operand
+    IL_POP = 1,     ///)
+    IL_RET,         ///RET
     //arithmetic LABEL
-    IL_JMP,         //JMP
+    IL_JMP,         ///JMP
     //subroutine call (unimplemented)
-    IL_CAL,         //CAL
+    IL_CAL,         ///CAL
     //boolean, no modifier
-    IL_SET,         //S
-    IL_RESET,       //R
+    IL_SET,         ///S
+    IL_RESET,       ///R
     //boolean, all modifiers
-    IL_AND,         //AND
-    IL_OR,          //OR
-    IL_XOR,         //XOR
+    IL_AND,         ///AND
+    IL_OR,          ///OR
+    IL_XOR,         ///XOR
     //any operand, only negation
-    IL_LD,          //LD
-    IL_ST,          //ST
+    IL_LD,          ///LD
+    IL_ST,          ///ST
     //any operand, only push
-    IL_ADD,
-    IL_SUB,
-    IL_MUL,
-    IL_DIV,
-    IL_GT,
-    IL_GE,
-    IL_EQ,
-    IL_NE,
-    IL_LT,
-    IL_LE,
+    IL_ADD,          ///ADD
+    IL_SUB,          ///SUBTRACT
+    IL_MUL,          ///MULTIPLY
+    IL_DIV,          ///DIVIDE
+    IL_GT,          ///GREATER THAN
+    IL_GE,          ///GREATER OR EQUAL
+    IL_EQ,          ///EQUAL
+    IL_NE,          ///NOT EQUAL
+    IL_LT,          ///LESS THAN
+    IL_LE,          ///LESS OR EQUAL
     N_IL_INSN
 }IL_INSN;
 
@@ -79,10 +84,10 @@ enum
  */
 enum
 {
-    IL_NEG = 1, // '!'
-    IL_PUSH,    // '('
-    IL_NORM,    // ' '
-    IL_COND,    //'?'
+    IL_NEG = 1, /// '!'
+    IL_PUSH,    /// '('
+    IL_NORM,    /// ' '
+    IL_COND,    ///'?'
     N_IL_MODIFIERS
 }IL_MODIFIERS;
 

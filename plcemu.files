@@ -25,3 +25,4 @@ wedit.h
 wedit2.c
 wselect.c
 Makefile
+doxyfile

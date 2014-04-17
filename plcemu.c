@@ -67,7 +67,7 @@ int init_config(const char * filename)
 				Ns = atoi(val);
 			if (!strcmp(name, "NM"))
 				Nm = atoi(val);
-			if (!strcmp(name, "DI"))
+            if (!strcmp(name, "BOOL_DI"))
 				Di = atoi(val);
 			if (!strcmp(name, "DQ"))
 				Dq = atoi(val);
@@ -416,35 +416,35 @@ int io_page()
     ret = PAGE_IO;
 	if (Enable)
 	{
-		if (WinFlag == DI)
+        if (WinFlag == BOOL_DI)
 		{
 			draw_info_line(1,
 					"F1/2:Force 1/0|F3:Unforce|F4:Run/Stop|F5:Edit|F7:Load|F8:Save|F9:Help|F10:Quit");
 			i = wselect(InWin, InWinBuf);
 			win_set(InWin, i);
 		}
-		else if (WinFlag == DQ)
+        else if (WinFlag == BOOL_DQ)
 		{
 			draw_info_line(1,
 					"F1/2:Force 1/0|F3:Unforce|F4:Run/Stop|F5:Edit|F7:Load|F8:Save|F9:Help|F10:Quit");
 			i = wselect(OutWin, OutWinBuf);
 			win_set(OutWin, i);
 		}
-		else if (WinFlag == COUNTER)
+        else if (WinFlag == BOOL_COUNTER)
 		{
 			draw_info_line(1,
 					"F1/2:Toggle Pulse|F4:Run/Stop|F5:Edit|F6:Lock|F7:Load|F8:Save|F9:Help|F10:Quit");
 			i = wselect(MVarWin, MVarWinBuf);
 			win_set(MVarWin, i);
 		}
-		else if (WinFlag == TIMER)
+        else if (WinFlag == BOOL_TIMER)
 		{
 			draw_info_line(1,
 					"F1:Start|F2:Pause|F3:Reset|F4:Run/Stop|F5:Edit|F7:Load|F8:Save|F9:Help|F10:Quit");
 			i = wselect(TimWin, TimWinBuf);
 			win_set(TimWin, i);
 		}
-		else if (WinFlag == BLINKER)
+        else if (WinFlag == BOOL_BLINKER)
 		{
 			draw_info_line(1,
 					"F4:Run/Stop|F5:Edit|F7:Load|F8:Save|F9:Help|F10:Quit");
@@ -491,53 +491,53 @@ int io_page()
 			break;
 
 		case KEY_F(1):    //F1 forces 1
-			if (WinFlag == DI)
+            if (WinFlag == BOOL_DI)
 			{
 				plc.maskin[i / BYTESIZE] |= (1 << i % BYTESIZE);
 				plc.maskin_N[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
 			}
-			else if (WinFlag == DQ)
+            else if (WinFlag == BOOL_DQ)
 			{
 				plc.maskout[i / BYTESIZE] |= (1 << i % BYTESIZE);
 				plc.maskout_N[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
 			}
-			else if (WinFlag == COUNTER)
-				set(&plc, COUNTER, i);
-			else if (WinFlag == TIMER)
-				set(&plc, TIMER, i);
+            else if (WinFlag == BOOL_COUNTER)
+                set(&plc, BOOL_COUNTER, i);
+            else if (WinFlag == BOOL_TIMER)
+                set(&plc, BOOL_TIMER, i);
 			redraw = TRUE;
 
 			break;
 		case KEY_F(2):    //F2 forces 0
-			if (WinFlag == DI)
+            if (WinFlag == BOOL_DI)
 			{
 				plc.maskin[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
 				plc.maskin_N[i / BYTESIZE] |= (1 << i % BYTESIZE);
 			}
-			else if (WinFlag == DQ)
+            else if (WinFlag == BOOL_DQ)
 			{
 				plc.maskout[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
 				plc.maskout_N[i / BYTESIZE] |= (1 << i % BYTESIZE);
 			}
-			else if (WinFlag == COUNTER)
-				reset(&plc, COUNTER, i);
-			else if (WinFlag == TIMER)
-				reset(&plc, TIMER, i);
+            else if (WinFlag == BOOL_COUNTER)
+                reset(&plc, BOOL_COUNTER, i);
+            else if (WinFlag == BOOL_TIMER)
+                reset(&plc, BOOL_TIMER, i);
 
 			redraw = TRUE;
 			break;
 		case KEY_F(3):    //F3 unforces
-			if (WinFlag == DI)
+            if (WinFlag == BOOL_DI)
 			{
 				plc.maskin[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
 				plc.maskin_N[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
 			}
-			else if (WinFlag == DQ)
+            else if (WinFlag == BOOL_DQ)
 			{
 				plc.maskout[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
 				plc.maskout_N[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
 			}
-			else if (WinFlag == TIMER)
+            else if (WinFlag == BOOL_TIMER)
 				down_timer(&plc, i);
 			redraw = TRUE;
 			break;

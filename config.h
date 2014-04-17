@@ -12,7 +12,7 @@
 #define NM 256//number of integer variables
 //hardware
 #define HW "Adlink PCI-1756"
-#define DI 4//number of bytes of digital inputs
+#define BOOL_DI 4//number of bytes of digital inputs
 #define DQ 4//number of bytes of digital outputs
 //TODO analog io
 //user space interface:
