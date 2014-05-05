@@ -1,0 +1,33 @@
+# Makefile for PLCEMU
+# (c) 2014
+
+AM_CFLAGS=
+
+
+bin_PROGRAMS=plcemu 
+
+plcemu_SOURCES= plcemu.c plcemu.h plclib.c plclib.h parser.c parser.h hardware.h project.h project.c
+plcemu_SOURCES+=greek.c greek.h args.c args.h wselect.c wedit.h #NCURSES GUI
+#hardware modules supported
+if SIMULATION
+plcemu_SOURCES+=hardware-sim.c
+else 
+if USPACE
+plcemu_SOURCES+=hardware-uspace.c
+else
+plcemu_SOURCES+=hardware-comedi.c
+endif
+endif
+
+#testhw_SOURCES=testhw.c hardware.h plcemu.h
+#testil_SOURCES=
+#teststack_SOURCES=
+
+hardware-comedi.o: hardware-comedi.c hardware.h
+hardware-uspace.o: hardware-uspace.c hardware.h
+hardware-sim.o: hardware-sim.c hardware.h
+
+nodes:; mknod plcpipe p; mknod plcresponse p;
+
+
+
