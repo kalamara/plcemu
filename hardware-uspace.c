@@ -1,9 +1,10 @@
 #include "plcemu.h"
+#include "hardware.h"
+#include <sys/io.h>
 
 int enable_bus() /* Enable bus communication */
 {
 	int uid;
-    //char filestr[MEDSTR];
 	uid = getuid(); /* get User id */
 	seteuid(0); /* set User Id to root (0) */
 	if (geteuid() != 0)
@@ -49,7 +50,19 @@ int disable_bus() /* Disable bus communication */
 		return -1;
 	}
 	setuid(uid); /* reset User Id */
-    return 0;
+    return 1;
+}
+
+int dio_fetch()
+{
+    int bytesRead = 0;
+    return bytesRead;
+}
+
+int dio_flush()
+{
+    int bytesWrote = 0;
+    return bytesWrote;
 }
 
 void dio_read(int n, BYTE* bit)
@@ -71,10 +84,10 @@ void dio_write(BYTE * buf, int n, int bit)
 
 void dio_bitfield(BYTE * write_mask, BYTE * bits)
 {	//simultaneusly write output bits defined my mask and read all inputs
-    int i;//, j, n, in;
-    //unsigned int w, b;
+    /*FIXME
+    int i;
 	for (i = 0; i < Dq; i++)
 		outb(bits[i] & write_mask[i], Base + Wr_offs + i);
 	for (i = 0; i < Di; i++)
-		bits[i] = inb(Base + Rd_offs + i);
+        bits[i] = inb(Base + Rd_offs + i);*/
 }
