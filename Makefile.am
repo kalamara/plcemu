@@ -27,7 +27,7 @@ hardware-comedi.o: hardware-comedi.c hardware.h
 hardware-uspace.o: hardware-uspace.c hardware.h
 hardware-sim.o: hardware-sim.c hardware.h
 
-nodes:; mknod plcpipe p; mknod plcresponse p;
+nodes:; mknod plcpipe p; mknod plcresponse p; 
 
 
 

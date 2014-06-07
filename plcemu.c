@@ -1,7 +1,13 @@
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <poll.h>
+#include <signal.h>
+#include <time.h>
+#include "wedit.h"
 #include "plcemu.h"
 #include "plclib.h"
 #include "project.h"
-
+#include <curses.h>
 /*************GLOBALS************************************************/
 
 
@@ -38,18 +44,60 @@ const char LangStr[3][TINYSTR] =
 	"Structured Text"
 };
 
+void plclog(const char * msg, ...)
+{
+   va_list arg;
+   time_t now;
+   time(&now);
+   char msgstr[MAXSTR];
+   memset(msgstr,0,MAXSTR);
+   va_start(arg, msg);
+   vsprintf(msgstr,msg,arg);
+   if(ErrLog)
+   {
+      fprintf(ErrLog, msgstr);
+      fprintf(ErrLog, ":%s", ctime(&now));
+      fflush(ErrLog);
+   }
+
+   draw_info_line(PageLen + 1, msgstr);
+   va_end(arg);
+}
+
 int init_config(const char * filename)
 {
 	FILE * fcfg;
 	char line[MEDSTR], name[SMALLSTR], path[MAXSTR], val[SMALLBUF];
-//        filename = "plc.config";
-	memset(path, 0, MAXSTR);
+
+    memset(path, 0, MAXSTR);
 	sprintf(path, "%s", filename);
+
+    Step =1;
+    Sigenable=36;
+    Pagewidth=48;
+    Nt=4;
+    Ns=4;
+    Nm=4;
+    Di=8;
+    Dq=8;
+    Base=50176;
+    Wr_offs=0;
+    Rd_offs=8;
+    Comedi_file=0;
+    Comedi_subdev_i=0;
+    Comedi_subdev_q=1;
+    memset(Pipe, 0, MAXSTR);
+    memset(Responsefile, 0, MAXSTR);
+    memset(SimInFile, 0, MAXSTR);
+    memset(SimOutFile, 0, MAXSTR);
+    memset(Hw, 0, MAXSTR);
+
+    memset(line, 0, MEDSTR);
+    memset(name, 0, SMALLSTR);
+    memset(val, 0, NICKLEN);
+
 	if (fcfg = fopen(path, "r"))
 	{
-		memset(line, 0, SMALLSTR);
-		memset(name, 0, SMALLSTR);
-        memset(val, 0, NICKLEN);
 		while (fgets(line, MEDSTR, fcfg))
 		{
 			sscanf(line, "%s\t%s", name, val);
@@ -67,7 +115,7 @@ int init_config(const char * filename)
 				Ns = atoi(val);
 			if (!strcmp(name, "NM"))
 				Nm = atoi(val);
-            if (!strcmp(name, "BOOL_DI"))
+            if (!strcmp(name, "DI"))
 				Di = atoi(val);
 			if (!strcmp(name, "DQ"))
 				Dq = atoi(val);
@@ -79,7 +127,7 @@ int init_config(const char * filename)
 				Rd_offs = atoi(val);
 			if (!strcmp(name, "COMEDI_FILE"))
 				Comedi_file = atoi(val);
-			if (!strcmp(name, "COMEDI_SUBDEV_�"))
+            if (!strcmp(name, "COMEDI_SUBDEV_I"))
 				Comedi_subdev_i = atoi(val);
 			if (!strcmp(name, "COMEDI_SUBDEV_Q"))
 				Comedi_subdev_q = atoi(val);
@@ -89,10 +137,15 @@ int init_config(const char * filename)
 				sprintf(Pipe, "%s", val);
 			if (!strcmp(name, "RESPONSE"))
 				sprintf(Responsefile, "%s", val);
+            if (!strcmp(name, "SIM_INPUT"))
+                sprintf(SimInFile, "%s", val);
+            if (!strcmp(name, "SIM_OUTPUT"))
+                sprintf(SimOutFile, "%s", val);
 			memset(line, 0, MEDSTR);
 			memset(name, 0, SMALLSTR);
 		}
 		fclose(fcfg);
+        ErrLog = fopen(LOG,"w+");
 		if (Step > 0
 		&& Sigenable > 29
 		&& PageLen > 23
@@ -158,33 +211,32 @@ void init_help()
 
 void init_emu()
 {
-    //int i;
 	enable_bus();
 	plc.inputs = (BYTE *) malloc(Di);
-	plc.outputs = (BYTE *) malloc(Dq);
+    plc.outputs = (BYTE *) malloc(Dq);
 	plc.edgein = (BYTE *) malloc(Di);
 	plc.maskin = (BYTE *) malloc(Di);
 	plc.maskout = (BYTE *) malloc(Dq);
 	plc.maskin_N = (BYTE *) malloc(Di);
-	plc.maskout_N = (BYTE *) malloc(Dq);
+    plc.maskout_N = (BYTE *) malloc(Dq);
 	plc.di = (struct digital_input*) malloc(
 			BYTESIZE * Di * sizeof(struct digital_input));
 	plc.dq = (struct digital_output*) malloc(
 			BYTESIZE * Dq * sizeof(struct digital_output));
-	plc.t = (struct timer *) malloc(Nt * sizeof(struct timer));
-	plc.s = (struct blink *) malloc(Ns * sizeof(struct blink));
-	plc.m = (struct mvar *) malloc(Nm * sizeof(struct mvar));
-	memset(plc.inputs, 0, Di);
+    plc.t = (struct timer *) malloc(Nt * sizeof(struct timer));
+    plc.s = (struct blink *) malloc(Ns * sizeof(struct blink));
+    plc.m = (struct mvar *) malloc(Nm * sizeof(struct mvar));
+    memset(plc.inputs, 0, Di);
 	memset(plc.outputs, 0, Dq);
-	memset(plc.maskin, 0, Di);
+    memset(plc.maskin, 0, Di);
 	memset(plc.maskout, 0, Dq);
 	memset(plc.maskin_N, 0, Di);
 	memset(plc.maskout_N, 0, Dq);
-	memset(plc.di, 0, BYTESIZE * Di * sizeof(struct digital_input));
+    memset(plc.di, 0, BYTESIZE * Di * sizeof(struct digital_input));
 	memset(plc.dq, 0, BYTESIZE * Dq * sizeof(struct digital_output));
-	memset(plc.t, 0, Nt * sizeof(struct timer));
+    memset(plc.t, 0, Nt * sizeof(struct timer));
 	memset(plc.s, 0, Ns * sizeof(struct blink));
-	memset(plc.m, 0, Nm * sizeof(struct timer));
+    memset(plc.m, 0, Nm * sizeof(struct mvar));
 
 	pOld = (struct PLC_regs *) malloc(sizeof(struct PLC_regs));
 
@@ -206,14 +258,16 @@ void init_emu()
 	memcpy(pOld->inputs, plc.inputs, Di);
 	memcpy(pOld->outputs, plc.outputs, Dq);
 	memcpy(pOld->m, plc.di, Nm * sizeof(struct mvar));
-	memcpy(pOld->t, plc.dq, Nt * sizeof(struct blink));
-	memcpy(pOld->s, plc.dq, Ns * sizeof(struct timer));
+    memcpy(pOld->t, plc.dq, Nt * sizeof(struct timer));
+    memcpy(pOld->s, plc.dq, Ns * sizeof(struct blink));
 	plc.command = 0;
 	plc.status = TRUE;
 	WinFlag = TRUE;
 	Update = TRUE;
 	Enable = 1;
 	signal(Sigenable, sigenable);
+    PlcCom[0].fd = open(Pipe, O_NONBLOCK | O_RDONLY);
+    PlcCom[0].events = POLLIN | POLLPRI;
 	PLC_init();
 	Cur = 0;
 }
@@ -228,7 +282,7 @@ void time_header()
 	strcpy(t, ctime(&now));
 	t[19] = '\0';
 	p = t + 10;
-	sprintf(str, " PLC-EMUlator v%4.2f %14s ", VERSION, p);
+    sprintf(str, " PLC-EMUlator v%4.2f %14s ", PRINTABLE_VERSION, p);
 	draw_header(str);
 }
 
@@ -270,7 +324,7 @@ void load_blinkers()
 void load_mvars()
 {
 	int i;
-	char s[32], color;
+    char s[TINYSTR], color;
 	buf_clear(MVarWinBuf);
 	for (i = 0; i < Nm; i++)
 	{
@@ -289,7 +343,7 @@ void load_mvars()
 void load_inputs()
 {
 	int i;
-	char s[32], color, bit;
+    char s[TINYSTR], color, bit;
 	buf_clear(InWinBuf);
 	for (i = 0; i < BYTESIZE * Di; i++)
 	{
@@ -325,7 +379,7 @@ void load_inputs()
 void load_outputs()
 {
 	int i;
-	char s[32], color, bit;
+    char s[TINYSTR], color, bit;
 	buf_clear(OutWinBuf);
 	for (i = 0; i < BYTESIZE * Dq; i++)
 	{
@@ -543,9 +597,15 @@ int io_page()
 			break;
 		case KEY_F(4):    //F4 runs/stops
 			if (!plc.status % 2)    //stopped
-				plc.status |= TRUE;
+            {
+                plclog("Start!");
+                plc.status = 1;
+            }
 			else
+            {
+                plclog("Stop!");
 				--plc.status;    //running
+            }
 			redraw = TRUE;
 			break;
 		case KEY_F(5):    //edit
@@ -962,7 +1022,7 @@ int load_file(char * path, int ini)
 		memset(name, 0, SMALLSTR);
 		memset(val, 0, NICKLEN);
 		disable_bus();
-		init_emu();
+        //init_emu();
 
 		lineno = 0;
 		while (fgets(line, MEDSTR, f))
@@ -1205,8 +1265,7 @@ int file_page()
 	static char path[MEDSTR];
 	int c;
 	static char buf[MEDSTR] = "";
-//	int i;
-    //FILE * f;
+
 	if (redraw)
 	{
 		if (plc.status % 2)    //if running
@@ -1252,40 +1311,46 @@ int file_page()
 int plc_func(int daemon)
 {
 	struct timeval tp, tn, dt;
-	long timeout;
-	BYTE i_bit, com[2];
-	int q_bit, n, i, j;
+    static long timeout = 0;
+    BYTE i_bit = 0;
+    BYTE com[2];
+    int q_bit = 0;
+    int n=0;
+    int i=0;
+    int j=0;
 	int written=FALSE;
 	int rfd = 0; //response file descriptor
 	int r = OK;
-
 	int i_changed = FALSE;
 	int o_changed = FALSE;
 	int m_changed = FALSE;
 	int t_changed = FALSE;
 	int s_changed = FALSE;
     char test[NICKLEN];
+    dt.tv_sec = 0;
+    dt.tv_usec = 0;
 	if ((plc.status) % 2)    //run
 	{    //read inputs
-		for (i = 0; i < Di; i++)
+        dio_fetch(timeout);
+        for (i = 0; i < Di; i++)
 		{	//for each input byte
-			plc.inputs[i] = 0;
+            plc.inputs[i] = 0;
 			for (j = 0; j < BYTESIZE; j++)
 			{	//read n bit into in
 				n = i * BYTESIZE + j;
 				i_bit = 0;
-				dio_read(n, &i_bit);
+                dio_read(n, &i_bit);
 				plc.inputs[i] |= i_bit << j;
 			}	//mask them
 			plc.inputs[i] = (plc.inputs[i] | plc.maskin[i]) & ~plc.maskin_N[i];
 			if (plc.inputs[i] != pOld->inputs[i])
 				i_changed = TRUE;
-			plc.edgein[i] = (plc.inputs[i]) ^ (pOld->inputs[i]);
-		}
+            plc.edgein[i] = (plc.inputs[i]) ^ (pOld->inputs[i]);
+        }
 		//manage timers
-		for (i = 0; i < Nt; i++)
+        for (i = 0; i < Nt; i++)
 		{
-			if (plc.t[i].V < plc.t[i].P && plc.t[i].START)
+            if (plc.t[i].V < plc.t[i].P && plc.t[i].START)
 			{
 				if (plc.t[i].sn < plc.t[i].S)
 					plc.t[i].sn++;
@@ -1294,18 +1359,17 @@ int plc_func(int daemon)
 					t_changed = TRUE;
 					plc.t[i].V++;
 					plc.t[i].sn = 0;
-
 				}
 				plc.t[i].Q = (plc.t[i].ONDELAY) ? 0 : 1;	//on delay
 			}
 			else if (plc.t[i].START)
 			{
 				plc.t[i].Q = (plc.t[i].ONDELAY) ? 1 : 0;	//on delay
-			}
+            }
 		}
 		for (i = 0; i < Ns; i++)
 		{
-			if (plc.s[i].S > 0)
+            if (plc.s[i].S > 0)
 			{	//if set up
 				if (plc.s[i].sn > plc.s[i].S)
 				{
@@ -1315,137 +1379,124 @@ int plc_func(int daemon)
 				}
 				else
 					plc.s[i].sn++;
-			}
+            }
 		}
-		read_mvars(&plc);
-
+        read_mvars(&plc);
 //poll on plcpipe for command, for max STEP msecs
-		PlcCom[0].fd = open(Pipe, O_NONBLOCK | O_RDONLY);
-		PlcCom[0].events = POLLIN | POLLPRI;
 		gettimeofday(&tn);	//how much time passed for previous cycle?
-		timeval_subtract(&dt, &tn, &T);
-//	sprintf(test,"Refresh time approx:%d microseconds",dt.tv_usec);
-//	draw_info_line(PageLen+ 2,test);
-		while (dt.tv_usec > THOUSAND * Step)//if timeout, add another circle;
-			dt.tv_usec -= THOUSAND * Step;
-		timeout = Step - dt.tv_usec / THOUSAND;
-		written = poll(PlcCom, 1, timeout);
-		gettimeofday(&tp);	//how much time did poll wait?
-		timeval_subtract(&dt, &tp, &tn);
+        timeval_subtract(&dt, &tn, &T);
+        dt.tv_usec = dt.tv_usec % (THOUSAND * Step);
+        timeout = Step - dt.tv_usec / THOUSAND;
+//plclog("Refresh time approx:%d microseconds",dt.tv_usec);
+        written = poll(PlcCom, 0, timeout);
+//plclog("Poll time approx:%d milliseconds",dt.tv_usec/1000);
+        gettimeofday(&tp);	//how much time did poll wait?
+        timeval_subtract(&dt, &tp, &tn);
 		if (written)
-		{
-			if (read(PlcCom[0].fd, com, 2))
+        {//manage serial comm
+            if (read(PlcCom[0].fd, com, 2))
 			{
 				if (com[0] == 0)
 					com[0] = 0;	//NOP
 				else
 					plc.command = com[0] - ASCIISTART;
-				sprintf(test, "LAST command:%d, %s", plc.command,
-						com_nick[com[0] - ASCIISTART]);
-				if (daemon == 1)
-				{
-					printf("%s\n", test);
-					sprintf(test, "");
-				}
-				else
-					draw_info_line(PageLen + 1, test);
-			}
+                plclog("LAST command:%d, %s", plc.command,
+                       com_nick[com[0] - ASCIISTART]);
+            }
 		}
 		else if (written == 0)
 			plc.command = 0;
 		else
 		{
-			if (daemon == 1)
-				printf("PIPE ERROR\n");
-			else
-				draw_info_line(PageLen + 1, "PIPE ERROR");
+            plclog("PIPE ERROR\n");
 			plc.command = 0;
 		}
-
 //	sprintf(test,"Poll time approx:%d milliseconds",dt.tv_usec/1000);
-		close(PlcCom[0]);
+
 		gettimeofday(&T);	//start timing next cycle
-		Command = plc.command;
-		dec_inp(&plc); //read inputs
+        Command = plc.command;
+        dec_inp(&plc); //read inputs
 		PLC_task(&plc);
 
-		if (Language == LANG_LD)
-			r = LD_task(&plc);
-		if (Language == LANG_IL)
-			r = IL_task(&plc);
+        if (Language == LANG_LD)
+            r = LD_task(&plc);
+        if (Language == LANG_IL)
+            r = IL_task(&plc);
 
-		enc_out(&plc);
+        enc_out(&plc);
 		plc.response = Response;
 
 		plc.command = 0;
 		for (i = 0; i < Dq; i++)
 		{	//write masked outputs
-			plc.outputs[i] = (plc.outputs[i] | plc.maskout[i])
+            plc.outputs[i] = (plc.outputs[i] | plc.maskout[i])
 					& ~plc.maskout_N[i];
 			for (j = 0; j < BYTESIZE; j++)
 			{	//write n bit out
 				n = BYTESIZE * i + j;
 				q_bit = (plc.outputs[i] >> j) % 2;
-				dio_write(plc.outputs, n, q_bit);
-			}
+                dio_write(plc.outputs, n, q_bit);
+            }
 			if (plc.outputs[i] != pOld->outputs[i])
-				o_changed = TRUE;
+                o_changed = TRUE;
 		}
+        dio_flush();
 		for (i = 0; i < Nm; i++)	//check counter pulses
-		{
-			if (plc.m[i].PULSE != pOld->m[i].PULSE)
+        {
+            if (plc.m[i].PULSE != pOld->m[i].PULSE)
 			{
 				plc.m[i].EDGE = TRUE;
 				m_changed = TRUE;
-			}
+            }
 		}
-
-		write_mvars(&plc);
-
+        write_mvars(&plc);
 		if (i_changed)
 		{
 //draw_info_line(4+PageLen/2," Input changed!");
-			memcpy(pOld->inputs, plc.inputs, Di);
+            memcpy(pOld->inputs, plc.inputs, Di);
 			Update = TRUE;
-			i_changed = FALSE;
+            i_changed = FALSE;
 		}
 		if (o_changed)
 		{
 //draw_info_line(4+PageLen/2," Output changed!");
-			memcpy(pOld->outputs, plc.outputs, Dq);
+            memcpy(pOld->outputs, plc.outputs, Dq);
 			Update = TRUE;
-			o_changed = FALSE;
+            o_changed = FALSE;
 		}
 		if (m_changed)
-		{
-			memcpy(pOld->m, plc.m, Nm * sizeof(struct mvar));
+        {
+            memcpy(pOld->m, plc.m, Nm * sizeof(struct mvar));
 			Update = TRUE;
-			m_changed = FALSE;
+            m_changed = FALSE;
 		}
 		if (t_changed)
-		{
-			memcpy(pOld->t, plc.t, Nt * sizeof(struct timer));
+        {
+            memcpy(pOld->t, plc.t, Nt * sizeof(struct timer));
 			Update = TRUE;
-			t_changed = FALSE;
+            t_changed = FALSE;
 		}
 		if (s_changed)
-		{
-			memcpy(pOld->s, plc.s, Ns * sizeof(struct blink));
+        {
+            memcpy(pOld->s, plc.s, Ns * sizeof(struct blink));
 			Update = TRUE;
-			s_changed = FALSE;
+            s_changed = FALSE;
 		}
 		//write out response
 		if (plc.response)
-		{
-			rfd = open(Responsefile, O_NONBLOCK | O_WRONLY);
-			write(rfd, plc.response, 1);
-			close(rfd);
-			plc.response = 0;
+        {
+            rfd = open(Responsefile, O_NONBLOCK | O_WRONLY);
+            write(rfd, plc.response, 1);
+            close(rfd);
+            plc.response = 0;
 		}
 	}
-	else
-		usleep(Step * THOUSAND);
-	return r;
+    else
+    {
+        usleep(Step * THOUSAND);
+        timeout = 0;
+    }
+    return r;
 }
 
 int edit_mode()
@@ -1475,10 +1526,7 @@ int edit_mode()
 int main(int argc, char **argv)
 {
     int i, errcode, daemon_flag = FALSE;
-        //    p, j, n,
-    //int changed = FALSE;
 	int page = 0;
-//	BYTE * in_p, *out_p;
 	char str[SMALLSTR], confstr[SMALLSTR], inistr[SMALLSTR];
 
 	strcpy(confstr, "plc.config");
@@ -1515,7 +1563,7 @@ Options:\n\
 		return ERR;
 	}
 
-	init_emu();
+    init_emu();
 
 	if (inistr[0] && load_file(inistr, 1) < 0)
 		printf("Invalid program file\n");
@@ -1524,16 +1572,16 @@ Options:\n\
 	{
 		win_start();
 		PageLen = PageLen - 3;
-		InWin = win_open(3, 1, PageLen / 2, Pagewidth / 4 - 1, "DIGITAL INPUTS");
-		OutWin = win_open(3, 1 + Pagewidth / 4, PageLen / 2, Pagewidth / 4 - 1,
+        InWin = win_open(3, 1, PageLen / 2 - 3, Pagewidth / 4 - 1, "DIGITAL INPUTS");
+        OutWin = win_open(3, 1 + Pagewidth / 4, PageLen / 2 - 3, Pagewidth / 4 - 1,
 				"DIGITAL OUTPUTS");
-		MVarWin = win_open(3, 1 + Pagewidth / 2, PageLen / 2, Pagewidth / 4 - 1,
+        MVarWin = win_open(3, 1 + Pagewidth / 2, PageLen / 2 - 3, Pagewidth / 4 - 1,
 				"MEMORY COUNTERS");
-		TimWin = win_open(3, 1 + 3 * Pagewidth / 4, PageLen / 4 - 1,
+        TimWin = win_open(3, 1 + 3 * Pagewidth / 4, PageLen / 4 - 2,
 				Pagewidth / 4 - 2, "TIMERS");
-		BlinkWin = win_open(4 + PageLen / 4, 1 + 3 * Pagewidth / 4,
-				PageLen / 4 - 1, Pagewidth / 4 - 2, "BLINKERS");
-		LdWin = win_open(6 + PageLen / 2, 1, PageLen / 2 - 9, Pagewidth - 2,
+        BlinkWin = win_open(4 + PageLen / 4 - 2, 1 + 3 * Pagewidth / 4,
+                PageLen / 4 - 2, Pagewidth / 4 - 2, "BLINKERS");
+        LdWin = win_open(2 + PageLen / 2, 1, PageLen / 2 - 4, Pagewidth - 2,
 				"PLC TASK");
 		EditWin = win_open(10, 15, 8, 40, " Configuration ");
 		ConfWin = win_open(10, 15, 4, 50, " Exit PLC-emu ? ");
@@ -1573,11 +1621,12 @@ Options:\n\
             else if (page == PAGE_HELP)
 				page = help_page();
 
-			errcode = plc_func(FALSE);
+            errcode = plc_func(FALSE);
 			if (errcode < 0)
 			{
-				sprintf(str, "error code %d", -errcode);
-				draw_info_line(4 + PageLen / 2, ErrMsg[-1 - errcode]);
+                plclog("error code %d", -errcode);
+                //sprintf(str, "error code %d", -errcode);
+                //draw_info_line(4 + PageLen / 2, ErrMsg[-1 - errcode]);
 			}
 		}
 	}
@@ -1596,6 +1645,7 @@ Options:\n\
 			}
 		}
 	}
+    fclose(ErrLog);
 	disable_bus();
 	win_end();
     return 0;

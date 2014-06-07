@@ -53,7 +53,7 @@ int disable_bus() /* Disable bus communication */
     return 1;
 }
 
-int dio_fetch()
+int dio_fetch(long timeout)
 {
     int bytesRead = 0;
     return bytesRead;

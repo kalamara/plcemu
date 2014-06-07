@@ -68,7 +68,7 @@ int re(const struct PLC_regs * p, const int type, const int idx)
 		return (p->m[idx].PULSE) && (p->m[idx].EDGE);
 		break;
 	default:
-		return ERR;
+        return ERROR;
 	}
 }
 
@@ -84,7 +84,7 @@ int fe(const struct PLC_regs * p, const int type, const int idx)
 		return (!p->m[idx].PULSE) && (p->m[idx].EDGE);
 		break;
 	default:
-		return ERR;
+        return ERROR;
 	}
 }
 
@@ -106,9 +106,9 @@ int set(struct PLC_regs * p, const int type, const int idx)
 		p->t[idx].START = TRUE;
 		break;
 	default:
-		return ERR;
+        return ERROR;
 	}
-	return OK;
+    return 0;
 }
 
 int reset(struct PLC_regs * p, const int type,const int idx)
@@ -129,9 +129,9 @@ int reset(struct PLC_regs * p, const int type,const int idx)
 		p->t[idx].START = FALSE;
 		break;
 	default:
-		return ERR;
+        return ERROR;
 	}
-	return OK;
+    return 0;
 }
 
 int contact(struct PLC_regs * p, const int type, const int idx, const unsigned char val)
@@ -152,9 +152,9 @@ int contact(struct PLC_regs * p, const int type, const int idx, const unsigned c
 		p->t[idx].START = TRUE;
 		break;
 	default:
-		return ERR;
+        return ERROR;
 	}
-	return OK;
+    return 0;
 }
 
 int resolve(struct PLC_regs * p, const int type, const int idx)
@@ -172,7 +172,7 @@ int resolve(struct PLC_regs * p, const int type, const int idx)
     case BOOL_TIMER:
 		return p->t[idx].Q;
 	default:
-		return ERR;
+        return ERROR;
 	}
 }
 
@@ -181,5 +181,5 @@ int down_timer(struct PLC_regs * p, const int idx)
 	p->t[idx].START = FALSE;
 	p->t[idx].V = 0;
 	p->t[idx].Q = 0;
-	return OK;
+    return 0;
 }

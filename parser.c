@@ -227,7 +227,7 @@ int resolve_operand(struct PLC_regs * p, const int type, const int idx)
 
 int resolve_coil(struct PLC_regs * p, const int type, const int idx,const int val)
 {
-	int r = OK;
+    int r = 0;
 	switch (type)
 	{
     case LD_CONTACT:
@@ -271,7 +271,7 @@ int resolve_coil(struct PLC_regs * p, const int type, const int idx,const int va
 
 int resolve_set(struct PLC_regs * p, const int type, const int idx, const int val)
 {
-	int r = OK;
+    int r = 0;
 	switch (type)
 	{
     case LD_CONTACT:
@@ -312,7 +312,7 @@ int resolve_set(struct PLC_regs * p, const int type, const int idx, const int va
 
 int resolve_reset(struct PLC_regs * p, const int type, const int idx, const int val)
 {
-	int r = OK;
+    int r = 0;
 	switch (type)
 	{
     case LD_CONTACT:
@@ -526,7 +526,7 @@ int LD_task(struct PLC_regs * p)
 		return r;		//error
 	curline = minmin(Pos, cursor, Lineno);//find first unfinalized line that has stopped at smallest cursor larger than current cursor
 	if (curline < 0)
-		return OK;		//finished
+        return 0;		//finished
 	cursor = Pos[curline];
 	/* parse vertically
 	 start at current line
@@ -578,13 +578,13 @@ int LD_task(struct PLC_regs * p)
 		}
 	}		//end for
 //	tester++;
-	return OK;
+    return 0;
 }
 
 int IL_task(struct PLC_regs * p)
 {
 	struct instruction op;
-	int l, j, r = OK;
+    int l, j, r = 0;
 	for (j = 0; j < Lineno; j++)
 	{
 		r = parse_il_line(Lines[j], &op, j);

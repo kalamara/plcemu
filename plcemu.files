@@ -1,10 +1,7 @@
 args.c
 args.h
-config.h
 greek.c
 greek.h
-hardware-nocomedi.c
-hardware.c
 hardware.h
 help
 init
@@ -26,3 +23,9 @@ wedit2.c
 wselect.c
 Makefile
 doxyfile
+hardware-sim.c
+hardware-uspace.c
+hardware-comedi.c
+Makefile.in
+Makefile.am
+configure.ac

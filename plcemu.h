@@ -6,21 +6,11 @@
 */
 
 #include <stdio.h>
-#include <signal.h>
-#include <time.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <poll.h>
-#ifndef ULTRALITE
-    #include <curses.h>
-#endif
-
-#include "wedit.h"
-#include "hardware.h"
-#define VERSION 1.5//sys/io.h and other modernizations
+#include <stdarg.h>
+#define PRINTABLE_VERSION 1.5//sys/io.h and other modernizations
 
 enum
 {
@@ -52,6 +42,7 @@ enum
 #define TERMHGT 24
 
 #define KEY_TAB		9
+#define LOG "plcemu.log"
 
 enum
 {
@@ -163,16 +154,33 @@ struct PLC_regs
 
 struct PLC_regs plc;
 
-int Step,Sigenable,Pagewidth,Nt,Ns,Nm,Di,Dq,Base,Wr_offs,Rd_offs,Comedi_file,Comedi_subdev_i,Comedi_subdev_q;
+int Step;
+int Sigenable;
+int Pagewidth;
+int Nt;
+int Ns;
+int Nm;
+int Di;
+int Dq;
+int Base;
+int Wr_offs;
+int Rd_offs;
+int Comedi_file;
+int Comedi_subdev_i;
+int Comedi_subdev_q;
 const char Pipe[MAXSTR];
 const char Responsefile[MAXSTR];
+const char SimInFile[MAXSTR];
+const char SimOutFile[MAXSTR];
 const char Hw[MAXSTR];
-const char com_nick[MEDSTR][NICKLEN];///comments for up to 256 serial commands
 
+const char com_nick[MEDSTR][NICKLEN];///comments for up to 256 serial commands
 char Lines[MAXBUF][MAXSTR];///ladder lines
 int Lineno;	///actual no of active lines
 int Pos[MAXBUF];///cursor position in each line
 BYTE Val[MAXBUF];///current resolved value of each line. NEW: if it is final, set to 3.
 char Labels[MAXBUF][MAXSTR];
+FILE * ErrLog;
+void plclog(const char * msg, ...);
 
 #endif //_PLCEMU_H_

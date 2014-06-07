@@ -4,11 +4,6 @@
  *@file hardware.h
  *@brief hardware access functions
 */
-#ifdef USE_COMEDI
-    #include <comedilib.h>
-#else
-	#include <sys/io.h>
-#endif
 
 /**
  * @brief Enable bus communication
@@ -17,10 +12,23 @@
 int enable_bus();
 
 /**
- * @brief isable bus communication
+ * @brief Disable bus communication
  * @return error code
  */
 int disable_bus();
+
+/**
+ * @brief fetch all input bytes if necessary
+ * @return error code
+ */
+int dio_fetch(long timeout);
+
+/**
+ * @brief flush all output bytes if necessary
+ * @return error code
+ */
+int dio_flush();
+
 
 /**
  * @brief read digital input
