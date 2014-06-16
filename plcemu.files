@@ -26,6 +26,9 @@ doxyfile
 hardware-sim.c
 hardware-uspace.c
 hardware-comedi.c
+configure.ac
+ui-nc.c
+ui.h
 Makefile.in
 Makefile.am
-configure.ac
+ui-std.c

@@ -9,20 +9,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#include <stdarg.h>
+
 #define PRINTABLE_VERSION 1.5//sys/io.h and other modernizations
 
-enum
-{
-    PAGE_IO = 1,
-    PAGE_EXIT,
-    PAGE_EDIT,
-    PAGE_FILE,
-    PAGE_EDITMODE,
-    PAGE_HELP,
-    N_PAGES
-}PAGES;
-
+#define PLC_OK 0
+#define PLC_ERR -1
 #define MAXBUF 65536
 #define MAXSTR	1024
 #define MEDSTR	256
@@ -168,19 +159,20 @@ int Rd_offs;
 int Comedi_file;
 int Comedi_subdev_i;
 int Comedi_subdev_q;
-const char Pipe[MAXSTR];
-const char Responsefile[MAXSTR];
-const char SimInFile[MAXSTR];
-const char SimOutFile[MAXSTR];
-const char Hw[MAXSTR];
+char Pipe[MAXSTR];
+char Responsefile[MAXSTR];
+char SimInFile[MAXSTR];
+char SimOutFile[MAXSTR];
+char Hw[MAXSTR];
 
-const char com_nick[MEDSTR][NICKLEN];///comments for up to 256 serial commands
+char com_nick[MEDSTR][NICKLEN];///comments for up to 256 serial commands
 char Lines[MAXBUF][MAXSTR];///ladder lines
 int Lineno;	///actual no of active lines
 int Pos[MAXBUF];///cursor position in each line
 BYTE Val[MAXBUF];///current resolved value of each line. NEW: if it is final, set to 3.
 char Labels[MAXBUF][MAXSTR];
 FILE * ErrLog;
-void plclog(const char * msg, ...);
 
+void plc_log(const char * msg, ...);
+int plc_load_file(char * path);
 #endif //_PLCEMU_H_

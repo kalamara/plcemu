@@ -49,5 +49,15 @@ esac],[uspace=false])
 AM_CONDITIONAL([USPACE], [test x$uspace = xtrue])
 
 
+AC_ARG_ENABLE([ui],
+[  --disable-ui   user interface],
+[case "${enableval}" in
+  yes) ui=true ;;
+  no)  ui=false ;;
+  *) AC_MSG_ERROR([bad value ${enableval} for --enable-ui]) ;;
+esac],[ui=true])
+AM_CONDITIONAL([UI], [test x$ui = xtrue])
+
+
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

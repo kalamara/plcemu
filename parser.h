@@ -203,6 +203,13 @@ int minmin(const int *arr, const int min, const int max);
 int LD_task(struct PLC_regs * p);
 
 /**
+ * @brief IL main task
+ * @param pointer to PLC registers
+ * @return
+ */
+int IL_task(struct PLC_regs * p);
+
+/**
  * @brief push an opcode and a value into stack.
  * @param op
  * @param val

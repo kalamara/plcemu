@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include "plcemu.h"
 #include "plclib.h"
 #include "parser.h"
@@ -639,7 +640,9 @@ int parse_il_line(char * line, struct instruction * op, int pc)
 { //    line format:[label:]<operator>[<modifier>[%<operand><byte>[/<bit>]]|<label>][;comment]
 	char buf[MAXSTR];
 //	char tst[Pagewidth];
-	int i, byte, bit;
+    int i=0;
+    int byte=0;
+    int bit=0;
 	char * str;
 	char * cursor;
 	char op_buf[LABELLEN];

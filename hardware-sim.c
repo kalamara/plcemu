@@ -6,8 +6,8 @@
 
 FILE * Ifd = NULL;
 FILE * Qfd = NULL;
-BYTE * BufIn = NULL;
-BYTE * BufOut = NULL;
+char * BufIn = NULL;
+char * BufOut = NULL;
 
 int enable_bus() /* Enable bus communication */
 {
@@ -16,22 +16,22 @@ int enable_bus() /* Enable bus communication */
     if(!(Ifd=fopen(SimInFile, "r+")))
         r = -1;
     else
-        plclog("Opened simulation input");
+        plc_log("Opened simulation input");
 
     if(!(Qfd=fopen(SimOutFile, "w+")))
         r = -1;
     else
-        plclog("Opened simulation output");
+        plc_log("Opened simulation output");
 
-    if(!(BufIn = (BYTE * )malloc(sizeof(BYTE)*Di)))
+    if(!(BufIn = (char * )malloc(sizeof(char)*Di)))
         r = -1;
     else
         memset(BufIn, 0, sizeof(BYTE)*Di);
 
-    if(!(BufOut = (BYTE * )malloc(sizeof(BYTE)*Dq)))
+    if(!(BufOut = (char * )malloc(sizeof(char)*Dq)))
         r = -1;
     else
-        memset(BufOut, 0, sizeof(BYTE)*Dq);
+        memset(BufOut, 0, sizeof(char)*Dq);
     return r;
 }
 
@@ -64,7 +64,7 @@ int dio_fetch(long timeout)
     for(i = 0; i < bytesRead; i++)
         if(BufIn[i] >= ASCIISTART)
             BufIn[i] -= ASCIISTART;
-    //plclog("read %d bytes after %ld ms from %s", bytesRead, timeout, SimInFile);
+    //plc_log("read %d bytes after %ld ms from %s", bytesRead, timeout, SimInFile);
     if(bytesRead < Di)
     {
         disable_bus();
@@ -79,7 +79,7 @@ int dio_flush()
     bytesWrote = fwrite(BufOut, sizeof(BYTE), Dq, Qfd?Qfd:stdout);
     fputc('\n',Qfd?Qfd:stdout);
     fflush(Qfd);
-    //plclog("wrote %d bytes ms to %s:%s", bytesWrote, SimOutFile, BufOut);
+    //plc_log("wrote %d bytes ms to %s:%s", bytesWrote, SimOutFile, BufOut);
     return bytesWrote;
 }
 
@@ -104,7 +104,7 @@ void dio_write(const unsigned char *buf, const int n, const int bit)
     q |= bit << n % BYTESIZE;
     /*write a byte to output stream*/
     q+=ASCIISTART; //ASCII
-   // plclog("Send %d to byte %d", q, position);
+   // plc_log("Send %d to byte %d", q, position);
      if(strlen(BufOut) >= position)
          BufOut[position] = q;
 }

@@ -99,8 +99,6 @@ int q_len(char *s)
 int args(char *s)
 {
 	int l;
-	char *e;
-
 	arg_n = 0;
 	do
 	{
