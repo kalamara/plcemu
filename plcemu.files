@@ -32,3 +32,5 @@ ui.h
 Makefile.in
 Makefile.am
 ui-std.c
+parser-ld.c
+parser-il.c

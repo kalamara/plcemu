@@ -259,204 +259,311 @@ void init_emu()
 	PLC_init();
 }
 
+/**
+ * @brief extract alphanumeric variable name from file line starting
+ *at index start
+ * @in line
+ * @out name
+ * @param start
+ * @return index position
+ */
+int extract_name(const char* line, char* name, int start )
+{
+    int j = start;
+    int k = 0;
+    memset(name, 0, SMALLSTR);
+    while (isspace(line[j]))    //get name
+        j++;
+    while (isalpha(line[j])
+           && k < SMALLSTR
+           && j < MAXSTR)
+        name[k++] = line[j++];
+    return j;
+}
+
+/**
+ * @brief extract numeric index from file line starting
+ *at index start
+ * @in line
+ * @out name
+ * @param start
+ * @return index position
+ */
+int extract_index(const char* line, int idx, int start)
+{
+    char idx_str[SMALLSTR];
+    int j = start;
+    int k = 0;
+    memset(idx_str, 0, SMALLSTR);
+
+    while (isspace(line[j]))    //get index
+        j++;
+    while (isdigit(line[j])
+           && k < SMALLSTR
+           && j < MAXSTR)
+        idx_str[k++] = line[j++];
+    return atoi(idx_str);
+}
+
+
+/**
+ * @brief extract configuration value from file line starting
+ *at index start, drop comments
+ * @in line
+ * @out val
+ * @param start
+ * @return index position
+ */
+int extract_value( const char* line, char * val, int start)
+{
+    int k = 0;
+    int j = start;
+    memset(val, 0, SMALLSTR);
+    while (isspace(line[j]))    //get value
+        j++;
+
+    while(line[j] && k < 16
+       && line[j] != 10
+       && line[j] != 13
+       && line[j] != ';'
+       && line[j] != '\t'
+       && k < SMALLSTR
+       && j < MAXSTR)
+        val[k++] = line[j++];
+    return j;
+}
+
+int configure_input(const char* name,const int idx,const char* val)
+{
+    if (!strcmp(name, "I"))
+    {
+        if (idx >= BYTESIZE * Di)
+            return ERR_BADINDEX;
+        sprintf(plc.di[idx].nick, "%s", val);
+    }
+    return PLC_OK;
+}
+
+int configure_output(const char* name,const int idx,const char* val)
+{
+    if (!strcmp(name, "Q"))
+    {
+        if (idx >= BYTESIZE * Dq)
+            return ERR_BADINDEX;
+        sprintf(plc.dq[idx].nick, "%s", val);
+    }
+    return PLC_OK;
+}
+
+int configure_register(const char* name,const int idx,const char* val)
+{
+    if (!strcmp(name, "M"))
+    {
+        if (idx >= Nm)
+            return ERR_BADINDEX;
+        sprintf(plc.m[idx].nick, "%s", val);
+    }
+    return PLC_OK;
+}
+
+int configure_timer(const char* name,const int idx,const char* val)
+{
+    if (!strcmp(name, "T"))
+    {
+        if (idx >= Nt)
+            return ERR_BADINDEX;
+        sprintf(plc.t[idx].nick, "%s", val);
+    }
+    return PLC_OK;
+}
+
+int configure_blinker(const char* name,const int idx,const char* val)
+{
+    if (!strcmp(name, "B"))
+    {
+        if (idx >= Ns)
+            return ERR_BADINDEX;
+        sprintf(plc.s[idx].nick, "%s", val);
+    }
+    return PLC_OK;
+}
+
+int configure_serial(const char* name,const int idx,const char* val)
+{
+    if (!strcmp(name, "COM"))
+    {
+        if (idx >= MEDSTR)
+            return ERR_BADINDEX;
+        sprintf(com_nick[idx], "%s", val);
+    }
+    return PLC_OK;
+}
+
+int init_register(const char* name,const int idx,const char* val)
+{
+    if (!strcmp(name, "MEMORY"))
+    {
+        if (idx >= Nm)
+            return ERR_BADINDEX;
+        plc.m[idx].V = atol(val);
+    }
+    return PLC_OK;
+}
+
+int define_reg_direction(const char* name,const int idx,const char* val)
+{
+    if (!strcmp(name, "COUNT"))
+    {
+        if (idx >= Nm)
+            return ERR_BADINDEX;
+        if (!strcmp(val, "DOWN"))
+            plc.m[idx].DOWN = TRUE;
+        else
+            return ERR_BADOPERATOR;
+    }
+    return PLC_OK;
+}
+
+int define_reg_readonly(const char* name,const int idx,const char* val)
+{
+    if (!strcmp(name, "COUNTER"))
+    {
+        if (idx >= Nm)
+            return ERR_BADINDEX;
+        if (!strcmp(val, "OFF"))
+            plc.m[idx].RO = TRUE;
+        else
+            return ERR_BADOPERATOR;
+    }
+    return PLC_OK;
+}
+
+int init_timer_set(const char* name,const int idx,const char* val)
+{
+    if (!strcmp(name, "TIME"))
+    {
+        if (idx >= Nt)
+            return ERR_BADINDEX;
+        plc.t[idx].S = atoi(val);
+    }
+    return PLC_OK;
+}
+
+int init_timer_preset(const char* name,const int idx,const char* val)
+{
+    if (!strcmp(name, "PRESET"))
+    {
+        if (idx >= Nt)
+            return ERR_BADINDEX;
+        plc.t[idx].P = atoi(val);
+    }
+    return PLC_OK;
+}
+
+int init_timer_delay(const char* name,const int idx,const char* val)
+{
+    if (!strcmp(name, "DELAY"))
+    {
+        if (idx >= Nt)
+            return ERR_BADINDEX;
+        if (!strcmp(val, "ON"))
+            plc.t[idx].ONDELAY = TRUE;
+        else
+            return ERR_BADOPERAND;
+    }
+    return PLC_OK;
+}
+
+int init_blinker_set(const char* name,const int idx,const char* val)
+{
+    if (!strcmp(name, "BLINK"))
+    {
+        if (idx >= Ns)
+            return ERR_BADINDEX;
+        plc.s[idx].S = atoi(val);
+    }
+    return PLC_OK;
+}
+
 int plc_load_file(char * path)
 { //ini =1 if file is loaded initially, i.e. messages should be printf'd not draw_info_line'd
 	FILE * f;
-	char * tab;
-    char line[MAXSTR], name[SMALLSTR], val[NICKLEN],  idx_str[LABELLEN];
-	int idx, r, lineno, i, j, k, found_start = FALSE;
-	i = 0;
-	//TODO for instruction list:
+    char * tab = 0;
+    int idx = 0;
+    int r = 0;
+    int lineno=0;
+    int i=0;
+    int j=0;
+    int found_start = FALSE;
+    char line[MAXSTR], name[SMALLSTR], val[SMALLSTR];
     if ((f = fopen(path, "r")))
 	{
-		memset(line, 0, MAXSTR);
-		memset(name, 0, SMALLSTR);
-		memset(val, 0, NICKLEN);
+        memset(line, 0, MAXSTR);
 		disable_bus();
-
-		lineno = 0;
-		while (fgets(line, MEDSTR, f))
+        while (fgets(line, MAXSTR, f))
 		{    //read initialization values
-			if ((line[0] == 'L' && line[1] == 'D')
-					|| (line[0] == 'I' && line[1] == 'L'))
+            j = extract_name(line, name, j);
+            if(!strcmp(name, "LD")
+            || !strcmp(name, "IL"))
+            {
+                found_start = TRUE;
+                break;
+            }
+            /*if ((line[0] == 'L' && line[1] == 'D')
+                    || (line[0] == 'I' && line[1] == 'L'))
+
 			{    //or 'IL' for IL
 				found_start = TRUE;
-			}
-			else if (!found_start)
+            }
+            else*/ if (!found_start)
 			{
-				j = 0;
-				k = 0;
-				memset(name, 0, SMALLSTR);
-				memset(val, 0, NICKLEN);
-				memset(idx_str, 0, LABELLEN);
-				//read alpha characters
-				while (isspace(line[j]))    //ignore blanks
-					j++;
-				while (isalpha(line[j]))
-					name[k++] = line[j++];
-				k = 0;
-				while (isspace(line[j]))    //ignore blanks
-					j++;
-				while (isdigit(line[j]))
-					idx_str[k++] = line[j++];
-				while (isspace(line[j]))    //ignore blanks
-					j++;
-				k = 0;
-				while (line[j] && k < 16 && line[j] != 10 && line[j] != 13
-						&& line[j] != ';' && line[j] != '\t')
-					val[k++] = line[j++];
-				/*    	        	sscanf(line, "%s\t%s\t%s", name,idx_str, val);*/
-				idx = atoi(idx_str);
-				lineno++;
-				if (idx < 0)
-				{
-					r = ERR_BADINDEX;
-					break;
-				}
-				else if (!strcmp(name, "I"))
-				{
-					if (idx >= BYTESIZE * Di)
-					{
-						r = ERR_BADINDEX;
-						break;
-					}
-					sprintf(plc.di[idx].nick, "%s", val);
-				}
-				else if (!strcmp(name, "Q"))
-				{
-					if (idx >= BYTESIZE * Dq)
-					{
-						r = ERR_BADINDEX;
-						break;
-					}
-					sprintf(plc.dq[idx].nick, "%s", val);
-				}
-				else if (!strcmp(name, "M"))
-				{
-					if (idx >= Nm)
-					{
-						r = ERR_BADINDEX;
-						break;
-					}
-					sprintf(plc.m[idx].nick, "%s", val);
-				}
-				else if (!strcmp(name, "T"))
-				{
-					if (idx >= Nt)
-					{
-						r = ERR_BADINDEX;
-						break;
-					}
-					sprintf(plc.t[idx].nick, "%s", val);
-				}
-				else if (!strcmp(name, "B"))
-				{
-					if (idx >= Ns)
-					{
-						r = ERR_BADINDEX;
-						break;
-					}
-					sprintf(plc.s[idx].nick, "%s", val);
-				}
-				else if (!strcmp(name, "COM"))
-				{
-					if (idx >= MEDSTR)
-					{
-						r = ERR_BADINDEX;
-						break;
-					}
-					sprintf(com_nick[idx], "%s", val);
-				}
-				else if (!strcmp(name, "MEMORY"))
-				{
-					if (idx >= Nm)
-					{
-						r = ERR_BADINDEX;
-						break;
-					}
-					plc.m[idx].V = atol(val);
-				}
-				else if (!strcmp(name, "COUNT"))
-				{
-					if (idx >= Nm)
-					{
-						r = ERR_BADINDEX;
-						break;
-					}
-					if (!strcmp(val, "DOWN"))
-						plc.m[idx].DOWN = TRUE;
-					else
-					{
-						r = ERR_BADOPERATOR;
-						break;
-					}
-				}
-				else if (!strcmp(name, "COUNTER"))
-				{
-					if (idx >= Nm)
-					{
-						r = ERR_BADINDEX;
-						break;
-					}
-					if (!strcmp(val, "OFF"))
-						plc.m[idx].RO = TRUE;
-					else
-					{
-						r = ERR_BADOPERATOR;
-						break;
-					}
-				}
-				else if (!strcmp(name, "TIME"))
-				{
-					if (idx >= Nt)
-					{
-						r = ERR_BADINDEX;
-						break;
-					}
-					plc.t[idx].S = atoi(val);
-				}
-				else if (!strcmp(name, "PRESET"))
-				{
-					if (idx >= Nt)
-					{
-						r = ERR_BADINDEX;
-						break;
-					}
-					plc.t[idx].P = atoi(val);
-				}
-				else if (!strcmp(name, "DELAY"))
-				{
-					if (idx >= Nt)
-					{
-						r = ERR_BADINDEX;
-						break;
-					}
-					if (!strcmp(val, "ON"))
-						plc.t[idx].ONDELAY = TRUE;
-					else
-					{
-						r = ERR_BADOPERAND;
-						break;
-					}
-				}
-				else if (!strcmp(name, "BLINK"))
-				{
-					if (idx >= Ns)
-					{
-						r = ERR_BADINDEX;
-						break;
-					}
-					plc.s[idx].S = atoi(val);
-				}
-				else if (name[0] != ';' && isalnum(name[0]) != 0
-						&& strcmp(name, "LD"))
+                memset(name, 0, SMALLSTR);
+                memset(val, 0, NICKLEN);
+                idx = extract_index(line, idx, j);
+                if (idx < 0)
+                {
+                    r = ERR_BADINDEX;
+                    break;
+                }
+                extract_value( line, val, j);
+                lineno++;
+                if((r = configure_input(name, idx, val))<0)
+                    break;
+                if((r = configure_output(name, idx, val))<0)
+                    break;
+                if((r = configure_register(name, idx, val))<0)
+                    break;
+                if((r = configure_timer(name, idx, val))<0)
+                    break;
+                if((r = configure_blinker(name, idx, val))<0)
+                    break;
+                if((r = configure_serial(name, idx, val))<0)
+                    break;
+                if((r = init_register(name, idx, val))<0)
+                    break;
+                if((r = define_reg_direction(name, idx, val))<0)
+                    break;
+                if((r = define_reg_readonly(name, idx, val))<0)
+                    break;
+                if((r = init_timer_set(name, idx, val))<0)
+                    break;
+                if((r = init_timer_preset(name, idx, val))<0)
+                    break;
+                if((r = init_timer_delay(name, idx, val))<0)
+                    break;
+                if((r = init_blinker_set(name, idx, val))<0)
+                    break;
+                if (name[0] != ';'
+                        && isalnum(name[0]) != 0
+                        && strcmp(name, "LD")
+                        && strcmp(name, "IL"))
 				{
 					r = ERR_BADOPERAND;
 					break;
 				}
 			}
 			else
-			{
+            {//copy line
 				while (strchr(line, '\t') != NULL )    //tabs are not supported
 				{
 					tab = strchr(line, '\t');
@@ -465,7 +572,6 @@ int plc_load_file(char * path)
 				memset(Lines[i], 0, MAXSTR);
 				memset(Labels[i], 0, MAXSTR);
 				sprintf(Lines[i++], "%s", line);
-				//i++;
 			}
             r = PLC_OK;
 			memset(line, 0, MAXSTR);

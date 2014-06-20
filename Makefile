@@ -56,8 +56,8 @@ build_triplet = x86_64-unknown-linux-gnu
 host_triplet = x86_64-unknown-linux-gnu
 bin_PROGRAMS = plcemu$(EXEEXT)
 #NCURSES GUI
-#am__append_1 = ui-nc.c greek.c greek.h args.c args.h wselect.c wedit.h
-am__append_2 = ui-std.c
+am__append_1 = ui-nc.c greek.c greek.h args.c args.h wselect.c wedit.h
+#am__append_2 = ui-std.c
 #hardware modules supported
 am__append_3 = hardware-sim.c
 ##am__append_4 = hardware-uspace.c
@@ -82,9 +82,9 @@ am__plcemu_SOURCES_DIST = plcemu.c plcemu.h plclib.c plclib.h parser.c \
 	parser.h hardware.h ui.h project.h project.c ui-nc.c greek.c \
 	greek.h args.c args.h wselect.c wedit.h ui-std.c \
 	hardware-sim.c hardware-uspace.c hardware-comedi.c
-#am__objects_1 = ui-nc.$(OBJEXT) greek.$(OBJEXT) \
-#	args.$(OBJEXT) wselect.$(OBJEXT)
-am__objects_2 = ui-std.$(OBJEXT)
+am__objects_1 = ui-nc.$(OBJEXT) greek.$(OBJEXT) \
+	args.$(OBJEXT) wselect.$(OBJEXT)
+#am__objects_2 = ui-std.$(OBJEXT)
 am__objects_3 = hardware-sim.$(OBJEXT)
 ##am__objects_4 =  \
 ##	hardware-uspace.$(OBJEXT)

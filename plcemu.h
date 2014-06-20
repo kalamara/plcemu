@@ -10,7 +10,7 @@
 #include <string.h>
 #include <sys/types.h>
 
-#define PRINTABLE_VERSION 1.5//sys/io.h and other modernizations
+#define PRINTABLE_VERSION 1.6//independent modules
 
 #define PLC_OK 0
 #define PLC_ERR -1
