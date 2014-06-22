@@ -78,10 +78,11 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am__plcemu_SOURCES_DIST = plcemu.c plcemu.h plclib.c plclib.h parser.c \
-	parser.h hardware.h ui.h project.h project.c ui-nc.c greek.c \
-	greek.h args.c args.h wselect.c wedit.h ui-std.c \
-	hardware-sim.c hardware-uspace.c hardware-comedi.c
+am__plcemu_SOURCES_DIST = plcemu.c plcemu.h plclib.c plclib.h \
+	parser-il.c parser-ld.c parser.h hardware.h ui.h project.h \
+	project.c ui-nc.c greek.c greek.h args.c args.h wselect.c \
+	wedit.h ui-std.c hardware-sim.c hardware-uspace.c \
+	hardware-comedi.c
 @UI_TRUE@am__objects_1 = ui-nc.$(OBJEXT) greek.$(OBJEXT) \
 @UI_TRUE@	args.$(OBJEXT) wselect.$(OBJEXT)
 @UI_FALSE@am__objects_2 = ui-std.$(OBJEXT)
@@ -90,9 +91,10 @@ am__plcemu_SOURCES_DIST = plcemu.c plcemu.h plclib.c plclib.h parser.c \
 @SIMULATION_FALSE@@USPACE_TRUE@	hardware-uspace.$(OBJEXT)
 @SIMULATION_FALSE@@USPACE_FALSE@am__objects_5 =  \
 @SIMULATION_FALSE@@USPACE_FALSE@	hardware-comedi.$(OBJEXT)
-am_plcemu_OBJECTS = plcemu.$(OBJEXT) plclib.$(OBJEXT) parser.$(OBJEXT) \
-	project.$(OBJEXT) $(am__objects_1) $(am__objects_2) \
-	$(am__objects_3) $(am__objects_4) $(am__objects_5)
+am_plcemu_OBJECTS = plcemu.$(OBJEXT) plclib.$(OBJEXT) \
+	parser-il.$(OBJEXT) parser-ld.$(OBJEXT) project.$(OBJEXT) \
+	$(am__objects_1) $(am__objects_2) $(am__objects_3) \
+	$(am__objects_4) $(am__objects_5)
 plcemu_OBJECTS = $(am_plcemu_OBJECTS)
 plcemu_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@
@@ -246,10 +248,10 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CFLAGS = -Wall
-plcemu_SOURCES = plcemu.c plcemu.h plclib.c plclib.h parser.c parser.h \
-	hardware.h ui.h project.h project.c $(am__append_1) \
-	$(am__append_2) $(am__append_3) $(am__append_4) \
-	$(am__append_5)
+plcemu_SOURCES = plcemu.c plcemu.h plclib.c plclib.h parser-il.c \
+	parser-ld.c parser.h hardware.h ui.h project.h project.c \
+	$(am__append_1) $(am__append_2) $(am__append_3) \
+	$(am__append_4) $(am__append_5)
 all: all-am
 
 .SUFFIXES:
@@ -349,7 +351,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hardware-comedi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hardware-sim.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hardware-uspace.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parser.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parser-il.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parser-ld.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plcemu.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plclib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/project.Po@am__quote@

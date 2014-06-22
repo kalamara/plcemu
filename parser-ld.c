@@ -383,7 +383,6 @@ int resolve_lines(struct PLC_regs * p)
 //				sprintf(tst2,"LINE %d VALUE %d",i,Val[i]);
 //				strcat(tst,tst2);
 //				draw_info_line(4+Pagelen/2,tst);
-
 						if (Val[i] >= FINAL)
 						{
 							switch (type)
@@ -403,7 +402,6 @@ int resolve_lines(struct PLC_regs * p)
 								r = resolve_reset(p, operand, idx,
 										Val[i] & TRUE);
 								break;
-
 							}
 							Pos[i] = -FINAL;
 						}
@@ -453,13 +451,11 @@ int resolve_lines(struct PLC_regs * p)
 				Val[i] = FALSE;
 				return r;
 			}
-
 		}		//end while
 		if (Val[i] &= TRUE)
 			Lines[i][0] = '#';
 		else
 			Lines[i][0] = ' ';
-
 	}		//end for
 	/*(At this point, all lines have been resolved,or paused at a '+'*/
     return r;

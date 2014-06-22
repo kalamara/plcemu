@@ -674,70 +674,6 @@ int edit_page(int i)
     return (PAGE_EDIT);
 }
 
-int save_file(char * path)
-{
-	FILE * f;
-	int i;
-	//open file for writing
-	if ((f = fopen(path, "w")) == NULL )
-	{
-		return ERROR;
-	}
-	else
-	{
-		for (i = 0; i < Di * BYTESIZE; i++)
-		{
-			if (plc.di[i].nick[0] != 0)
-				fprintf(f, "I\t%d\t%s\t\n", i, plc.di[i].nick);
-		}
-		for (i = 0; i < Dq * BYTESIZE; i++)
-		{
-			if (plc.dq[i].nick[0] != 0)
-				fprintf(f, "Q\t%d\t%s\t\n", i, plc.dq[i].nick);
-		}
-
-		for (i = 0; i < Nm; i++)
-		{
-			if (plc.m[i].nick[0] != 0)
-				fprintf(f, "M\t%d\t%s\t\n", i, plc.m[i].nick);
-			if (plc.m[i].V > 0)
-                fprintf(f, "MEMORY\t%d\t%ld\t\n", i, plc.m[i].V);
-			if (plc.m[i].DOWN > 0)
-				fprintf(f, "COUNT\t%d\tDOWN\t\n", i);
-			if (plc.m[i].RO > 0)
-				fprintf(f, "COUNTER\t%d\tOFF\t\n", i);
-		}
-		for (i = 0; i < Nt; i++)
-		{
-			if (plc.t[i].nick[0] != 0)
-				fprintf(f, "T\t%d\t%s\t\n", i, plc.t[i].nick);
-			if (plc.t[i].S > 0)
-                fprintf(f, "TIME\t%d\t%ld\t\n", i, plc.t[i].S);
-			if (plc.t[i].P > 0)
-                fprintf(f, "PRESET\t%d\t%ld\t\n", i, plc.t[i].P);
-			if (plc.t[i].ONDELAY > 0)
-				fprintf(f, "DELAY\t%d\tON\t\n", i);
-		}
-		for (i = 0; i < Ns; i++)
-		{
-			if (plc.s[i].nick[0] != 0)
-				fprintf(f, "B\t%d\t%s\t\n", i, plc.s[i].nick);
-			if (plc.s[i].S > 0)
-                fprintf(f, "BLINK\t%d\t%ld\t\n", i, plc.s[i].S);
-		}
-		for (i = 0; i < MEDSTR; i++)
-		{
-			if (com_nick[i][0] != 0)
-				fprintf(f, "COM\t%d\t%s\t\n", i, com_nick[i]);
-		}
-		fprintf(f, "\n%s\n", "LD");
-		for (i = 0; i < Lineno; i++)
-			fprintf(f, "%s\n", Lines[i]);
-		fclose(f);
-	}
-    return 0;
-}
-
 int file_page()
 {
 	static int redraw = TRUE;
@@ -763,7 +699,7 @@ int file_page()
 		sprintf(path, "%s", buf);
 		if (SaveFlag)
 		{    //save to file
-			if (save_file(path) < 0)
+            if (plc_save_file(path) < 0)
 			{
 				draw_info_line(PageLen + 1, "Invalid filename!");
                 return PAGE_FILE;

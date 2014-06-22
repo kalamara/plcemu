@@ -6,7 +6,7 @@ AM_CFLAGS=-Wall
 
 bin_PROGRAMS=plcemu 
 
-plcemu_SOURCES= plcemu.c plcemu.h plclib.c plclib.h parser.c parser.h hardware.h ui.h project.h project.c
+plcemu_SOURCES= plcemu.c plcemu.h plclib.c plclib.h parser-il.c parser-ld.c parser.h hardware.h ui.h project.h project.c
 #NCURSES GUI
 if UI
 plcemu_SOURCES+= ui-nc.c greek.c greek.h args.c args.h wselect.c wedit.h

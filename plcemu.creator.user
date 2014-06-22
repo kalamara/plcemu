@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by Qt Creator 2.5.0, 2014-06-15T03:06:58. -->
+<!-- Written by Qt Creator 2.5.0, 2014-06-20T17:38:54. -->
 <qtcreator>
  <data>
   <variable>GenericProjectManager.GenericProject.Toolchain</variable>
@@ -166,7 +166,7 @@
      <value type="int">14</value>
     </valuelist>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments"></value>
-    <value type="int" key="ProjectExplorer.CustomExecutableRunConfiguration.BaseEnvironmentBase">1</value>
+    <value type="int" key="ProjectExplorer.CustomExecutableRunConfiguration.BaseEnvironmentBase">2</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Executable">/home/antonis/qlcemu/plcemu/plcemu</value>
     <value type="bool" key="ProjectExplorer.CustomExecutableRunConfiguration.UseTerminal">true</value>
     <valuelist type="QVariantList" key="ProjectExplorer.CustomExecutableRunConfiguration.UserEnvironmentChanges"/>

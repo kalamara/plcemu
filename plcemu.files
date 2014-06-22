@@ -5,7 +5,6 @@ greek.h
 hardware.h
 help
 init
-parser.c
 parser.h
 plcemu
 plcemu.c

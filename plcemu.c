@@ -485,7 +485,7 @@ int init_blinker_set(const char* name,const int idx,const char* val)
     return PLC_OK;
 }
 
-int plc_load_file(char * path)
+int plc_load_file(const char * path)
 { //ini =1 if file is loaded initially, i.e. messages should be printf'd not draw_info_line'd
 	FILE * f;
     char * tab = 0;
@@ -509,13 +509,7 @@ int plc_load_file(char * path)
                 found_start = TRUE;
                 break;
             }
-            /*if ((line[0] == 'L' && line[1] == 'D')
-                    || (line[0] == 'I' && line[1] == 'L'))
-
-			{    //or 'IL' for IL
-				found_start = TRUE;
-            }
-            else*/ if (!found_start)
+            if (!found_start)
 			{
                 memset(name, 0, SMALLSTR);
                 memset(val, 0, NICKLEN);
@@ -608,18 +602,245 @@ int plc_load_file(char * path)
         return PLC_OK;
 }
 
+int plc_save_file(const char *path)
+{
+    FILE * f;
+    int i;
+    //open file for writing
+    if ((f = fopen(path, "w")) == NULL )
+    {
+        return ERROR;
+    }
+    else
+    {
+        for (i = 0; i < Di * BYTESIZE; i++)
+        {
+            if (plc.di[i].nick[0] != 0)
+                fprintf(f, "I\t%d\t%s\t\n", i, plc.di[i].nick);
+        }
+        for (i = 0; i < Dq * BYTESIZE; i++)
+        {
+            if (plc.dq[i].nick[0] != 0)
+                fprintf(f, "Q\t%d\t%s\t\n", i, plc.dq[i].nick);
+        }
+
+        for (i = 0; i < Nm; i++)
+        {
+            if (plc.m[i].nick[0] != 0)
+                fprintf(f, "M\t%d\t%s\t\n", i, plc.m[i].nick);
+            if (plc.m[i].V > 0)
+                fprintf(f, "MEMORY\t%d\t%ld\t\n", i, plc.m[i].V);
+            if (plc.m[i].DOWN > 0)
+                fprintf(f, "COUNT\t%d\tDOWN\t\n", i);
+            if (plc.m[i].RO > 0)
+                fprintf(f, "COUNTER\t%d\tOFF\t\n", i);
+        }
+        for (i = 0; i < Nt; i++)
+        {
+            if (plc.t[i].nick[0] != 0)
+                fprintf(f, "T\t%d\t%s\t\n", i, plc.t[i].nick);
+            if (plc.t[i].S > 0)
+                fprintf(f, "TIME\t%d\t%ld\t\n", i, plc.t[i].S);
+            if (plc.t[i].P > 0)
+                fprintf(f, "PRESET\t%d\t%ld\t\n", i, plc.t[i].P);
+            if (plc.t[i].ONDELAY > 0)
+                fprintf(f, "DELAY\t%d\tON\t\n", i);
+        }
+        for (i = 0; i < Ns; i++)
+        {
+            if (plc.s[i].nick[0] != 0)
+                fprintf(f, "B\t%d\t%s\t\n", i, plc.s[i].nick);
+            if (plc.s[i].S > 0)
+                fprintf(f, "BLINK\t%d\t%ld\t\n", i, plc.s[i].S);
+        }
+        for (i = 0; i < MEDSTR; i++)
+        {
+            if (com_nick[i][0] != 0)
+                fprintf(f, "COM\t%d\t%s\t\n", i, com_nick[i]);
+        }
+        fprintf(f, "\n%s\n", "LD");
+        for (i = 0; i < Lineno; i++)
+            fprintf(f, "%s\n", Lines[i]);
+        fclose(f);
+    }
+    return 0;
+}
+
+int read_inputs(long timeout)
+{
+    int i=0;
+    int n=0;
+    int j=0;
+    int i_changed=0;
+    BYTE i_bit = 0;
+    dio_fetch(timeout);
+    for (i = 0; i < Di; i++)
+    {	//for each input byte
+        plc.inputs[i] = 0;
+        for (j = 0; j < BYTESIZE; j++)
+        {	//read n bit into in
+            n = i * BYTESIZE + j;
+            i_bit = 0;
+            dio_read(n, &i_bit);
+            plc.inputs[i] |= i_bit << j;
+        }	//mask them
+        plc.inputs[i] = (plc.inputs[i] | plc.maskin[i]) & ~plc.maskin_N[i];
+        if (plc.inputs[i] != pOld->inputs[i])
+            i_changed = TRUE;
+        plc.edgein[i] = (plc.inputs[i]) ^ (pOld->inputs[i]);
+    }
+    return i_changed;
+}
+
+int manage_timers()
+{
+    int i=0;
+    int t_changed = 0;
+    for (i = 0; i < Nt; i++)
+    {
+        if (plc.t[i].V < plc.t[i].P && plc.t[i].START)
+        {
+            if (plc.t[i].sn < plc.t[i].S)
+                plc.t[i].sn++;
+            else
+            {
+                t_changed = TRUE;
+                plc.t[i].V++;
+                plc.t[i].sn = 0;
+            }
+            plc.t[i].Q = (plc.t[i].ONDELAY) ? 0 : 1;	//on delay
+        }
+        else if (plc.t[i].START)
+        {
+            plc.t[i].Q = (plc.t[i].ONDELAY) ? 1 : 0;	//on delay
+        }
+    }
+    return t_changed;
+}
+
+int manage_blinkers()
+{
+    int s_changed=0;
+    int i=0;
+    for (i = 0; i < Ns; i++)
+    {
+        if (plc.s[i].S > 0)
+        {	//if set up
+            if (plc.s[i].sn > plc.s[i].S)
+            {
+                s_changed = TRUE;
+                plc.s[i].Q = (plc.s[i].Q) ? 0 : 1;	//toggle
+                plc.s[i].sn = 0;
+            }
+            else
+                plc.s[i].sn++;
+        }
+    }
+    return s_changed;
+}
+
+//manage serial comm
+void manage_com()
+{
+    BYTE com[2];
+    if (read(PlcCom[0].fd, com, 2))
+    {
+        if (com[0] == 0)
+            com[0] = 0;	//NOP
+        else
+            plc.command = com[0] - ASCIISTART;
+        plc_log("LAST command:%d, %s", plc.command,
+               com_nick[com[0] - ASCIISTART]);
+    }
+}
+
+int write_outputs()
+{
+    int j=0;
+    int n=0;
+    int q_bit=0;
+    int o_changed=0;
+    int i=0;
+    for (i = 0; i < Dq; i++)
+    {	//write masked outputs
+        plc.outputs[i] = (plc.outputs[i] | plc.maskout[i])
+                & ~plc.maskout_N[i];
+        for (j = 0; j < BYTESIZE; j++)
+        {	//write n bit out
+            n = BYTESIZE * i + j;
+            q_bit = (plc.outputs[i] >> j) % 2;
+            dio_write(plc.outputs, n, q_bit);
+        }
+        if (plc.outputs[i] != pOld->outputs[i])
+            o_changed = TRUE;
+    }
+    return o_changed;
+}
+
+int check_pulses()
+{
+    int m_changed=0;
+    int i=0;
+    for (i = 0; i < Nm; i++)	//check counter pulses
+    {
+        if (plc.m[i].PULSE != pOld->m[i].PULSE)
+        {
+            plc.m[i].EDGE = TRUE;
+            m_changed = TRUE;
+        }
+    }
+    return m_changed;
+}
+
+int save_state(int t_changed, int m_changed, int o_changed, int s_changed, int i_changed)
+{
+    int update = FALSE;
+    if (i_changed)
+    {
+//draw_info_line(4+PageLen/2," Input changed!");
+        memcpy(pOld->inputs, plc.inputs, Di);
+        update = TRUE;
+    }
+    if (o_changed)
+    {
+//draw_info_line(4+PageLen/2," Output changed!");
+        memcpy(pOld->outputs, plc.outputs, Dq);
+        update = TRUE;
+    }
+    if (m_changed)
+    {
+        memcpy(pOld->m, plc.m, Nm * sizeof(struct mvar));
+        update = TRUE;
+
+    }
+    if (t_changed)
+    {
+        memcpy(pOld->t, plc.t, Nt * sizeof(struct timer));
+        update = TRUE;
+
+    }
+    if (s_changed)
+    {
+        memcpy(pOld->s, plc.s, Ns * sizeof(struct blink));
+        update = TRUE;
+    }
+    return update;
+}
+
+void write_response()
+{
+    int rfd = 0; //response file descriptor
+    rfd = open(Responsefile, O_NONBLOCK | O_WRONLY);
+    write(rfd, &(plc.response), 1);
+    close(rfd);
+    plc.response = 0;
+}
+
 int plc_func(int daemon)
 {
 	struct timeval tp, tn, dt;
     static long timeout = 0;
-    BYTE i_bit = 0;
-    BYTE com[2];
-    int q_bit = 0;
-    int n=0;
-    int i=0;
-    int j=0;
 	int written=FALSE;
-	int rfd = 0; //response file descriptor
     int r = PLC_OK;
 	int i_changed = FALSE;
 	int o_changed = FALSE;
@@ -630,58 +851,12 @@ int plc_func(int daemon)
     dt.tv_sec = 0;
     dt.tv_usec = 0;
 	if ((plc.status) % 2)    //run
-	{    //read inputs
-        dio_fetch(timeout);
-        for (i = 0; i < Di; i++)
-		{	//for each input byte
-            plc.inputs[i] = 0;
-			for (j = 0; j < BYTESIZE; j++)
-			{	//read n bit into in
-				n = i * BYTESIZE + j;
-				i_bit = 0;
-                dio_read(n, &i_bit);
-				plc.inputs[i] |= i_bit << j;
-			}	//mask them
-			plc.inputs[i] = (plc.inputs[i] | plc.maskin[i]) & ~plc.maskin_N[i];
-			if (plc.inputs[i] != pOld->inputs[i])
-				i_changed = TRUE;
-            plc.edgein[i] = (plc.inputs[i]) ^ (pOld->inputs[i]);
-        }
-		//manage timers
-        for (i = 0; i < Nt; i++)
-		{
-            if (plc.t[i].V < plc.t[i].P && plc.t[i].START)
-			{
-				if (plc.t[i].sn < plc.t[i].S)
-					plc.t[i].sn++;
-				else
-				{
-					t_changed = TRUE;
-					plc.t[i].V++;
-					plc.t[i].sn = 0;
-				}
-				plc.t[i].Q = (plc.t[i].ONDELAY) ? 0 : 1;	//on delay
-			}
-			else if (plc.t[i].START)
-			{
-				plc.t[i].Q = (plc.t[i].ONDELAY) ? 1 : 0;	//on delay
-            }
-		}
-		for (i = 0; i < Ns; i++)
-		{
-            if (plc.s[i].S > 0)
-			{	//if set up
-				if (plc.s[i].sn > plc.s[i].S)
-				{
-					s_changed = TRUE;
-					plc.s[i].Q = (plc.s[i].Q) ? 0 : 1;	//toggle
-					plc.s[i].sn = 0;
-				}
-				else
-					plc.s[i].sn++;
-            }
-		}
+    {
+        i_changed = read_inputs(timeout);
+        t_changed = manage_timers();
+        s_changed = manage_blinkers();
         read_mvars(&plc);
+
 //poll on plcpipe for command, for max STEP msecs
         gettimeofday(&tn,NULL);	//how much time passed for previous cycle?
         timeval_subtract(&dt, &tn, &T);
@@ -692,18 +867,9 @@ int plc_func(int daemon)
 //plc_log("Poll time approx:%d milliseconds",dt.tv_usec/1000);
         gettimeofday(&tp, NULL);	//how much time did poll wait?
         timeval_subtract(&dt, &tp, &tn);
-		if (written)
-        {//manage serial comm
-            if (read(PlcCom[0].fd, com, 2))
-			{
-				if (com[0] == 0)
-					com[0] = 0;	//NOP
-				else
-					plc.command = com[0] - ASCIISTART;
-                plc_log("LAST command:%d, %s", plc.command,
-                       com_nick[com[0] - ASCIISTART]);
-            }
-		}
+
+        if (written)
+            manage_com();
 		else if (written == 0)
 			plc.command = 0;
 		else
@@ -725,71 +891,16 @@ int plc_func(int daemon)
 
         enc_out(&plc);
 		plc.response = Response;
-
 		plc.command = 0;
-		for (i = 0; i < Dq; i++)
-		{	//write masked outputs
-            plc.outputs[i] = (plc.outputs[i] | plc.maskout[i])
-					& ~plc.maskout_N[i];
-			for (j = 0; j < BYTESIZE; j++)
-			{	//write n bit out
-				n = BYTESIZE * i + j;
-				q_bit = (plc.outputs[i] >> j) % 2;
-                dio_write(plc.outputs, n, q_bit);
-            }
-			if (plc.outputs[i] != pOld->outputs[i])
-                o_changed = TRUE;
-		}
+
+        o_changed = write_outputs();
         dio_flush();
-		for (i = 0; i < Nm; i++)	//check counter pulses
-        {
-            if (plc.m[i].PULSE != pOld->m[i].PULSE)
-			{
-				plc.m[i].EDGE = TRUE;
-				m_changed = TRUE;
-            }
-		}
+        m_changed = check_pulses();
         write_mvars(&plc);
-		if (i_changed)
-		{
-//draw_info_line(4+PageLen/2," Input changed!");
-            memcpy(pOld->inputs, plc.inputs, Di);
-			Update = TRUE;
-            i_changed = FALSE;
-		}
-		if (o_changed)
-		{
-//draw_info_line(4+PageLen/2," Output changed!");
-            memcpy(pOld->outputs, plc.outputs, Dq);
-			Update = TRUE;
-            o_changed = FALSE;
-		}
-		if (m_changed)
-        {
-            memcpy(pOld->m, plc.m, Nm * sizeof(struct mvar));
-			Update = TRUE;
-            m_changed = FALSE;
-		}
-		if (t_changed)
-        {
-            memcpy(pOld->t, plc.t, Nt * sizeof(struct timer));
-			Update = TRUE;
-            t_changed = FALSE;
-		}
-		if (s_changed)
-        {
-            memcpy(pOld->s, plc.s, Ns * sizeof(struct blink));
-			Update = TRUE;
-            s_changed = FALSE;
-		}
+        Update = save_state(t_changed, m_changed, o_changed, s_changed, i_changed);
 		//write out response
 		if (plc.response)
-        {
-            rfd = open(Responsefile, O_NONBLOCK | O_WRONLY);
-            write(rfd, &(plc.response), 1);
-            close(rfd);
-            plc.response = 0;
-		}
+            write_response();
 	}
     else
     {
@@ -798,6 +909,12 @@ int plc_func(int daemon)
     }
     return r;
 }
+
+const char * Usage = "Usage: plcemu [-i program file] [-c config file] [-d] \n \
+        Options:\n \
+        -i loads initially a text file with initialization values and LD/IL program, \n \
+        -c uses a configuration file other than plc.config \n \
+        -d runs PLC-EMU as daemon \n";
 
 int main(int argc, char **argv)
 {
@@ -822,12 +939,7 @@ int main(int argc, char **argv)
 				if ((strcmp(argv[i], "-i") && strcmp(argv[i], "-c"))
 						|| argc == i + 1)
 				{
-					printf(
-							"Usage: plcemu [-i program file] [-c config file] [-d] \n\
-Options:\n\
--i loads initially a text file with initialization values and LD/IL program, \n\
--c uses a configuration file other than plc.config \n\
--d runs PLC-EMU as daemon \n");
+                    printf(Usage);
                     return PLC_ERR;
 				}
 			}

@@ -174,5 +174,6 @@ char Labels[MAXBUF][MAXSTR];
 FILE * ErrLog;
 
 void plc_log(const char * msg, ...);
-int plc_load_file(char * path);
+int plc_load_file(const char * path);
+int plc_save_file(const char * path);
 #endif //_PLCEMU_H_
