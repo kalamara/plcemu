@@ -1,0 +1,135 @@
+Function 'configure'
+Lines executed:100.00% of 100
+No branches
+No calls
+
+Function 'save_config_yml'
+Lines executed:0.00% of 23
+Branches executed:0.00% of 10
+Taken at least once:0.00% of 10
+Calls executed:0.00% of 13
+
+Function 'emit'
+Lines executed:100.00% of 3
+No branches
+No calls
+
+Function 'load_config_yml'
+Lines executed:0.00% of 19
+Branches executed:0.00% of 6
+Taken at least once:0.00% of 6
+Calls executed:0.00% of 10
+
+Function 'process'
+Lines executed:100.00% of 37
+Branches executed:100.00% of 17
+Taken at least once:94.12% of 17
+Calls executed:100.00% of 6
+
+Function 'process_scalar'
+Lines executed:95.00% of 20
+Branches executed:100.00% of 12
+Taken at least once:91.67% of 12
+Calls executed:100.00% of 5
+
+Function 'find_config_var'
+Lines executed:80.00% of 5
+Branches executed:100.00% of 4
+Taken at least once:75.00% of 4
+No calls
+
+Function 'store_seq_value'
+Lines executed:70.83% of 48
+Branches executed:87.10% of 31
+Taken at least once:61.29% of 31
+Calls executed:100.00% of 1
+
+Function 'store_value'
+Lines executed:100.00% of 48
+Branches executed:100.00% of 23
+Taken at least once:100.00% of 23
+Calls executed:100.00% of 25
+
+Function 'log_yml_event'
+Lines executed:19.23% of 26
+Branches executed:100.00% of 12
+Taken at least once:8.33% of 12
+Calls executed:8.33% of 12
+
+Function 'clear_config'
+Lines executed:100.00% of 21
+Branches executed:100.00% of 18
+Taken at least once:50.00% of 18
+No calls
+
+Function 'init_config'
+Lines executed:100.00% of 24
+No branches
+Calls executed:100.00% of 8
+
+Function 'config_aq_vars'
+Lines executed:100.00% of 7
+Branches executed:100.00% of 2
+Taken at least once:100.00% of 2
+No calls
+
+Function 'config_ai_vars'
+Lines executed:100.00% of 7
+Branches executed:100.00% of 2
+Taken at least once:100.00% of 2
+No calls
+
+Function 'config_dq_vars'
+Lines executed:100.00% of 7
+Branches executed:100.00% of 2
+Taken at least once:100.00% of 2
+No calls
+
+Function 'config_di_vars'
+Lines executed:100.00% of 7
+Branches executed:100.00% of 2
+Taken at least once:100.00% of 2
+No calls
+
+Function 'config_reg_vars'
+Lines executed:100.00% of 7
+Branches executed:100.00% of 2
+Taken at least once:100.00% of 2
+No calls
+
+Function 'config_mem_vars'
+Lines executed:100.00% of 7
+Branches executed:100.00% of 2
+Taken at least once:100.00% of 2
+No calls
+
+Function 'config_pulse_vars'
+Lines executed:100.00% of 7
+Branches executed:100.00% of 2
+Taken at least once:100.00% of 2
+No calls
+
+Function 'config_timer_vars'
+Lines executed:100.00% of 7
+Branches executed:100.00% of 2
+Taken at least once:100.00% of 2
+No calls
+
+Function 'yaml_parser_error'
+Lines executed:16.13% of 31
+Branches executed:45.45% of 11
+Taken at least once:9.09% of 11
+Calls executed:12.50% of 8
+
+Function 'yaml_config_error'
+Lines executed:0.00% of 2
+No branches
+No calls
+
+File 'config.c'
+Lines executed:76.89% of 463
+Branches executed:83.75% of 160
+Taken at least once:61.88% of 160
+Calls executed:53.41% of 88
+Creating 'config.c.gcov'
+

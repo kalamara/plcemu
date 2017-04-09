@@ -1,0 +1,101 @@
+STEP:         100      #time cycle in milliseconds
+PIPE:         plcpipe  #UNIX path of named pipe polled for commands
+
+NT:         16                #number of timers
+NS:         16                #number of blinking timers
+NR:         6                 #number of internal real variables
+
+#hardware
+HW:         STDI/O          #just a text tag that appears in a footer
+NDI:         4               #number of bytes of digital inputs
+NDQ:         4               #number of bytes of digital outputs
+NAI:      1                   #number of input analog channels
+NAQ:      1                   #number of output analog channels
+
+
+#user space interface:
+USPACE: 
+    USPACE_BASE:         50176             #hardware address base
+    USPACE_WR:        4                #write offset
+    USPACE_RD:        0                #read offset
+
+
+#COMEDI interface:
+COMEDI: 
+    COMEDI_FILE:     0  #device and subdevice nodes of comedi driver.
+    COMEDI_SUBDEV: 
+        SUBDEV_IN:  0    #Digital inputs
+        SUBDEV_OUT: 1    #Digital Outputs
+        SUBDEV_ADC: 2    #Analog inputs
+        SUBDEV_DAC: 3    #Analog outputs
+
+
+#SIMULATION IO
+SIM: 
+    SIM_INPUT:   sim.in
+    SIM_OUTPUT:  sim.out
+
+
+MVAR:
+ - INDEX :     0    
+   ID    :     N
+   VALUE :     1.0
+ - INDEX :     1    
+   ID    : MEAN
+ - INDEX :     2    
+   ID    : M2
+ - INDEX :     3    
+   ID    : DELTA
+ - INDEX :     4    
+   ID    : ONE
+   VALUE :      1.0
+
+AI: 
+ - INDEX :     0    
+   ID    :    INPUT
+   MIN   :    0.0
+   MAX   :   24.0
+
+AQ:
+ - INDEX :     0    
+   ID:         OUTPUT
+   MIN:        0.0
+   MAX:        10.0
+
+IL:       "knuth.il"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

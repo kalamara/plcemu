@@ -1,10 +1,10 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.69])
-AC_INIT(plcemu, 1.5, kalamara@users.sourceforge.net)
-AM_INIT_AUTOMAKE(plcemu, 1.5)
-AC_CONFIG_SRCDIR([wedit2.c])
+AC_PREREQ([2.68])
+AC_INIT(plcemu, 2.0, kalamara@users.sourceforge.net)
+AM_INIT_AUTOMAKE
+AC_CONFIG_SRCDIR([src/plcemu.c])
 
 # Checks for programs.
 AC_PROG_CC
@@ -19,12 +19,14 @@ AC_CHECK_LIB(m, floor)
 AC_CHECK_LIB(ncurses, init_pair)
 #  a function in `-lcomedi':
 AC_CHECK_LIB(comedi, comedi_close)
-# Checks for header files.
+#  a function in `-lyaml':
+AC_CHECK_LIB(yaml, yaml_parser_initialize)
 
+# Checks for header files.
 AC_CHECK_HEADERS([fcntl.h stdlib.h string.h, comedi.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
-AC_CHECK_HEADER_STDBOOL
+#AC_CHECK_HEADER_STDBOOL
 
 # Checks for library functions.
 AC_FUNC_MALLOC

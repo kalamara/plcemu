@@ -1,0 +1,30 @@
+DI:
+    -Index: 0
+    Identifier:    A    
+    -Index: 1
+    Identifier:    B    
+    -Index: 2
+    Identifier:    C        
+ 
+DQ:
+    -Index: 0
+    Identifier:    RESULT
+
+TIMER:
+    -Index: 1
+    Resolution: 10
+    Preset: 10
+            
+
+PULSE:
+    -Index: 1    
+    Resolution: 100    
+
+
+# triple majority circuit
+# https://en.wikipedia.org/wiki/Triple_modular_redundancy
+
+LD: |
+ "i0---i1----+---------(Q0 
+  i2---i0----+ 
+  i1---i2----+" 

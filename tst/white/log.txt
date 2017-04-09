@@ -1,0 +1,55 @@
+In file included from ut-vm.c:17:0:
+ut-lib.h: In function ‘ut_st_discrete’:
+ut-lib.h:489:14: προειδοποίηση: variable ‘acc’ set but not used [-Wunused-but-set-variable]
+In file included from ut-vm.c:18:0:
+ut-il.h: In function ‘ut_arguments’:
+ut-il.h:162:25: προειδοποίηση: unknown escape sequence: '\%' [enabled by default]
+ut-il.h:166:25: προειδοποίηση: unknown escape sequence: '\%' [enabled by default]
+ut-il.h:170:25: προειδοποίηση: unknown escape sequence: '\%' [enabled by default]
+ut-il.h:175:25: προειδοποίηση: unknown escape sequence: '\%' [enabled by default]
+ut-il.h:182:25: προειδοποίηση: unknown escape sequence: '\%' [enabled by default]
+ut-il.h:189:25: προειδοποίηση: unknown escape sequence: '\%' [enabled by default]
+ut-il.h:196:25: προειδοποίηση: unknown escape sequence: '\%' [enabled by default]
+plclib.c: In function ‘operate’:
+plclib.c:374:7: προειδοποίηση: unused variable ‘modularize’ [-Wunused-variable]
+plclib.c: In function ‘handle_jmp’:
+plclib.c:514:15: σφάλμα: invalid operands to binary == (have ‘union accdata’ and ‘int’)
+plclib.c: At top level:
+plclib.c:523:17: σφάλμα: expected ‘;’, ‘,’ or ‘)’ before ‘unsigned’
+plclib.c: In function ‘handle_st’:
+plclib.c:665:20: σφάλμα: invalid operands to binary - (have ‘int’ and ‘data_t’)
+plclib.c:671:13: προειδοποίηση: passing argument 2 of ‘st_out’ makes integer from pointer without a cast [enabled by default]
+plclib.c:601:5: σημείωση: expected ‘uint64_t’ but argument is of type ‘data_t’
+plclib.c:675:54: σφάλμα: invalid operands to binary % (have ‘data_t’ and ‘int’)
+plclib.c:681:13: προειδοποίηση: passing argument 2 of ‘st_mem’ makes integer from pointer without a cast [enabled by default]
+plclib.c:626:5: σημείωση: expected ‘uint64_t’ but argument is of type ‘data_t’
+plclib.c: In function ‘handle_ld’:
+plclib.c:879:18: σφάλμα: incompatible types when assigning to type ‘union accdata’ from type ‘int’
+plclib.c:889:13: προειδοποίηση: passing argument 2 of ‘ld_re’ from incompatible pointer type [enabled by default]
+plclib.c:720:5: σημείωση: expected ‘unsigned char *’ but argument is of type ‘uint64_t *’
+plclib.c:895:13: προειδοποίηση: passing argument 2 of ‘ld_fe’ from incompatible pointer type [enabled by default]
+plclib.c:734:5: σημείωση: expected ‘unsigned char *’ but argument is of type ‘uint64_t *’
+plclib.c: In function ‘handle_stackable’:
+plclib.c:937:9: σφάλμα: incompatible type for argument 3 of ‘push’
+plclib.c:461:5: σημείωση: expected ‘data_t’ but argument is of type ‘union accdata’
+plclib.c:941:9: προειδοποίηση: passing argument 2 of ‘handle_ld’ from incompatible pointer type [enabled by default]
+plclib.c:836:5: σημείωση: expected ‘data_t’ but argument is of type ‘unsigned char *’
+plclib.c:942:9: σφάλμα: incompatible type for argument 3 of ‘operate’
+plclib.c:368:8: σημείωση: expected ‘data_t’ but argument is of type ‘union accdata’
+plclib.c:942:9: προειδοποίηση: passing argument 4 of ‘operate’ makes pointer from integer without a cast [enabled by default]
+plclib.c:368:8: σημείωση: expected ‘data_t’ but argument is of type ‘unsigned char’
+plclib.c: In function ‘instruct’:
+plclib.c:1024:3: σφάλμα: incompatible type for argument 1 of ‘pop’
+plclib.c:480:8: σημείωση: expected ‘data_t’ but argument is of type ‘union accdata’
+plclib.c:1044:29: προειδοποίηση: passing argument 2 of ‘handle_set’ makes pointer from integer without a cast [enabled by default]
+../../../src/vm/plclib.h:454:5: σημείωση: expected ‘data_t’ but argument is of type ‘int’
+plclib.c:1044:29: σφάλμα: incompatible type for argument 3 of ‘handle_set’
+../../../src/vm/plclib.h:454:5: σημείωση: expected ‘unsigned char’ but argument is of type ‘union accdata’
+plclib.c:1050:32: προειδοποίηση: passing argument 2 of ‘handle_reset’ makes pointer from integer without a cast [enabled by default]
+plclib.c:562:5: σημείωση: expected ‘data_t’ but argument is of type ‘int’
+plclib.c:1050:32: σφάλμα: incompatible type for argument 3 of ‘handle_reset’
+plclib.c:562:5: σημείωση: expected ‘unsigned char’ but argument is of type ‘union accdata’
+plclib.c:1057:9: σφάλμα: incompatible type for argument 2 of ‘handle_st’
+plclib.c:651:5: σημείωση: expected ‘data_t’ but argument is of type ‘union accdata’
+make[1]: *** [plclib.o] Error 1
+make: *** [il] Error 2

@@ -1,37 +1,40 @@
 # Makefile for PLCEMU
 # (c) 2014
 
-AM_CFLAGS=-Wall
+AM_CFLAGS=-Wall -I./src -I./src/vm -I./src/ui -I./src/hw
 
 
 bin_PROGRAMS=plcemu 
 
-plcemu_SOURCES= plcemu.c plcemu.h plclib.c plclib.h parser-il.c parser-ld.c parser.h hardware.h ui.h project.h project.c
+plcemu_SOURCES= src/plcemu.c src/plcemu.h \
+                src/config.c src/config.h \
+                src/util.c src/util.h \
+                src/vm/plclib.c src/vm/plclib.h \
+                src/vm/parser-il.c src/vm/parser-il.h \
+                src/vm/parser-ld.c src/vm/parser-ld.h \
+                src/vm/parser-tree.c src/vm/parser-tree.h \
+                src/vm/codegen.c src/vm/codegen.h \
+                src/vm/init.c src/vm/init.h \
+                src/hw/hardware.h \
+                src/ui/ui.h \
+                src/project.h src/project.c
 #NCURSES GUI
 if UI
-plcemu_SOURCES+= ui-nc.c greek.c greek.h args.c args.h wselect.c wedit.h
+plcemu_SOURCES+= src/ui/ui-nc.c src/ui/greek.c src/ui/greek.h \
+                 src/ui/args.c src/ui/args.h src/ui/wselect.c src/ui/wedit.h
 else
-plcemu_SOURCES+= ui-std.c
+plcemu_SOURCES+= src/ui/ui-std.c
 endif
 #hardware modules supported
 if SIMULATION
-plcemu_SOURCES+=hardware-sim.c
+plcemu_SOURCES+=src/hw/hardware-sim.c
 else 
 if USPACE
-plcemu_SOURCES+=hardware-uspace.c
+plcemu_SOURCES+=src/hw/hardware-uspace.c
 else
-plcemu_SOURCES+=hardware-comedi.c
+plcemu_SOURCES+=src/hw/hardware-comedi.c
 endif
 endif
-
-#testhw_SOURCES=testhw.c hardware.h plcemu.h
-#testil_SOURCES=
-#teststack_SOURCES=
-
-ui-nc.o: ui-nc.c ui.h
-hardware-comedi.o: hardware-comedi.c hardware.h
-hardware-uspace.o: hardware-uspace.c hardware.h
-hardware-sim.o: hardware-sim.c hardware.h
 
 nodes:; mknod plcpipe p; mknod plcresponse p; 
 
