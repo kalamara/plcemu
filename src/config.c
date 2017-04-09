@@ -257,26 +257,39 @@ config_t init_config(){
 void clear_config(config_t *c){
 
     if (*c != NULL){
-        if((*c)->aouts != NULL)
+        if((*c)->aouts != NULL){
             free((*c)->aouts);
-        if((*c)->ainps != NULL)
+            (*c)->aouts = NULL;
+        }
+        if((*c)->ainps != NULL){
             free((*c)->ainps);
-        if((*c)->douts != NULL)
+            (*c)->ainps = NULL; 
+        }
+        if((*c)->douts != NULL){
             free((*c)->douts);
-        if((*c)->dinps != NULL)
+            (*c)->douts = NULL;
+        }    
+        if((*c)->dinps != NULL){
             free((*c)->dinps);
-        
-        if((*c)->mvars != NULL)
+            (*c)->dinps = NULL;
+        }
+        if((*c)->mvars != NULL){
             free((*c)->mvars);
-        if((*c)->mregs != NULL)
+            (*c)->mvars = NULL;
+        }    
+        if((*c)->mregs != NULL){
             free((*c)->mregs);
-        if((*c)->timers != NULL)
+            (*c)->mregs = NULL;
+        }
+        if((*c)->timers != NULL){
             free((*c)->timers);
-        if((*c)->pulses != NULL)
+            (*c)->timers = NULL;
+        }
+        if((*c)->pulses != NULL){
             free((*c)->pulses);
-        
+            (*c)->pulses = NULL;
+        }
         free(*c);
-    
     }
     *c = NULL;    
 }
@@ -603,36 +616,36 @@ int process(int sequence,
 int load_config_yml(const char * filename, config_t conf) {
     yaml_parser_t parser;
     
-	FILE * fcfg;
-	char path[MAXSTR];
+    FILE * fcfg;
+    char path[MAXSTR];
 
     memset(path, 0, MAXSTR);
-	sprintf(path, "%s", filename);
-	
-	memset(&parser, 0, sizeof(parser));
-	
-	int r = PLC_OK;
+    sprintf(path, "%s", filename);
+    
+    memset(&parser, 0, sizeof(parser));
+    
+    int r = PLC_OK;
     
     if (!yaml_parser_initialize(&parser)) {
         yaml_parser_error(parser);
         return PLC_ERR;    
     }
     if ((fcfg = fopen(path, "r"))) {
-	    plc_log("Looking for configuration from %s ...", path);
-	    yaml_parser_set_input_file(&parser, fcfg);
-	    r = process(PLC_ERR, &parser, conf);
-	    if(r < PLC_OK)
-	        plc_log( "Configuration error ");
-		fclose(fcfg);
-	} else {
-	    r = PLC_ERR;
-	    plc_log("Could not open file %s", filename);
-	}
+        plc_log("Looking for configuration from %s ...", path);
+        yaml_parser_set_input_file(&parser, fcfg);
+        r = process(PLC_ERR, &parser, conf);
+        if(r < PLC_OK)
+            plc_log( "Configuration error ");
+        fclose(fcfg);
+    } else {
+        r = PLC_ERR;
+        plc_log("Could not open file %s", filename);
+    }
     yaml_parser_delete(&parser);
     return r;
 }
 
-yaml_event_t generate_events()
+yaml_event_t generate_events();
 
 int emit(yaml_emitter_t *emitter, const config_t conf) {
     int r = PLC_OK;         
@@ -648,40 +661,40 @@ int save_config_yml(const char * filename, const config_t conf) {
     yaml_event_t event;
     
     FILE * fcfg;
-	char path[MAXSTR];
+    char path[MAXSTR];
     int r = PLC_OK;
     
     memset(path, 0, MAXSTR);
-	sprintf(path, "%s", filename);
+    sprintf(path, "%s", filename);
 
-	if(!yaml_emitter_initialize(&emitter)){
-	    return PLC_ERR;    
-	}
-	if ((fcfg = fopen(path, "wb"))) {
-	     plc_log("Save configuration to %s ...", path);
-	     
-	     yaml_emitter_set_output_file(&emitter, fcfg);
-	     yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);
-	     
-	     r = yaml_emitter_emit(&emitter, &event);
-	     
-	     if(r)
-	        r = emit(&emitter, conf);
-	     if(r){
-	        yaml_stream_end_event_initialize(&event);
-	        r = yaml_emitter_emit(&emitter, &event);   
-	     }
-	        
-	     if(r < PLC_OK)
-	        plc_log( "Configuration error ");
-	        
-		 fclose(fcfg);
-	} else {
-	    r = PLC_ERR;
-	    plc_log("Could not open file %s for write", filename);
-	}
-	yaml_emitter_delete(&emitter);
-	return r;
+    if(!yaml_emitter_initialize(&emitter)){
+        return PLC_ERR;    
+    }
+    if ((fcfg = fopen(path, "wb"))) {
+         plc_log("Save configuration to %s ...", path);
+         
+         yaml_emitter_set_output_file(&emitter, fcfg);
+         yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);
+         
+         r = yaml_emitter_emit(&emitter, &event);
+         
+         if(r)
+            r = emit(&emitter, conf);
+         if(r){
+            yaml_stream_end_event_initialize(&event);
+            r = yaml_emitter_emit(&emitter, &event);   
+         }
+            
+         if(r < PLC_OK)
+            plc_log( "Configuration error ");
+            
+         fclose(fcfg);
+    } else {
+        r = PLC_ERR;
+        plc_log("Could not open file %s for write", filename);
+    }
+    yaml_emitter_delete(&emitter);
+    return r;
 }
 
 
@@ -697,23 +710,23 @@ void configure(const config_t conf, plc_t plc){
     plc->nm = conf->nm;
     plc->nmr = conf->nr;
     
-	sprintf(plc->hw, "%s", conf->hw);
-	
+    sprintf(plc->hw, "%s", conf->hw);
+    
     plc->inputs = (BYTE *) malloc(plc->ni);
     plc->outputs = (BYTE *) malloc(plc->nq);
-	plc->edgein = (BYTE *) malloc(plc->ni);
-	plc->maskin = (BYTE *) malloc(plc->ni);
-	plc->maskout = (BYTE *) malloc(plc->nq);
-	plc->maskin_N = (BYTE *) malloc(plc->ni);
+    plc->edgein = (BYTE *) malloc(plc->ni);
+    plc->maskin = (BYTE *) malloc(plc->ni);
+    plc->maskout = (BYTE *) malloc(plc->nq);
+    plc->maskin_N = (BYTE *) malloc(plc->ni);
     plc->maskout_N = (BYTE *) malloc(plc->nq);
     plc->real_in = (uint64_t *) malloc(conf->ai * sizeof(uint64_t));
     plc->real_out = (uint64_t *) malloc(conf->aq * sizeof(uint64_t));
-	plc->mask_ai = (double *) malloc(conf->ai * sizeof(double));
+    plc->mask_ai = (double *) malloc(conf->ai * sizeof(double));
     plc->mask_aq = (double *) malloc(conf->aq * sizeof(double));
-	plc->di = (di_t) malloc(
-			BYTESIZE * plc->ni * sizeof(struct digital_input));
-	plc->dq = (do_t) malloc(
-			BYTESIZE * plc->nq * sizeof(struct digital_output));
+    plc->di = (di_t) malloc(
+            BYTESIZE * plc->ni * sizeof(struct digital_input));
+    plc->dq = (do_t) malloc(
+            BYTESIZE * plc->nq * sizeof(struct digital_output));
     
     plc->t = (dt_t) malloc(plc->nt * sizeof(struct timer));
     plc->s = (blink_t) malloc(plc->ns * sizeof(struct blink));
@@ -721,31 +734,31 @@ void configure(const config_t conf, plc_t plc){
     plc->mr = (mreal_t) malloc(plc->nmr * sizeof(struct mreal));
    
     plc->ai = (aio_t) malloc(
-			 conf->ai * sizeof(struct analog_io));
-	plc->aq = (aio_t) malloc(
-			 conf->aq * sizeof(struct analog_io));
+             conf->ai * sizeof(struct analog_io));
+    plc->aq = (aio_t) malloc(
+             conf->aq * sizeof(struct analog_io));
    
     memset(plc->real_in, 0, plc->nai*sizeof(uint64_t));
-	memset(plc->real_out, 0, plc->naq*sizeof(uint64_t));
+    memset(plc->real_out, 0, plc->naq*sizeof(uint64_t));
     memset(plc->inputs, 0, plc->ni);
-	memset(plc->outputs, 0, plc->nq);
+    memset(plc->outputs, 0, plc->nq);
     memset(plc->maskin, 0, plc->ni);
-	memset(plc->maskout, 0, plc->nq);
-	memset(plc->maskin_N, 0, plc->ni);
-	memset(plc->maskout_N, 0, plc->nq);
-	
+    memset(plc->maskout, 0, plc->nq);
+    memset(plc->maskin_N, 0, plc->ni);
+    memset(plc->maskout_N, 0, plc->nq);
+    
     memset(plc->mask_ai, 0, plc->nai * sizeof(double));
-	memset(plc->mask_aq, 0, plc->naq * sizeof(double));
+    memset(plc->mask_aq, 0, plc->naq * sizeof(double));
     
     memset(plc->di, 0, BYTESIZE * plc->ni * sizeof(struct digital_input));
-	memset(plc->dq, 0, BYTESIZE * plc->nq * sizeof(struct digital_output));
+    memset(plc->dq, 0, BYTESIZE * plc->nq * sizeof(struct digital_output));
     memset(plc->t, 0, plc->nt * sizeof(struct timer));
-	memset(plc->s, 0, plc->ns * sizeof(struct blink));
+    memset(plc->s, 0, plc->ns * sizeof(struct blink));
     memset(plc->m, 0, plc->nm * sizeof(struct mvar));
     memset(plc->mr, 0, plc->nmr * sizeof(struct mreal));
 
     plc_t p_old=NULL;
-	p_old = (plc_t) malloc(sizeof(struct PLC_regs));
+    p_old = (plc_t) malloc(sizeof(struct PLC_regs));
 
     p_old->ni = conf->di;
     p_old->nq = conf->dq;
@@ -756,51 +769,51 @@ void configure(const config_t conf, plc_t plc){
     p_old->nm = conf->nm;
     p_old->nmr = conf->nr;
     
-	p_old->inputs = (BYTE *) malloc(conf->di);
-	p_old->outputs = (BYTE *) malloc(conf->dq);
-	p_old->maskin = (BYTE *) malloc(conf->di);
-	p_old->edgein = (BYTE *) malloc(conf->di);
-	p_old->maskout = (BYTE *) malloc(conf->dq);
-	p_old->maskin_N = (BYTE *) malloc(conf->di);
-	p_old->maskout_N = (BYTE *) malloc(conf->dq);
-	p_old->di = (di_t) malloc(
-			BYTESIZE * conf->di * sizeof(struct digital_input));
-	p_old->dq = (do_t) malloc(
-			BYTESIZE * conf->dq * sizeof(struct digital_output));
-	p_old->t = (dt_t) malloc(conf->nt * sizeof(struct timer));
-	p_old->s = (blink_t) malloc(conf->ns * sizeof(struct blink));
-	p_old->m = (mvar_t) malloc(conf->nm * sizeof(struct mvar));
+    p_old->inputs = (BYTE *) malloc(conf->di);
+    p_old->outputs = (BYTE *) malloc(conf->dq);
+    p_old->maskin = (BYTE *) malloc(conf->di);
+    p_old->edgein = (BYTE *) malloc(conf->di);
+    p_old->maskout = (BYTE *) malloc(conf->dq);
+    p_old->maskin_N = (BYTE *) malloc(conf->di);
+    p_old->maskout_N = (BYTE *) malloc(conf->dq);
+    p_old->di = (di_t) malloc(
+            BYTESIZE * conf->di * sizeof(struct digital_input));
+    p_old->dq = (do_t) malloc(
+            BYTESIZE * conf->dq * sizeof(struct digital_output));
+    p_old->t = (dt_t) malloc(conf->nt * sizeof(struct timer));
+    p_old->s = (blink_t) malloc(conf->ns * sizeof(struct blink));
+    p_old->m = (mvar_t) malloc(conf->nm * sizeof(struct mvar));
     p_old->mr = (mreal_t) malloc(conf->nr * sizeof(struct mreal));
     
     
     p_old->real_in = (uint64_t *) malloc(conf->ai * sizeof(uint64_t));
     p_old->real_out = (uint64_t *) malloc(conf->aq * sizeof(uint64_t));
-	p_old->mask_ai = (double *) malloc(conf->ai * sizeof(double));
+    p_old->mask_ai = (double *) malloc(conf->ai * sizeof(double));
     p_old->mask_aq = (double *) malloc(conf->aq * sizeof(double));
     p_old->ai = (aio_t) malloc(
-			 conf->ai * sizeof(struct analog_io));
-	p_old->aq = (aio_t) malloc(
-			 conf->aq * sizeof(struct analog_io));
+             conf->ai * sizeof(struct analog_io));
+    p_old->aq = (aio_t) malloc(
+             conf->aq * sizeof(struct analog_io));
     
-	p_old->di = (di_t) malloc(
-			BYTESIZE * plc->ni * sizeof(struct digital_input));
-	p_old->dq = (do_t) malloc(
-			BYTESIZE * plc->nq * sizeof(struct digital_output));
+    p_old->di = (di_t) malloc(
+            BYTESIZE * plc->ni * sizeof(struct digital_input));
+    p_old->dq = (do_t) malloc(
+            BYTESIZE * plc->nq * sizeof(struct digital_output));
     
-	memcpy(p_old->inputs, plc->inputs, conf->di);
-	memcpy(p_old->outputs, plc->outputs, conf->dq);
-	memset(p_old->real_in, 0, plc->nai*sizeof(uint64_t));
-	memset(p_old->real_out, 0, plc->naq*sizeof(uint64_t));
-	
-	memcpy(p_old->m, plc->m, conf->nm * sizeof(struct mvar));
+    memcpy(p_old->inputs, plc->inputs, conf->di);
+    memcpy(p_old->outputs, plc->outputs, conf->dq);
+    memset(p_old->real_in, 0, plc->nai*sizeof(uint64_t));
+    memset(p_old->real_out, 0, plc->naq*sizeof(uint64_t));
+    
+    memcpy(p_old->m, plc->m, conf->nm * sizeof(struct mvar));
     memcpy(p_old->mr, plc->mr, conf->nr * sizeof(struct mreal));
     memcpy(p_old->t, plc->t, conf->nt * sizeof(struct timer));
     memcpy(p_old->s, plc->s, conf->ns * sizeof(struct blink));
     
     plc->old = p_old;
-	plc->command = 0;
-	plc->status = ST_RUNNING;
-	plc->step = conf->step;
-	plc->response_file = conf->response_file;
+    plc->command = 0;
+    plc->status = ST_RUNNING;
+    plc->step = conf->step;
+    plc->response_file = conf->response_file;
 }
 

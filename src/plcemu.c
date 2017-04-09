@@ -23,7 +23,7 @@ struct PLC_regs Plc;
 char com_nick[MEDSTR][COMMLEN];///comments for up to 256 serial commands
 
 char Lines[MAXBUF][MAXSTR];///program lines
-int Lineno;	///actual no of active lines
+int Lineno;    ///actual no of active lines
 int UiReady=FALSE;
 BYTE Update=FALSE;
 
@@ -43,21 +43,21 @@ typedef enum {
 }ERRORMESSAGES;
 
 const char ErrMsg[N_ERRMSG][MEDSTR] = {
- 		"Something went terribly wrong!",
-		"Invalid Symbol!",
-		"Wrong File!",
-		"Invalid Operand!",
-		"Invalid Numeric!",
-		"Invalid Output!",
-		"Invalid Command!",
-		"Timeout!",
-		"Stack overflow!"
+        "Something went terribly wrong!",
+        "Invalid Symbol!",
+        "Wrong File!",
+        "Invalid Operand!",
+        "Invalid Numeric!",
+        "Invalid Output!",
+        "Invalid Command!",
+        "Timeout!",
+        "Stack overflow!"
 };
 
 const char LangStr[3][TINYSTR] ={
- 	"Ladder Diagram",
-	"Instruction List",
-	"Structured Text"
+     "Ladder Diagram",
+    "Instruction List",
+    "Structured Text"
 };
 
 
@@ -89,12 +89,12 @@ void init_emu(const config_t conf, plc_t plc) {
     
     Update = TRUE;
     
-	signal(conf->sigenable, sigenable);
-	signal(SIGINT, sigkill);
-	signal(SIGTERM, sigkill);
-	
-	project_init();
-	open_pipe(conf->pipe, plc);
+    signal(conf->sigenable, sigenable);
+    signal(SIGINT, sigkill);
+    signal(SIGTERM, sigkill);
+    
+    project_init();
+    open_pipe(conf->pipe, plc);
 }
 
 int load_program_file(const char * path, plc_t plc) {
@@ -119,8 +119,8 @@ int load_program_file(const char * path, plc_t plc) {
        
         while (fgets(line, MAXSTR, f)) {
             memset(Lines[i], 0, MAXSTR);
-		    sprintf(Lines[i++], "%s", line);
-		}
+            sprintf(Lines[i++], "%s", line);
+        }
         r = PLC_OK;
     } 
     if(r > PLC_ERR)
@@ -132,25 +132,25 @@ int load_program_file(const char * path, plc_t plc) {
     return r;
 }
 /*
-    {	
-	if(r >= PLC_OK)
-	if (r < 0) {
-		switch (r){
-		case ERR_BADFILE:
+    {    
+    if(r >= PLC_OK)
+    if (r < 0) {
+        switch (r){
+        case ERR_BADFILE:
             plc_log( "Failed to open source file");
-			break;
-	    case ERR_BADPROG:
-	        plc_log( "Failed to parse code");
-			break;
-		default:
-			break;
-		}
-		return PLC_ERR;
-	}
+            break;
+        case ERR_BADPROG:
+            plc_log( "Failed to parse code");
+            break;
+        default:
+            break;
+        }
+        return PLC_ERR;
+    }
 }
 */
 int plc_load_file(const char * path) { 
-	FILE * f;
+    FILE * f;
     char * tab = 0;
     int idx = 0;
     int r = 0;
@@ -166,13 +166,13 @@ int plc_load_file(const char * path) {
         memset(line, 0, MAXSTR);
         memset(name, 0, SMALLSTR);
         memset(val, 0, NICKLEN);
-		disable_bus();
+        disable_bus();
         while (fgets(line, MAXSTR, f)){    //read initialization values
             j = extract_name(line, name, 0);
             if(ld || il)
                 found_start = TRUE;
             if (!found_start){
-			    ld = !strcmp(name, "LD");
+                ld = !strcmp(name, "LD");
                 il = !strcmp(name, "IL");
                
                 if (j < 0)
@@ -238,51 +238,51 @@ int plc_load_file(const char * path) {
                 && !isspace(name[0])
                 && !isblank(name[0])
                 && name[0] != 0){
-					r = ERR_BADOPERAND;
-					break;
-				}
-			}
-			else {//copy line
-			    while (strchr(line, '\t') != NULL ){
-			    //tabs are not supported
-					tab = strchr(line, '\t');
-					*tab = '.';
-				}
-				memset(Lines[i], 0, MAXSTR);
-				sprintf(Lines[i++], "%s", line);
-			}
+                    r = ERR_BADOPERAND;
+                    break;
+                }
+            }
+            else {//copy line
+                while (strchr(line, '\t') != NULL ){
+                //tabs are not supported
+                    tab = strchr(line, '\t');
+                    *tab = '.';
+                }
+                memset(Lines[i], 0, MAXSTR);
+                sprintf(Lines[i++], "%s", line);
+            }
             r = PLC_OK;
-			memset(line, 0, MAXSTR);
-			memset(name, 0, SMALLSTR);
-		}
-		enable_bus();
-		fclose(f);
-		Lineno = i;
-		plc_log("Successfully loaded %d lines of %s code from %s", 
-		i, ld?"LD":"IL", path);
-		
-		if(ld)
-		    r = parse_ld_program(Lines, &Plc);
-		else
-		    r = parse_il_program(Lines, &Plc);
-		
-	}
-	else
-		r = ERR_BADFILE;
-//	printf(msg,"");
-	if (r < 0){
-		switch (r){
-		case ERR_BADFILE:
+            memset(line, 0, MAXSTR);
+            memset(name, 0, SMALLSTR);
+        }
+        enable_bus();
+        fclose(f);
+        Lineno = i;
+        plc_log("Successfully loaded %d lines of %s code from %s", 
+        i, ld?"LD":"IL", path);
+        
+        if(ld)
+            r = parse_ld_program(Lines, &Plc);
+        else
+            r = parse_il_program(Lines, &Plc);
+        
+    }
+    else
+        r = ERR_BADFILE;
+//    printf(msg,"");
+    if (r < 0){
+        switch (r){
+        case ERR_BADFILE:
             plc_log( "Invalid filename:!");
-			break;
-	
-		default:
-			break;
-		}
-		return PLC_ERR;
-	}
-	else{
-	    char dump[MAXSTR * MAXBUF];
+            break;
+    
+        default:
+            break;
+        }
+        return PLC_ERR;
+    }
+    else{
+        char dump[MAXSTR * MAXBUF];
         memset(dump, 0, MAXBUF * MAXSTR);
         dump_rung(Plc.rungs[0], dump);
         printf("%s", dump); 
@@ -411,8 +411,8 @@ int main(int argc, char **argv)
     int more = 0;
     char * confstr = "config.yml";
     config_t conf = init_config();
-	char * cvalue = NULL;
-	opterr = 0;
+    char * cvalue = NULL;
+    opterr = 0;
     int c;
     while ((c = getopt (argc, argv, "hc:")) != PLC_ERR)
         switch (c) {
@@ -444,10 +444,10 @@ int main(int argc, char **argv)
     if(cvalue == NULL)
        cvalue = confstr;
        
-	if (load_config_yml(cvalue, conf) < PLC_OK) {
-		plc_log("Invalid configuration file %s\n", cvalue);
+    if (load_config_yml(cvalue, conf) < PLC_OK) {
+        plc_log("Invalid configuration file %s\n", cvalue);
         return PLC_ERR;
-	}
+    }
 
     init_emu(conf, &Plc);
    
@@ -468,11 +468,11 @@ int main(int argc, char **argv)
                 Plc.status = 0;
             }
         }
-	}
+    }
     
-	disable_bus();
-	clear_config(&conf);
-	close_log();
-	ui_end();
+    disable_bus();
+    clear_config(&conf);
+    close_log();
+    ui_end();
     return 0;
 }

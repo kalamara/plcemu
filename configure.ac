@@ -4,6 +4,7 @@
 AC_PREREQ([2.68])
 AC_INIT(plcemu, 2.0, kalamara@users.sourceforge.net)
 AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_SRCDIR([src/plcemu.c])
 
 # Checks for programs.
