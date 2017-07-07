@@ -256,577 +256,722 @@
 255:       10:  239:    conf-&gt;sigenable = 36;
 256:       10:  240:    conf-&gt;page_width = 80;
 257:       10:  241:    conf-&gt;page_len = 24;
-258:        -:  242://hardware    
-259:       10:  243:    conf-&gt;base = ADVANTECH_HISTORICAL_BASE;
-260:       10:  244:    conf-&gt;wr_offs = 0;
-261:       10:  245:    conf-&gt;rd_offs = 8;
-262:       10:  246:    conf-&gt;comedi_file = 0;
-263:       10:  247:    conf-&gt;comedi_subdev_i = 0;
-264:       10:  248:    conf-&gt;comedi_subdev_q = 1;
-265:       10:  249:    conf-&gt;comedi_subdev_ai = 2;
-266:       10:  250:    conf-&gt;comedi_subdev_aq = 3;
-267:        -:  251://polling    
-268:       10:  252:    conf-&gt;step = 1;
-269:        -:  253:    
-270:       10:  254:    return conf;
-271:        -:  255:}
-272:        -:  256:
-273:function clear_config called 6 returned 1000locks executed 100%
-274:        6:  257:void clear_config(config_t *c){
-275:        -:  258:
-276:        6:  259:    if (*c != NULL){
-277:        6:  260:        if((*c)-&gt;aouts != NULL)
-278:        6:  261:            free((*c)-&gt;aouts);
-279:        6:  262:        if((*c)-&gt;ainps != NULL)
-280:        6:  263:            free((*c)-&gt;ainps);
-281:        6:  264:        if((*c)-&gt;douts != NULL)
-282:        6:  265:            free((*c)-&gt;douts);
-283:        6:  266:        if((*c)-&gt;dinps != NULL)
-284:        6:  267:            free((*c)-&gt;dinps);
-285:        -:  268:        
-286:        6:  269:        if((*c)-&gt;mvars != NULL)
-287:        6:  270:            free((*c)-&gt;mvars);
-288:        6:  271:        if((*c)-&gt;mregs != NULL)
-289:        6:  272:            free((*c)-&gt;mregs);
-290:        6:  273:        if((*c)-&gt;timers != NULL)
-291:        6:  274:            free((*c)-&gt;timers);
-292:        6:  275:        if((*c)-&gt;pulses != NULL)
-293:        6:  276:            free((*c)-&gt;pulses);
-294:        -:  277:        
-295:        6:  278:        free(*c);
-296:        -:  279:    
-297:        -:  280:    }
-298:        6:  281:    *c = NULL;    
-299:        6:  282:}
-300:        -:  283:
-301:function log_yml_event called 2 returned 1000locks executed 19%
-302:        2:  284:int log_yml_event(yaml_event_t event){
-303:        -:  285:
-304:        2:  286:    switch(event.type){ 
-305:        -:  287:    
-306:        2:  288:        case YAML_NO_EVENT: plc_log("No event!"); 
-307:        2:  289:            break;
-308:        -:  290:    /* Stream start/end */
-309:<font color=red>    #####:  291:        case YAML_STREAM_START_EVENT: plc_log("STREAM START"); </font>
-310:<font color=red>    #####:  292:            break;</font>
-311:<font color=red>    #####:  293:        case YAML_STREAM_END_EVENT: plc_log("STREAM END");   </font>
-312:<font color=red>    #####:  294:            break;</font>
-313:        -:  295:    /* Block delimeters */
-314:<font color=red>    #####:  296:        case YAML_DOCUMENT_START_EVENT: plc_log("Start Document"); </font>
-315:<font color=red>    #####:  297:            break;</font>
-316:<font color=red>    #####:  298:        case YAML_DOCUMENT_END_EVENT: plc_log("End Document");   </font>
-317:<font color=red>    #####:  299:            break;</font>
-318:<font color=red>    #####:  300:        case YAML_SEQUENCE_START_EVENT: plc_log("Start Sequence"); </font>
-319:<font color=red>    #####:  301:            break;</font>
-320:<font color=red>    #####:  302:        case YAML_SEQUENCE_END_EVENT: plc_log("End Sequence");</font>
-321:<font color=red>    #####:  303:            break;</font>
-322:<font color=red>    #####:  304:        case YAML_MAPPING_START_EVENT: plc_log("Start Mapping");         </font>
-323:<font color=red>    #####:  305:            break;</font>
-324:<font color=red>    #####:  306:        case YAML_MAPPING_END_EVENT: plc_log("End Mapping");      </font>
-325:<font color=red>    #####:  307:            break;</font>
-326:        -:  308:    /* Data */
-327:<font color=red>    #####:  309:        case YAML_ALIAS_EVENT:  plc_log("Got alias (anchor )", event.data.alias.anchor); </font>
-328:<font color=red>    #####:  310:            break;</font>
-329:<font color=red>    #####:  311:        case YAML_SCALAR_EVENT: plc_log("Got scalar (value )", event.data.scalar.value); </font>
-330:        -:  312:        
-331:<font color=red>    #####:  313:        break;</font>
-332:        -:  314:        default:
-333:<font color=red>    #####:  315:            plc_log("default?");</font>
-334:        -:  316:    }
-335:        2:  317:    return PLC_OK;
-336:        -:  318:}
-337:        -:  319:
-338:function store_value called 66 returned 1000locks executed 100%
-339:       66:  320:int store_value(BYTE key, const char * value, config_t * c){
-340:       66:  321:    switch(key){
-341:        -:  322:        case CONFIG_HW:
-342:        4:  323:            strncpy((*c)-&gt;hw, value, MAXSTR);
-343:        4:  324:            break;
-344:        -:  325:        case CONFIG_PIPE:
-345:        2:  326:            strncpy((*c)-&gt;pipe, value, MAXSTR);
-346:        2:  327:            break;    
-347:        -:  328:        case CONFIG_STEP:
-348:        4:  329:            (*c)-&gt;step = atol(value);
-349:        4:  330:            break;
-350:        -:  331:        case CONFIG_USPACE_BASE:
-351:        2:  332:            (*c)-&gt;base = atol(value);
-352:        2:  333:            break;
-353:        -:  334:        case CONFIG_USPACE_WR:
-354:        2:  335:            (*c)-&gt;wr_offs = atoi(value);
-355:        2:  336:            break;
-356:        -:  337:        case CONFIG_USPACE_RD:
-357:        2:  338:            (*c)-&gt;rd_offs = atoi(value);
-358:        2:  339:            break;                
-359:        -:  340:        case CONFIG_COMEDI_FILE:
-360:        4:  341:            (*c)-&gt;comedi_file = atoi(value);
-361:        4:  342:            break;
-362:        -:  343:        case CONFIG_SUBDEV_IN:
-363:        4:  344:            (*c)-&gt;comedi_subdev_i = atol(value);
-364:        4:  345:            break;
-365:        -:  346:        case CONFIG_SUBDEV_OUT:
-366:        4:  347:            (*c)-&gt;comedi_subdev_q = atol(value);
+258:        -:  242://hardware
+259:       10:  243:    sprintf(conf-&gt;hw, "", "STDI/O"); //simulation is default    
+260:       10:  244:    conf-&gt;base = ADVANTECH_HISTORICAL_BASE;
+261:       10:  245:    conf-&gt;wr_offs = 0;
+262:       10:  246:    conf-&gt;rd_offs = 8;
+263:       10:  247:    conf-&gt;comedi_file = 0;
+264:       10:  248:    conf-&gt;comedi_subdev_i = 0;
+265:       10:  249:    conf-&gt;comedi_subdev_q = 1;
+266:       10:  250:    conf-&gt;comedi_subdev_ai = 2;
+267:       10:  251:    conf-&gt;comedi_subdev_aq = 3;
+268:        -:  252://polling    
+269:       10:  253:    conf-&gt;step = 1;
+270:       10:  254:    sprintf(conf-&gt;pipe, "", "plcpipe");
+271:       10:  255:    return conf;
+272:        -:  256:}
+273:        -:  257:
+274:function clear_config called 6 returned 1000locks executed 100%
+275:        6:  258:void clear_config(config_t *c){
+276:        -:  259:
+277:        6:  260:    if (*c != NULL){
+278:        6:  261:        if((*c)-&gt;aouts != NULL){
+279:        6:  262:            free((*c)-&gt;aouts);
+280:        6:  263:            (*c)-&gt;aouts = NULL;
+281:        -:  264:        }
+282:        6:  265:        if((*c)-&gt;ainps != NULL){
+283:        6:  266:            free((*c)-&gt;ainps);
+284:        6:  267:            (*c)-&gt;ainps = NULL; 
+285:        -:  268:        }
+286:        6:  269:        if((*c)-&gt;douts != NULL){
+287:        6:  270:            free((*c)-&gt;douts);
+288:        6:  271:            (*c)-&gt;douts = NULL;
+289:        -:  272:        }    
+290:        6:  273:        if((*c)-&gt;dinps != NULL){
+291:        6:  274:            free((*c)-&gt;dinps);
+292:        6:  275:            (*c)-&gt;dinps = NULL;
+293:        -:  276:        }
+294:        6:  277:        if((*c)-&gt;mvars != NULL){
+295:        6:  278:            free((*c)-&gt;mvars);
+296:        6:  279:            (*c)-&gt;mvars = NULL;
+297:        -:  280:        }    
+298:        6:  281:        if((*c)-&gt;mregs != NULL){
+299:        6:  282:            free((*c)-&gt;mregs);
+300:        6:  283:            (*c)-&gt;mregs = NULL;
+301:        -:  284:        }
+302:        6:  285:        if((*c)-&gt;timers != NULL){
+303:        6:  286:            free((*c)-&gt;timers);
+304:        6:  287:            (*c)-&gt;timers = NULL;
+305:        -:  288:        }
+306:        6:  289:        if((*c)-&gt;pulses != NULL){
+307:        6:  290:            free((*c)-&gt;pulses);
+308:        6:  291:            (*c)-&gt;pulses = NULL;
+309:        -:  292:        }
+310:        6:  293:        free(*c);
+311:        -:  294:    }
+312:        6:  295:    *c = NULL;    
+313:        6:  296:}
+314:        -:  297:
+315:function log_yml_event called 2 returned 1000locks executed 19%
+316:        2:  298:int log_yml_event(yaml_event_t event){
+317:        -:  299:
+318:        2:  300:    switch(event.type){ 
+319:        -:  301:    
+320:        -:  302:        case YAML_NO_EVENT: 
+321:        2:  303:        	plc_log("No event!"); 
+322:        2:  304:            break;
+323:        -:  305:    /* Stream start/end */
+324:        -:  306:        case YAML_STREAM_START_EVENT: 
+325:<font color=red>    #####:  307:        	plc_log("STREAM START"); </font>
+326:<font color=red>    #####:  308:            break;</font>
+327:        -:  309:        case YAML_STREAM_END_EVENT: 
+328:<font color=red>    #####:  310:        	plc_log("STREAM END");   </font>
+329:<font color=red>    #####:  311:            break;</font>
+330:        -:  312:    /* Block delimeters */
+331:        -:  313:        case YAML_DOCUMENT_START_EVENT: 
+332:<font color=red>    #####:  314:        	plc_log("Start Document"); </font>
+333:<font color=red>    #####:  315:            break;</font>
+334:        -:  316:        case YAML_DOCUMENT_END_EVENT: 
+335:<font color=red>    #####:  317:        	plc_log("End Document");   </font>
+336:<font color=red>    #####:  318:            break;</font>
+337:        -:  319:        case YAML_SEQUENCE_START_EVENT: 
+338:<font color=red>    #####:  320:        	plc_log("Start Sequence"); </font>
+339:<font color=red>    #####:  321:            break;</font>
+340:        -:  322:        case YAML_SEQUENCE_END_EVENT: 
+341:<font color=red>    #####:  323:        	plc_log("End Sequence");</font>
+342:<font color=red>    #####:  324:            break;</font>
+343:        -:  325:        case YAML_MAPPING_START_EVENT: 
+344:<font color=red>    #####:  326:        	plc_log("Start Mapping");         </font>
+345:<font color=red>    #####:  327:            break;</font>
+346:        -:  328:        case YAML_MAPPING_END_EVENT: 
+347:<font color=red>    #####:  329:        	plc_log("End Mapping");      </font>
+348:<font color=red>    #####:  330:            break;</font>
+349:        -:  331:    /* Data */
+350:        -:  332:        case YAML_ALIAS_EVENT:  
+351:<font color=red>    #####:  333:        	plc_log("Got alias (anchor )", event.data.alias.anchor); </font>
+352:<font color=red>    #####:  334:            break;</font>
+353:        -:  335:        case YAML_SCALAR_EVENT: 
+354:<font color=red>    #####:  336:        	plc_log("Got scalar (value )", event.data.scalar.value); </font>
+355:<font color=red>    #####:  337:        	break;</font>
+356:        -:  338:        default:
+357:<font color=red>    #####:  339:            plc_log("default?");</font>
+358:        -:  340:    }
+359:        2:  341:    return PLC_OK;
+360:        -:  342:}
+361:        -:  343:
+362:function store_value called 66 returned 1000locks executed 100%
+363:       66:  344:int store_value(BYTE key, const char * value, config_t * c){
+364:       66:  345:    switch(key){
+365:        -:  346:        case CONFIG_HW:
+366:        4:  347:            strncpy((*c)-&gt;hw, value, MAXSTR);
 367:        4:  348:            break;
-368:        -:  349:        case CONFIG_SUBDEV_ADC:
-369:        4:  350:            (*c)-&gt;comedi_subdev_ai = atoi(value);
-370:        4:  351:            break;
-371:        -:  352:        case CONFIG_SUBDEV_DAC:
-372:        4:  353:            (*c)-&gt;comedi_subdev_aq = atoi(value);
-373:        4:  354:            break;                    
-374:        -:  355:        case CONFIG_SIM_INPUT:
-375:        4:  356:            strncpy((*c)-&gt;sim_in_file, value, MAXSTR);
-376:        4:  357:            break;
-377:        -:  358:        case CONFIG_SIM_OUTPUT:
-378:        4:  359:            strncpy((*c)-&gt;sim_out_file, value, MAXSTR);
-379:        4:  360:            break;
-380:        -:  361:            
-381:        -:  362:         case CONFIG_PROGRAM_IL:
-382:        -:  363:         case CONFIG_PROGRAM_LD:
-383:        4:  364:            strncpy((*c)-&gt;program_file, value, MAXSTR);
-384:        4:  365:            break;  
-385:        -:  366:            
-386:        -:  367:         case CONFIG_NT:
-387:        2:  368:            config_timer_vars(atoi(value), c);
-388:        2:  369:            break;                
-389:        -:  370:        case CONFIG_NS:
-390:        2:  371:            config_pulse_vars(atoi(value), c);
-391:        2:  372:            break;
-392:        -:  373:        case CONFIG_NM:
-393:        2:  374:            config_reg_vars(atoi(value), c);
-394:        2:  375:            break;
-395:        -:  376:        case CONFIG_NR:
-396:        2:  377:            config_mem_vars(atoi(value), c);
-397:        2:  378:            break;
-398:        -:  379:        case CONFIG_NDI:
-399:        2:  380:            config_di_vars(atoi(value), c);
-400:        2:  381:            break;
-401:        -:  382:        case CONFIG_NDQ:
-402:        2:  383:            config_dq_vars(atoi(value), c);
-403:        2:  384:            break;                    
-404:        -:  385:        case CONFIG_NAI:
-405:        2:  386:            config_ai_vars(atoi(value), c);
-406:        2:  387:            break;
-407:        -:  388:        case CONFIG_NAQ:
-408:        2:  389:            config_aq_vars(atoi(value), c);
-409:        2:  390:            break;                    
-410:        2:  391:        default: return PLC_ERR;
-411:        -:  392:    }
-412:       64:  393:    return PLC_OK;
-413:        -:  394:}
-414:        -:  395:
-415:function store_seq_value called 20 returned 1000locks executed 67%
-416:       20:  396:int store_seq_value(BYTE seq,
-417:        -:  397:                    BYTE idx, 
-418:        -:  398:                    BYTE key, 
-419:        -:  399:                    const char * value, 
-420:        -:  400:                    config_t * c){
-421:        -:  401:                    
-422:        -:  402:    variable_t vars;
-423:       20:  403:    switch(seq) {
-424:        -:  404:        case SEQ_AI:
-425:        8:  405:            vars = (*c)-&gt;ainps;
-426:        8:  406:            if(idx &gt;= (*c)-&gt;ai)
-427:<font color=red>    #####:  407:                return PLC_ERR;</font>
-428:        8:  408:            break;
-429:        -:  409:        case SEQ_AQ:
-430:        2:  410:            vars = (*c)-&gt;aouts;
-431:        2:  411:            if(idx &gt;= (*c)-&gt;aq)
-432:<font color=red>    #####:  412:                return PLC_ERR;</font>
-433:        2:  413:            break;    
-434:        -:  414:        case SEQ_DI:
-435:        2:  415:            vars = (*c)-&gt;dinps;
-436:        2:  416:            if(idx &gt;= (*c)-&gt;di)
-437:<font color=red>    #####:  417:                return PLC_ERR;</font>
-438:        2:  418:            break;
-439:        -:  419:        case SEQ_DQ:
-440:        2:  420:            vars = (*c)-&gt;douts;
-441:        2:  421:            if(idx &gt;= (*c)-&gt;dq)
-442:        2:  422:                return PLC_ERR;
-443:<font color=red>    #####:  423:            break;   </font>
-444:        -:  424:        case SEQ_MVAR:
-445:        2:  425:            vars = (*c)-&gt;mvars;
-446:        2:  426:            if(idx &gt;= (*c)-&gt;nr)
-447:<font color=red>    #####:  427:                return PLC_ERR;</font>
-448:        2:  428:            break;
-449:        -:  429:        case SEQ_MREG:
-450:<font color=red>    #####:  430:            vars = (*c)-&gt;mregs;</font>
-451:<font color=red>    #####:  431:            if(idx &gt;= (*c)-&gt;nr)</font>
-452:<font color=red>    #####:  432:                return PLC_ERR;</font>
-453:<font color=red>    #####:  433:            break;    </font>
-454:        -:  434:        case SEQ_TIMER:
-455:        2:  435:            vars = (*c)-&gt;timers;
-456:        2:  436:            if(idx &gt;= (*c)-&gt;nt)
-457:<font color=red>    #####:  437:                return PLC_ERR;</font>
-458:        2:  438:            break;
-459:        -:  439:        case SEQ_PULSE:
-460:<font color=red>    #####:  440:            vars = (*c)-&gt;pulses;</font>
-461:<font color=red>    #####:  441:            if(idx &gt;= (*c)-&gt;ns)</font>
-462:<font color=red>    #####:  442:                return PLC_ERR;</font>
-463:<font color=red>    #####:  443:            break;         </font>
-464:        -:  444:        
-465:        -:  445:        default:
-466:        2:  446:            return PLC_ERR;
-467:        -:  447:    }
-468:       16:  448:    switch(key) {
-469:        -:  449:        case VARIABLE_INDEX: 
-470:        2:  450:            vars[idx].index = atoi(value);
-471:        2:  451:            break;
-472:        -:  452:        case VARIABLE_ID: 
-473:        4:  453:            strncpy(vars[idx].name, value, MAXSTR);
-474:        4:  454:            break;
-475:        -:  455:        case VARIABLE_VALUE: 
-476:        2:  456:            strncpy(vars[idx].value, value, MAXSTR);
-477:        2:  457:            break;
-478:        -:  458:        case VARIABLE_MAX: 
-479:        4:  459:            strncpy(vars[idx].max, value, MAXSTR);
-480:        4:  460:            break; 
-481:        -:  461:        case VARIABLE_MIN: 
-482:        2:  462:            strncpy(vars[idx].min, value, MAXSTR);
-483:        2:  463:            break;            
-484:        -:  464:        default: 
-485:        2:  465:            return PLC_ERR;    
-486:        -:  466:    }    
-487:       14:  467:    return PLC_OK;                       
-488:        -:  468:}
-489:        -:  469:
-490:function find_config_var called 32 returned 1000locks executed 86%
-491:       32:  470:int find_config_var(const char *name, 
-492:        -:  471:                    const char **where, 
-493:        -:  472:                    unsigned int size){
-494:        -:  473:
-495:      580:  474:    for(int i = 0; i &lt; size; i++)
-496:      580:  475:        if(!strcmp(name, where[i]))
-497:       32:  476:            return i;
-498:<font color=red>    #####:  477:    return PLC_ERR;        </font>
-499:        -:  478:}
-500:        -:  479:
-501:function process_scalar called 56 returned 1000locks executed 95%
-502:       56:  480:int process_scalar(const char *value,
-503:        -:  481:                   BYTE is_seq,  
-504:        -:  482:                   config_t * conf, 
-505:        -:  483:                   BYTE *storage, 
-506:        -:  484:                   int *key,
-507:        -:  485:                   int *seq,
-508:        -:  486:                   int *idx){
-509:        -:  487:                   
-510:       56:  488:    int ret = PLC_OK;
-511:        -:  489:    
-512:       56:  490:    if(*storage == STORE_KEY){
-513:       32:  491:        if(is_seq)
-514:        8:  492:            *key = find_config_var(
-515:        -:  493:                value, 
-516:        -:  494:                Variable_params,
-517:        -:  495:                N_VARIABLE_PARAMS);
-518:        -:  496:        else{         
-519:       24:  497:            *key = find_config_var(
-520:        -:  498:                value, 
-521:        -:  499:                Config_vars,
-522:        -:  500:                N_CONFIG_VARIABLES);
-523:       24:  501:            if(IS_SEQUENCE(*key))
-524:        2:  502:                *seq = SEQUENCE(*key);
-525:        -:  503:        }      
-526:       32:  504:        if(*key &lt; PLC_OK)
-527:<font color=red>    #####:  505:            ret = *key;                          </font>
-528:       32:  506:        *storage = STORE_VAL;
-529:        -:  507:    }
-530:        -:  508:    else{ //val
-531:       24:  509:        if(is_seq){
-532:        8:  510:            if(*key == VARIABLE_INDEX)
-533:        2:  511:                    *idx = atoi(value);
-534:        -:  512:            else  
-535:       12:  513:                ret = store_seq_value(*seq, 
-536:        6:  514:                                          *idx, 
-537:        6:  515:                                          *key, 
-538:        -:  516:                                          value, 
-539:        -:  517:                                          conf);        
-540:        -:  518:        } else 
-541:       16:  519:             ret = store_value(*key, value, conf);
-542:       24:  520:        *storage = STORE_KEY; 
-543:        -:  521:    } 
-544:        -:  522:    
-545:       56:  523:    return ret;                
-546:        -:  524:}
-547:        -:  525:
-548:function process called 30 returned 1000locks executed 100%
-549:       30:  526:int process(int sequence, 
-550:        -:  527:            yaml_parser_t *parser, 
-551:        -:  528:            config_t conf){
-552:        -:  529:             
-553:       30:  530:     int ret = PLC_OK;
-554:       30:  531:     BYTE storage = STORE_KEY;   
-555:       30:  532:     int done = FALSE;
-556:       30:  533:     int key = PLC_ERR;
-557:       30:  534:     int seq = sequence;
-558:       30:  535:     int found_seq = sequence &gt; PLC_ERR;
-559:       30:  536:     int idx = PLC_ERR;
-560:        -:  537:     yaml_event_t event;
-561:       30:  538:     memset(&event, 0, sizeof(event));
-562:        -:  539:     
-563:       30:  540:     if(parser == NULL
-564:       26:  541:     || conf == NULL)
-565:        -:  542:     
-566:        4:  543:        return PLC_ERR;
-567:        -:  544:           
-568:      178:  545:     while(done == FALSE){
-569:        -:  546:     
-570:      126:  547:        if (!yaml_parser_parse(parser, &event)){   
-571:        1:  548:                yaml_parser_error(*parser);
-572:        1:  549:                ret = PLC_ERR;
-573:        -:  550:        }
-574:        -:  551:        else {
-575:        -:  552:            
-576:      125:  553:            switch(event.type)
-577:        -:  554:            {
-578:        -:  555:                case YAML_SCALAR_EVENT:
-579:      112:  556:                    ret = process_scalar(
-580:        -:  557:                        event.data
-581:        -:  558:                             .scalar
-582:       56:  559:                             .value,
-583:        -:  560:                        found_seq,
-584:        -:  561:                        &conf,
-585:        -:  562:                        &storage,
-586:        -:  563:                        &key,
-587:        -:  564:                        &seq,
-588:        -:  565:                        &idx);
-589:       56:  566:                    break;
-590:        -:  567:                
-591:        -:  568:                case YAML_SEQUENCE_START_EVENT:
-592:        2:  569:                    found_seq = TRUE;
-593:        2:  570:                    break;
-594:        -:  571:                
-595:        -:  572:                case YAML_SEQUENCE_END_EVENT:
-596:        2:  573:                    found_seq = FALSE;
-597:        2:  574:                    break;
-598:        -:  575:                
-599:        -:  576:                case YAML_MAPPING_START_EVENT:
-600:       16:  577:                    ret = process(seq, parser, conf);
-601:       16:  578:                    storage = STORE_KEY;   
-602:       16:  579:                    break;
-603:        -:  580:                    
-604:        -:  581:                case YAML_MAPPING_END_EVENT:
-605:        -:  582:                case YAML_STREAM_END_EVENT:     
-606:       24:  583:                    done = TRUE;
-607:       24:  584:                    break;
-608:        -:  585:                    
-609:        -:  586:                case YAML_NO_EVENT:
-610:        1:  587:                    ret = PLC_ERR;
-611:        1:  588:                    break;    
-612:        -:  589:                    
-613:       24:  590:                default: break;    
-614:        -:  591:            }
-615:        -:  592:         }
-616:      126:  593:         if(ret &lt; PLC_OK) {
-617:        2:  594:             done = TRUE;
-618:        2:  595:             log_yml_event(event);
-619:        -:  596:         }                                              
-620:      126:  597:         yaml_event_delete(&event);   
-621:        -:  598:     }
-622:        -:  599:     
-623:       26:  600:     return ret;
-624:        -:  601:}
-625:        -:  602:             
-626:function load_config_yml called 0 returned 00locks executed 0%
-627:<font color=red>    #####:  603:int load_config_yml(const char * filename, config_t conf) {</font>
-628:        -:  604:    yaml_parser_t parser;
-629:        -:  605:    
-630:        -:  606:	FILE * fcfg;
-631:        -:  607:	char path[MAXSTR];
-632:        -:  608:
-633:<font color=red>    #####:  609:    memset(path, 0, MAXSTR);</font>
-634:<font color=red>    #####:  610:	sprintf(path, "", filename);</font>
-635:        -:  611:	
-636:<font color=red>    #####:  612:	memset(&parser, 0, sizeof(parser));</font>
-637:        -:  613:	
-638:<font color=red>    #####:  614:	int r = PLC_OK;</font>
-639:        -:  615:    
-640:<font color=red>    #####:  616:    if (!yaml_parser_initialize(&parser)) {</font>
-641:<font color=red>    #####:  617:        yaml_parser_error(parser);</font>
-642:<font color=red>    #####:  618:        return PLC_ERR;    </font>
-643:        -:  619:    }
-644:<font color=red>    #####:  620:    if ((fcfg = fopen(path, "r"))) {</font>
-645:<font color=red>    #####:  621:	    plc_log("Looking for configuration from  ...", path);</font>
-646:<font color=red>    #####:  622:	    yaml_parser_set_input_file(&parser, fcfg);</font>
-647:<font color=red>    #####:  623:	    r = process(PLC_ERR, &parser, conf);</font>
-648:<font color=red>    #####:  624:	    if(r &lt; PLC_OK)</font>
-649:<font color=red>    #####:  625:	        plc_log( "Configuration error ");</font>
-650:<font color=red>    #####:  626:		fclose(fcfg);</font>
-651:        -:  627:	} else {
-652:<font color=red>    #####:  628:	    r = PLC_ERR;</font>
-653:<font color=red>    #####:  629:	    plc_log("Could not open file ", filename);</font>
-654:        -:  630:	}
-655:<font color=red>    #####:  631:    yaml_parser_delete(&parser);</font>
-656:<font color=red>    #####:  632:    return r;</font>
-657:        -:  633:}
-658:        -:  634:
-659:function emit called 2 returned 1000locks executed 100%
-660:        2:  635:int emit(yaml_emitter_t *emitter,
-661:        -:  636:         const config_t conf){
-662:        2:  637:    int r = PLC_OK;         
-663:        -:  638:
-664:        2:  639:    return r;
-665:        -:  640:}
-666:        -:  641:
-667:function save_config_yml called 0 returned 00locks executed 0%
-668:<font color=red>    #####:  642:int save_config_yml(const char * filename, const config_t conf) {</font>
-669:        -:  643:    
-670:        -:  644:    yaml_emitter_t emitter;
-671:        -:  645:    yaml_event_t event;
-672:        -:  646:    
-673:        -:  647:    FILE * fcfg;
-674:        -:  648:	char path[MAXSTR];
-675:<font color=red>    #####:  649:    int r = PLC_OK;</font>
-676:        -:  650:    
-677:<font color=red>    #####:  651:    memset(path, 0, MAXSTR);</font>
-678:<font color=red>    #####:  652:	sprintf(path, "", filename);</font>
-679:        -:  653:
-680:<font color=red>    #####:  654:	if(!yaml_emitter_initialize(&emitter)){</font>
-681:<font color=red>    #####:  655:	    return PLC_ERR;    </font>
-682:        -:  656:	}
-683:<font color=red>    #####:  657:	if ((fcfg = fopen(path, "wb"))) {</font>
-684:<font color=red>    #####:  658:	     plc_log("Save configuration to  ...", path);</font>
-685:        -:  659:	     
-686:<font color=red>    #####:  660:	     yaml_emitter_set_output_file(&emitter, fcfg);</font>
-687:<font color=red>    #####:  661:	     yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);</font>
-688:        -:  662:	     
-689:<font color=red>    #####:  663:	     r = yaml_emitter_emit(&emitter, &event);</font>
-690:        -:  664:	     
-691:<font color=red>    #####:  665:	     if(r)</font>
-692:<font color=red>    #####:  666:	        r = emit(&emitter, conf);</font>
-693:<font color=red>    #####:  667:	     if(r){</font>
-694:<font color=red>    #####:  668:	        yaml_stream_end_event_initialize(&event);</font>
-695:<font color=red>    #####:  669:	        r = yaml_emitter_emit(&emitter, &event);   </font>
-696:        -:  670:	     }
-697:        -:  671:	        
-698:<font color=red>    #####:  672:	     if(r &lt; PLC_OK)</font>
-699:<font color=red>    #####:  673:	        plc_log( "Configuration error ");</font>
-700:        -:  674:	        
-701:<font color=red>    #####:  675:		 fclose(fcfg);</font>
-702:        -:  676:	} else {
-703:<font color=red>    #####:  677:	    r = PLC_ERR;</font>
-704:<font color=red>    #####:  678:	    plc_log("Could not open file  for write", filename);</font>
-705:        -:  679:	}
-706:<font color=red>    #####:  680:	yaml_emitter_delete(&emitter);</font>
-707:<font color=red>    #####:  681:	return r;</font>
-708:        -:  682:}
-709:        -:  683:
-710:        -:  684:
-711:        -:  685:
-712:function configure called 2 returned 1000locks executed 100%
-713:        2:  686:void configure(const config_t conf, plc_t plc){
-714:        -:  687:
-715:        2:  688:    plc-&gt;ni = conf-&gt;di;
-716:        2:  689:    plc-&gt;nq = conf-&gt;dq;
-717:        2:  690:    plc-&gt;nai = conf-&gt;ai;
-718:        2:  691:    plc-&gt;naq = conf-&gt;aq;
-719:        2:  692:    plc-&gt;nt = conf-&gt;nt;
-720:        2:  693:    plc-&gt;ns = conf-&gt;ns;
-721:        2:  694:    plc-&gt;nm = conf-&gt;nm;
-722:        2:  695:    plc-&gt;nmr = conf-&gt;nr;
-723:        -:  696:    
-724:        2:  697:	sprintf(plc-&gt;hw, "", conf-&gt;hw);
-725:        -:  698:	
-726:        2:  699:    plc-&gt;inputs = (BYTE *) malloc(plc-&gt;ni);
-727:        2:  700:    plc-&gt;outputs = (BYTE *) malloc(plc-&gt;nq);
-728:        2:  701:	plc-&gt;edgein = (BYTE *) malloc(plc-&gt;ni);
-729:        2:  702:	plc-&gt;maskin = (BYTE *) malloc(plc-&gt;ni);
-730:        2:  703:	plc-&gt;maskout = (BYTE *) malloc(plc-&gt;nq);
-731:        2:  704:	plc-&gt;maskin_N = (BYTE *) malloc(plc-&gt;ni);
-732:        2:  705:    plc-&gt;maskout_N = (BYTE *) malloc(plc-&gt;nq);
-733:        2:  706:    plc-&gt;real_in = (uint64_t *) malloc(conf-&gt;ai * sizeof(uint64_t));
-734:        2:  707:    plc-&gt;real_out = (uint64_t *) malloc(conf-&gt;aq * sizeof(uint64_t));
-735:        2:  708:	plc-&gt;mask_ai = (double *) malloc(conf-&gt;ai * sizeof(double));
-736:        2:  709:    plc-&gt;mask_aq = (double *) malloc(conf-&gt;aq * sizeof(double));
-737:        2:  710:	plc-&gt;di = (di_t) malloc(
-738:        2:  711:			BYTESIZE * plc-&gt;ni * sizeof(struct digital_input));
-739:        2:  712:	plc-&gt;dq = (do_t) malloc(
-740:        2:  713:			BYTESIZE * plc-&gt;nq * sizeof(struct digital_output));
-741:        -:  714:    
-742:        2:  715:    plc-&gt;t = (dt_t) malloc(plc-&gt;nt * sizeof(struct timer));
-743:        2:  716:    plc-&gt;s = (blink_t) malloc(plc-&gt;ns * sizeof(struct blink));
-744:        2:  717:    plc-&gt;m = (mvar_t) malloc(plc-&gt;nm * sizeof(struct mvar));
-745:        2:  718:    plc-&gt;mr = (mreal_t) malloc(plc-&gt;nmr * sizeof(struct mreal));
-746:        -:  719:   
-747:        2:  720:    plc-&gt;ai = (aio_t) malloc(
-748:        2:  721:			 conf-&gt;ai * sizeof(struct analog_io));
-749:        2:  722:	plc-&gt;aq = (aio_t) malloc(
-750:        2:  723:			 conf-&gt;aq * sizeof(struct analog_io));
-751:        -:  724:   
-752:        2:  725:    memset(plc-&gt;real_in, 0, plc-&gt;nai*sizeof(uint64_t));
-753:        2:  726:	memset(plc-&gt;real_out, 0, plc-&gt;naq*sizeof(uint64_t));
-754:        2:  727:    memset(plc-&gt;inputs, 0, plc-&gt;ni);
-755:        2:  728:	memset(plc-&gt;outputs, 0, plc-&gt;nq);
-756:        2:  729:    memset(plc-&gt;maskin, 0, plc-&gt;ni);
-757:        2:  730:	memset(plc-&gt;maskout, 0, plc-&gt;nq);
-758:        2:  731:	memset(plc-&gt;maskin_N, 0, plc-&gt;ni);
-759:        2:  732:	memset(plc-&gt;maskout_N, 0, plc-&gt;nq);
-760:        -:  733:	
-761:        2:  734:    memset(plc-&gt;mask_ai, 0, plc-&gt;nai * sizeof(double));
-762:        2:  735:	memset(plc-&gt;mask_aq, 0, plc-&gt;naq * sizeof(double));
-763:        -:  736:    
-764:        2:  737:    memset(plc-&gt;di, 0, BYTESIZE * plc-&gt;ni * sizeof(struct digital_input));
-765:        2:  738:	memset(plc-&gt;dq, 0, BYTESIZE * plc-&gt;nq * sizeof(struct digital_output));
-766:        2:  739:    memset(plc-&gt;t, 0, plc-&gt;nt * sizeof(struct timer));
-767:        2:  740:	memset(plc-&gt;s, 0, plc-&gt;ns * sizeof(struct blink));
-768:        2:  741:    memset(plc-&gt;m, 0, plc-&gt;nm * sizeof(struct mvar));
-769:        2:  742:    memset(plc-&gt;mr, 0, plc-&gt;nmr * sizeof(struct mreal));
-770:        -:  743:
-771:        2:  744:    plc_t p_old=NULL;
-772:        2:  745:	p_old = (plc_t) malloc(sizeof(struct PLC_regs));
-773:        -:  746:
-774:        2:  747:    p_old-&gt;ni = conf-&gt;di;
-775:        2:  748:    p_old-&gt;nq = conf-&gt;dq;
-776:        2:  749:    p_old-&gt;nai = conf-&gt;ai;
-777:        2:  750:    p_old-&gt;naq = conf-&gt;aq;
-778:        2:  751:    p_old-&gt;nt = conf-&gt;nt;
-779:        2:  752:    p_old-&gt;ns = conf-&gt;ns;
-780:        2:  753:    p_old-&gt;nm = conf-&gt;nm;
-781:        2:  754:    p_old-&gt;nmr = conf-&gt;nr;
-782:        -:  755:    
-783:        2:  756:	p_old-&gt;inputs = (BYTE *) malloc(conf-&gt;di);
-784:        2:  757:	p_old-&gt;outputs = (BYTE *) malloc(conf-&gt;dq);
-785:        2:  758:	p_old-&gt;maskin = (BYTE *) malloc(conf-&gt;di);
-786:        2:  759:	p_old-&gt;edgein = (BYTE *) malloc(conf-&gt;di);
-787:        2:  760:	p_old-&gt;maskout = (BYTE *) malloc(conf-&gt;dq);
-788:        2:  761:	p_old-&gt;maskin_N = (BYTE *) malloc(conf-&gt;di);
-789:        2:  762:	p_old-&gt;maskout_N = (BYTE *) malloc(conf-&gt;dq);
-790:        2:  763:	p_old-&gt;di = (di_t) malloc(
-791:        2:  764:			BYTESIZE * conf-&gt;di * sizeof(struct digital_input));
-792:        2:  765:	p_old-&gt;dq = (do_t) malloc(
-793:        2:  766:			BYTESIZE * conf-&gt;dq * sizeof(struct digital_output));
-794:        2:  767:	p_old-&gt;t = (dt_t) malloc(conf-&gt;nt * sizeof(struct timer));
-795:        2:  768:	p_old-&gt;s = (blink_t) malloc(conf-&gt;ns * sizeof(struct blink));
-796:        2:  769:	p_old-&gt;m = (mvar_t) malloc(conf-&gt;nm * sizeof(struct mvar));
-797:        2:  770:    p_old-&gt;mr = (mreal_t) malloc(conf-&gt;nr * sizeof(struct mreal));
-798:        -:  771:    
-799:        -:  772:    
-800:        2:  773:    p_old-&gt;real_in = (uint64_t *) malloc(conf-&gt;ai * sizeof(uint64_t));
-801:        2:  774:    p_old-&gt;real_out = (uint64_t *) malloc(conf-&gt;aq * sizeof(uint64_t));
-802:        2:  775:	p_old-&gt;mask_ai = (double *) malloc(conf-&gt;ai * sizeof(double));
-803:        2:  776:    p_old-&gt;mask_aq = (double *) malloc(conf-&gt;aq * sizeof(double));
-804:        2:  777:    p_old-&gt;ai = (aio_t) malloc(
-805:        2:  778:			 conf-&gt;ai * sizeof(struct analog_io));
-806:        2:  779:	p_old-&gt;aq = (aio_t) malloc(
-807:        2:  780:			 conf-&gt;aq * sizeof(struct analog_io));
-808:        -:  781:    
-809:        2:  782:	p_old-&gt;di = (di_t) malloc(
-810:        2:  783:			BYTESIZE * plc-&gt;ni * sizeof(struct digital_input));
-811:        2:  784:	p_old-&gt;dq = (do_t) malloc(
-812:        2:  785:			BYTESIZE * plc-&gt;nq * sizeof(struct digital_output));
-813:        -:  786:    
-814:        2:  787:	memcpy(p_old-&gt;inputs, plc-&gt;inputs, conf-&gt;di);
-815:        2:  788:	memcpy(p_old-&gt;outputs, plc-&gt;outputs, conf-&gt;dq);
-816:        2:  789:	memset(p_old-&gt;real_in, 0, plc-&gt;nai*sizeof(uint64_t));
-817:        2:  790:	memset(p_old-&gt;real_out, 0, plc-&gt;naq*sizeof(uint64_t));
-818:        -:  791:	
-819:        2:  792:	memcpy(p_old-&gt;m, plc-&gt;m, conf-&gt;nm * sizeof(struct mvar));
-820:        2:  793:    memcpy(p_old-&gt;mr, plc-&gt;mr, conf-&gt;nr * sizeof(struct mreal));
-821:        2:  794:    memcpy(p_old-&gt;t, plc-&gt;t, conf-&gt;nt * sizeof(struct timer));
-822:        2:  795:    memcpy(p_old-&gt;s, plc-&gt;s, conf-&gt;ns * sizeof(struct blink));
-823:        -:  796:    
-824:        2:  797:    plc-&gt;old = p_old;
-825:        2:  798:	plc-&gt;command = 0;
-826:        2:  799:	plc-&gt;status = ST_RUNNING;
-827:        2:  800:	plc-&gt;step = conf-&gt;step;
-828:        2:  801:	plc-&gt;response_file = conf-&gt;response_file;
-829:        2:  802:}
-830:        -:  803:
+368:        -:  349:        case CONFIG_PIPE:
+369:        2:  350:            strncpy((*c)-&gt;pipe, value, MAXSTR);
+370:        2:  351:            break;    
+371:        -:  352:        case CONFIG_STEP:
+372:        4:  353:            (*c)-&gt;step = atol(value);
+373:        4:  354:            break;
+374:        -:  355:        case CONFIG_USPACE_BASE:
+375:        2:  356:            (*c)-&gt;base = atol(value);
+376:        2:  357:            break;
+377:        -:  358:        case CONFIG_USPACE_WR:
+378:        2:  359:            (*c)-&gt;wr_offs = atoi(value);
+379:        2:  360:            break;
+380:        -:  361:        case CONFIG_USPACE_RD:
+381:        2:  362:            (*c)-&gt;rd_offs = atoi(value);
+382:        2:  363:            break;                
+383:        -:  364:        case CONFIG_COMEDI_FILE:
+384:        4:  365:            (*c)-&gt;comedi_file = atoi(value);
+385:        4:  366:            break;
+386:        -:  367:        case CONFIG_SUBDEV_IN:
+387:        4:  368:            (*c)-&gt;comedi_subdev_i = atol(value);
+388:        4:  369:            break;
+389:        -:  370:        case CONFIG_SUBDEV_OUT:
+390:        4:  371:            (*c)-&gt;comedi_subdev_q = atol(value);
+391:        4:  372:            break;
+392:        -:  373:        case CONFIG_SUBDEV_ADC:
+393:        4:  374:            (*c)-&gt;comedi_subdev_ai = atoi(value);
+394:        4:  375:            break;
+395:        -:  376:        case CONFIG_SUBDEV_DAC:
+396:        4:  377:            (*c)-&gt;comedi_subdev_aq = atoi(value);
+397:        4:  378:            break;                    
+398:        -:  379:        case CONFIG_SIM_INPUT:
+399:        4:  380:            strncpy((*c)-&gt;sim_in_file, value, MAXSTR);
+400:        4:  381:            break;
+401:        -:  382:        case CONFIG_SIM_OUTPUT:
+402:        4:  383:            strncpy((*c)-&gt;sim_out_file, value, MAXSTR);
+403:        4:  384:            break;
+404:        -:  385:            
+405:        -:  386:        case CONFIG_PROGRAM_IL:
+406:        -:  387:        case CONFIG_PROGRAM_LD:
+407:        4:  388:            strncpy((*c)-&gt;program_file, value, MAXSTR);
+408:        4:  389:            break;  
+409:        -:  390:            
+410:        -:  391:        case CONFIG_NT:
+411:        2:  392:            config_timer_vars(atoi(value), c);
+412:        2:  393:            break;                
+413:        -:  394:        case CONFIG_NS:
+414:        2:  395:            config_pulse_vars(atoi(value), c);
+415:        2:  396:            break;
+416:        -:  397:        case CONFIG_NM:
+417:        2:  398:            config_reg_vars(atoi(value), c);
+418:        2:  399:            break;
+419:        -:  400:        case CONFIG_NR:
+420:        2:  401:            config_mem_vars(atoi(value), c);
+421:        2:  402:            break;
+422:        -:  403:        case CONFIG_NDI:
+423:        2:  404:            config_di_vars(atoi(value), c);
+424:        2:  405:            break;
+425:        -:  406:        case CONFIG_NDQ:
+426:        2:  407:            config_dq_vars(atoi(value), c);
+427:        2:  408:            break;                    
+428:        -:  409:        case CONFIG_NAI:
+429:        2:  410:            config_ai_vars(atoi(value), c);
+430:        2:  411:            break;
+431:        -:  412:        case CONFIG_NAQ:
+432:        2:  413:            config_aq_vars(atoi(value), c);
+433:        2:  414:            break;                    
+434:        2:  415:        default: return PLC_ERR;
+435:        -:  416:    }
+436:       64:  417:    return PLC_OK;
+437:        -:  418:}
+438:        -:  419:
+439:function store_seq_value called 20 returned 1000locks executed 67%
+440:       20:  420:int store_seq_value(BYTE seq,
+441:        -:  421:                    BYTE idx, 
+442:        -:  422:                    BYTE key, 
+443:        -:  423:                    const char * value, 
+444:        -:  424:                    config_t * c){
+445:        -:  425:                    
+446:        -:  426:    variable_t vars;
+447:       20:  427:    switch(seq) {
+448:        -:  428:        case SEQ_AI:
+449:        8:  429:            vars = (*c)-&gt;ainps;
+450:        8:  430:            if(idx &gt;= (*c)-&gt;ai)
+451:<font color=red>    #####:  431:                return PLC_ERR;</font>
+452:        8:  432:            break;
+453:        -:  433:        case SEQ_AQ:
+454:        2:  434:            vars = (*c)-&gt;aouts;
+455:        2:  435:            if(idx &gt;= (*c)-&gt;aq)
+456:<font color=red>    #####:  436:                return PLC_ERR;</font>
+457:        2:  437:            break;    
+458:        -:  438:        case SEQ_DI:
+459:        2:  439:            vars = (*c)-&gt;dinps;
+460:        2:  440:            if(idx &gt;= (*c)-&gt;di)
+461:<font color=red>    #####:  441:                return PLC_ERR;</font>
+462:        2:  442:            break;
+463:        -:  443:        case SEQ_DQ:
+464:        2:  444:            vars = (*c)-&gt;douts;
+465:        2:  445:            if(idx &gt;= (*c)-&gt;dq)
+466:        2:  446:                return PLC_ERR;
+467:<font color=red>    #####:  447:            break;   </font>
+468:        -:  448:        case SEQ_MVAR:
+469:        2:  449:            vars = (*c)-&gt;mvars;
+470:        2:  450:            if(idx &gt;= (*c)-&gt;nr)
+471:<font color=red>    #####:  451:                return PLC_ERR;</font>
+472:        2:  452:            break;
+473:        -:  453:        case SEQ_MREG:
+474:<font color=red>    #####:  454:            vars = (*c)-&gt;mregs;</font>
+475:<font color=red>    #####:  455:            if(idx &gt;= (*c)-&gt;nr)</font>
+476:<font color=red>    #####:  456:                return PLC_ERR;</font>
+477:<font color=red>    #####:  457:            break;    </font>
+478:        -:  458:        case SEQ_TIMER:
+479:        2:  459:            vars = (*c)-&gt;timers;
+480:        2:  460:            if(idx &gt;= (*c)-&gt;nt)
+481:<font color=red>    #####:  461:                return PLC_ERR;</font>
+482:        2:  462:            break;
+483:        -:  463:        case SEQ_PULSE:
+484:<font color=red>    #####:  464:            vars = (*c)-&gt;pulses;</font>
+485:<font color=red>    #####:  465:            if(idx &gt;= (*c)-&gt;ns)</font>
+486:<font color=red>    #####:  466:                return PLC_ERR;</font>
+487:<font color=red>    #####:  467:            break;         </font>
+488:        -:  468:        
+489:        -:  469:        default:
+490:        2:  470:            return PLC_ERR;
+491:        -:  471:    }
+492:       16:  472:    switch(key) {
+493:        -:  473:        case VARIABLE_INDEX: 
+494:        2:  474:            vars[idx].index = atoi(value);
+495:        2:  475:            break;
+496:        -:  476:        case VARIABLE_ID: 
+497:        4:  477:            strncpy(vars[idx].name, value, MAXSTR);
+498:        4:  478:            break;
+499:        -:  479:        case VARIABLE_VALUE: 
+500:        2:  480:            strncpy(vars[idx].value, value, MAXSTR);
+501:        2:  481:            break;
+502:        -:  482:        case VARIABLE_MAX: 
+503:        4:  483:            strncpy(vars[idx].max, value, MAXSTR);
+504:        4:  484:            break; 
+505:        -:  485:        case VARIABLE_MIN: 
+506:        2:  486:            strncpy(vars[idx].min, value, MAXSTR);
+507:        2:  487:            break;            
+508:        -:  488:        default: 
+509:        2:  489:            return PLC_ERR;    
+510:        -:  490:    }    
+511:       14:  491:    return PLC_OK;                       
+512:        -:  492:}
+513:        -:  493:
+514:function find_config_var called 32 returned 1000locks executed 86%
+515:       32:  494:int find_config_var(const char *name, 
+516:        -:  495:                    const char **where, 
+517:        -:  496:                    unsigned int size){
+518:        -:  497:
+519:      580:  498:    for(int i = 0; i &lt; size; i++)
+520:      580:  499:        if(!strcmp(name, where[i]))
+521:       32:  500:            return i;
+522:<font color=red>    #####:  501:    return PLC_ERR;        </font>
+523:        -:  502:}
+524:        -:  503:
+525:function process_scalar called 56 returned 1000locks executed 95%
+526:       56:  504:int process_scalar(const unsigned char *value,
+527:        -:  505:                   BYTE is_seq,  
+528:        -:  506:                   config_t *conf, 
+529:        -:  507:                   BYTE *storage, 
+530:        -:  508:                   int *key,
+531:        -:  509:                   int *seq,
+532:        -:  510:                   int *idx){
+533:        -:  511:                   
+534:       56:  512:    int ret = PLC_OK;
+535:        -:  513:    
+536:       56:  514:    if(*storage == STORE_KEY){
+537:       32:  515:        if(is_seq)
+538:        8:  516:            *key = find_config_var(
+539:        -:  517:                (char *)value, 
+540:        -:  518:                Variable_params,
+541:        -:  519:                N_VARIABLE_PARAMS);
+542:        -:  520:        else{         
+543:       24:  521:            *key = find_config_var(
+544:        -:  522:                (char *)value, 
+545:        -:  523:                Config_vars,
+546:        -:  524:                N_CONFIG_VARIABLES);
+547:       24:  525:            if(IS_SEQUENCE(*key))
+548:        2:  526:                *seq = SEQUENCE(*key);
+549:        -:  527:        }      
+550:       32:  528:        if(*key &lt; PLC_OK)
+551:<font color=red>    #####:  529:            ret = *key;                          </font>
+552:       32:  530:        *storage = STORE_VAL;
+553:        -:  531:    }
+554:        -:  532:    else{ //val
+555:       24:  533:        if(is_seq){
+556:        8:  534:            if(*key == VARIABLE_INDEX)
+557:        2:  535:                    *idx = atoi((char *)value);
+558:        -:  536:            else  
+559:       12:  537:                ret = store_seq_value(*seq, 
+560:        6:  538:                                          *idx, 
+561:        6:  539:                                          *key, 
+562:        -:  540:                                          (char *)value, 
+563:        -:  541:                                          conf);        
+564:        -:  542:        } else 
+565:       16:  543:             ret = store_value(*key, (char *)value, conf);
+566:       24:  544:        *storage = STORE_KEY; 
+567:        -:  545:    } 
+568:        -:  546:    
+569:       56:  547:    return ret;                
+570:        -:  548:}
+571:        -:  549:
+572:function process called 30 returned 1000locks executed 100%
+573:       30:  550:int process(int sequence, 
+574:        -:  551:            yaml_parser_t *parser, 
+575:        -:  552:            config_t conf){
+576:        -:  553:             
+577:       30:  554:     int ret = PLC_OK;
+578:       30:  555:     BYTE storage = STORE_KEY;   
+579:       30:  556:     int done = FALSE;
+580:       30:  557:     int key = PLC_ERR;
+581:       30:  558:     int seq = sequence;
+582:       30:  559:     int found_seq = sequence &gt; PLC_ERR;
+583:       30:  560:     int idx = PLC_ERR;
+584:        -:  561:     yaml_event_t event;
+585:       30:  562:     memset(&event, 0, sizeof(event));
+586:        -:  563:     
+587:       30:  564:     if(parser == NULL
+588:       26:  565:     || conf == NULL)
+589:        -:  566:     
+590:        4:  567:        return PLC_ERR;
+591:        -:  568:           
+592:      178:  569:     while(done == FALSE){
+593:        -:  570:     
+594:      126:  571:        if (!yaml_parser_parse(parser, &event)){   
+595:        1:  572:                yaml_parser_error(*parser);
+596:        1:  573:                ret = PLC_ERR;
+597:        -:  574:        }
+598:        -:  575:        else {
+599:        -:  576:            
+600:      125:  577:            switch(event.type){
+601:        -:  578:            
+602:        -:  579:                case YAML_SCALAR_EVENT:
+603:      112:  580:                    ret = process_scalar(
+604:        -:  581:                        event.data
+605:        -:  582:                             .scalar
+606:       56:  583:                             .value,
+607:        -:  584:                        found_seq,
+608:        -:  585:                        &conf,
+609:        -:  586:                        &storage,
+610:        -:  587:                        &key,
+611:        -:  588:                        &seq,
+612:        -:  589:                        &idx);
+613:       56:  590:                    break;
+614:        -:  591:                
+615:        -:  592:                case YAML_SEQUENCE_START_EVENT:
+616:        2:  593:                    found_seq = TRUE;
+617:        2:  594:                    break;
+618:        -:  595:                
+619:        -:  596:                case YAML_SEQUENCE_END_EVENT:
+620:        2:  597:                    found_seq = FALSE;
+621:        2:  598:                    break;
+622:        -:  599:                
+623:        -:  600:                case YAML_MAPPING_START_EVENT:
+624:       16:  601:                    ret = process(seq, parser, conf);
+625:       16:  602:                    storage = STORE_KEY;   
+626:       16:  603:                    break;
+627:        -:  604:                    
+628:        -:  605:                case YAML_MAPPING_END_EVENT:
+629:        -:  606:                case YAML_STREAM_END_EVENT:     
+630:       24:  607:                    done = TRUE;
+631:       24:  608:                    break;
+632:        -:  609:                    
+633:        -:  610:                case YAML_NO_EVENT:
+634:        1:  611:                    ret = PLC_ERR;
+635:        1:  612:                    break;    
+636:        -:  613:                    
+637:       24:  614:                default: break;    
+638:        -:  615:            }
+639:        -:  616:         }
+640:      126:  617:         if(ret &lt; PLC_OK) {
+641:        2:  618:             done = TRUE;
+642:        2:  619:             log_yml_event(event);
+643:        -:  620:         }                                              
+644:      126:  621:         yaml_event_delete(&event);   
+645:        -:  622:     }
+646:        -:  623:     
+647:       26:  624:     return ret;
+648:        -:  625:}
+649:        -:  626:             
+650:function load_config_yml called 0 returned 00locks executed 0%
+651:<font color=red>    #####:  627:int load_config_yml(const char * filename, config_t conf) {</font>
+652:        -:  628:    yaml_parser_t parser;
+653:        -:  629:    
+654:        -:  630:    FILE * fcfg;
+655:        -:  631:    char path[MAXSTR];
+656:        -:  632:
+657:<font color=red>    #####:  633:    memset(path, 0, MAXSTR);</font>
+658:<font color=red>    #####:  634:    sprintf(path, "", filename);</font>
+659:        -:  635:    
+660:<font color=red>    #####:  636:    memset(&parser, 0, sizeof(parser));</font>
+661:        -:  637:    
+662:<font color=red>    #####:  638:    int r = PLC_OK;</font>
+663:        -:  639:    
+664:<font color=red>    #####:  640:    if (!yaml_parser_initialize(&parser)) {</font>
+665:<font color=red>    #####:  641:        yaml_parser_error(parser);</font>
+666:<font color=red>    #####:  642:        return PLC_ERR;    </font>
+667:        -:  643:    }
+668:<font color=red>    #####:  644:    if ((fcfg = fopen(path, "r"))) {</font>
+669:<font color=red>    #####:  645:        plc_log("Looking for configuration from  ...", path);</font>
+670:<font color=red>    #####:  646:        yaml_parser_set_input_file(&parser, fcfg);</font>
+671:<font color=red>    #####:  647:        r = process(PLC_ERR, &parser, conf);</font>
+672:<font color=red>    #####:  648:        if(r &lt; PLC_OK)</font>
+673:<font color=red>    #####:  649:            plc_log( "Configuration error ");</font>
+674:<font color=red>    #####:  650:        fclose(fcfg);</font>
+675:        -:  651:    } else {
+676:<font color=red>    #####:  652:        r = PLC_ERR;</font>
+677:<font color=red>    #####:  653:        plc_log("Could not open file ", filename);</font>
+678:        -:  654:    }
+679:<font color=red>    #####:  655:    yaml_parser_delete(&parser);</font>
+680:<font color=red>    #####:  656:    return r;</font>
+681:        -:  657:}
+682:        -:  658:
+683:function emit_map_entry called 22 returned 1000locks executed 100%
+684:       22:  659:int emit_map_entry(
+685:        -:  660:	char * name, 
+686:        -:  661:	char * value,
+687:        -:  662:	yaml_emitter_t *emitter) {
+688:        -:  663:    
+689:       22:  664:    int r = PLC_OK;     
+690:        -:  665:	yaml_event_t e;
+691:        -:  666:    
+692:       22:  667:    yaml_mapping_style_t  	style =  YAML_PLAIN_SCALAR_STYLE;
+693:        -:  668:    
+694:       22:  669:    yaml_scalar_event_initialize(
+695:        -:  670:    	&e,
+696:        -:  671:	    NULL,
+697:        -:  672:		NULL,
+698:        -:  673:		(unsigned char *)name,
+699:       22:  674:		strlen(name),
+700:        -:  675:		TRUE,TRUE, style); 	
+701:        -:  676:		
+702:       22:  677:	yaml_emitter_emit(emitter, &e);
+703:        -:  678:    
+704:       22:  679:    yaml_scalar_event_initialize(
+705:        -:  680:    	&e,
+706:        -:  681:	    NULL,
+707:        -:  682:		NULL,
+708:        -:  683:		(unsigned char *)value,
+709:       22:  684:		strlen(value),
+710:        -:  685:		TRUE,TRUE, style); 	
+711:        -:  686:		
+712:       22:  687:	yaml_emitter_emit(emitter, &e); 		
+713:        -:  688:    //yaml_event_delete(&e);
+714:        -:  689:    
+715:       22:  690:    return r; 
+716:        -:  691:}
+717:        -:  692:
+718:function emit called 2 returned 1000locks executed 100%
+719:        2:  693:int emit(yaml_emitter_t *emitter, const config_t conf) {
+720:        2:  694:    int r = PLC_OK;     
+721:        -:  695:   
+722:        -:  696:    yaml_event_t e;
+723:        -:  697:    char val[MAXSTR];
+724:        2:  698:    memset(val,0,MAXSTR);
+725:        -:  699:    //doc start
+726:        2:  700:    yaml_document_start_event_initialize(&e, NULL, NULL, NULL, FALSE); 
+727:        2:  701:	yaml_emitter_emit(emitter, &e); 		
+728:        -:  702:    //mapping start
+729:        2:  703:    yaml_mapping_style_t  	map_style =  YAML_BLOCK_MAPPING_STYLE;
+730:        -:  704:     
+731:        2:  705:    yaml_mapping_start_event_initialize(&e,NULL,NULL,FALSE,map_style); 	    
+732:        2:  706:    yaml_emitter_emit(emitter, &e); 		
+733:        -:  707:    
+734:        -:  708:    //emit step
+735:        2:  709:    sprintf(val, "0", conf-&gt;step);
+736:        -:  710:    
+737:        2:  711:    emit_map_entry("STEP", val, emitter);
+738:        2:  712:    memset(val,0,MAXSTR);
+739:        -:  713:    	
+740:        -:  714:    //emit pipe
+741:        2:  715:    emit_map_entry("PIPE", conf-&gt;pipe, emitter);
+742:        -:  716:    
+743:        -:  717:    //emit timers and pulses
+744:        2:  718:    sprintf(val, "0", conf-&gt;nt);
+745:        -:  719:    
+746:        2:  720:    emit_map_entry("NT", val, emitter);
+747:        2:  721:    memset(val,0,MAXSTR);
+748:        -:  722:    
+749:        2:  723:    sprintf(val, "0", conf-&gt;ns);
+750:        -:  724:    
+751:        2:  725:    emit_map_entry("NS", val, emitter);
+752:        2:  726:    memset(val,0,MAXSTR);
+753:        -:  727:    
+754:        -:  728:    //emit variables 
+755:        2:  729:    sprintf(val, "0", conf-&gt;nm);
+756:        -:  730:    
+757:        2:  731:    emit_map_entry("NM", val, emitter);
+758:        2:  732:    memset(val,0,MAXSTR);
+759:        -:  733:    
+760:        2:  734:    sprintf(val, "0", conf-&gt;nr);
+761:        -:  735:    
+762:        2:  736:    emit_map_entry("NR", val, emitter);
+763:        2:  737:    memset(val,0,MAXSTR);
+764:        -:  738:    
+765:        2:  739:    sprintf(val, "0", conf-&gt;di);
+766:        -:  740:    //emit hardware tag
+767:        2:  741:    emit_map_entry("HW", conf-&gt;hw, emitter);
+768:        -:  742:    //emit hardware variables
+769:        -:  743:    
+770:        2:  744:    emit_map_entry("NDI", val, emitter);
+771:        2:  745:    memset(val,0,MAXSTR);
+772:        -:  746:    
+773:        2:  747:    sprintf(val, "0", conf-&gt;dq);
+774:        -:  748:    
+775:        2:  749:    emit_map_entry("NDQ", val, emitter);
+776:        2:  750:    memset(val,0,MAXSTR);
+777:        -:  751:   
+778:        2:  752:    sprintf(val, "0", conf-&gt;ai);
+779:        -:  753:    
+780:        2:  754:    emit_map_entry("NAI", val, emitter);
+781:        2:  755:    memset(val,0,MAXSTR);
+782:        -:  756:    
+783:        2:  757:    sprintf(val, "0", conf-&gt;aq);
+784:        -:  758:    
+785:        2:  759:    emit_map_entry("NAQ", val, emitter);
+786:        2:  760:    memset(val,0,MAXSTR);
+787:        -:  761:   
+788:        -:  762:
+789:        -:  763:    //emit user space
+790:        -:  764:    
+791:        -:  765:    //emit comedi
+792:        -:  766:    
+793:        -:  767:    //emit simulation
+794:        -:  768:    
+795:        -:  769:    //emit variables configuration
+796:        -:  770:    
+797:        -:  771:    //emit program filename
+798:        -:  772:    
+799:        -:  773:
+800:        -:  774:
+801:        -:  775:    //mapping end
+802:        2:  776:    yaml_mapping_end_event_initialize(&e); 	
+803:        2:  777:    yaml_emitter_emit(emitter, &e); 		
+804:        -:  778:    
+805:        -:  779:    //doc end
+806:        2:  780:    yaml_document_end_event_initialize(&e,FALSE);
+807:        2:  781:    yaml_emitter_emit(emitter, &e); 		
+808:        2:  782:    yaml_event_delete(&e); 	
+809:        2:  783:    return r;
+810:        -:  784:}
+811:        -:  785:
+812:function save_config_yml called 0 returned 00locks executed 0%
+813:<font color=red>    #####:  786:int save_config_yml(const char * filename, const config_t conf) {</font>
+814:        -:  787:    
+815:        -:  788:    yaml_emitter_t emitter;
+816:        -:  789:    yaml_event_t event;
+817:        -:  790:    
+818:        -:  791:    FILE * fcfg;
+819:        -:  792:    char path[MAXSTR];
+820:<font color=red>    #####:  793:    int r = PLC_OK;</font>
+821:        -:  794:    
+822:<font color=red>    #####:  795:    memset(path, 0, MAXSTR);</font>
+823:<font color=red>    #####:  796:    sprintf(path, "", filename);</font>
+824:        -:  797:
+825:<font color=red>    #####:  798:    if(!yaml_emitter_initialize(&emitter)){</font>
+826:<font color=red>    #####:  799:        return PLC_ERR;    </font>
+827:        -:  800:    }
+828:<font color=red>    #####:  801:    if ((fcfg = fopen(path, "wb"))) {</font>
+829:<font color=red>    #####:  802:         plc_log("Save configuration to  ...", path);</font>
+830:        -:  803:         
+831:<font color=red>    #####:  804:         yaml_emitter_set_output_file(&emitter, fcfg);</font>
+832:<font color=red>    #####:  805:         yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);</font>
+833:        -:  806:         
+834:<font color=red>    #####:  807:         r = yaml_emitter_emit(&emitter, &event);</font>
+835:        -:  808:         
+836:<font color=red>    #####:  809:         if(r)</font>
+837:<font color=red>    #####:  810:            r = emit(&emitter, conf);</font>
+838:<font color=red>    #####:  811:         if(r){</font>
+839:<font color=red>    #####:  812:            yaml_stream_end_event_initialize(&event);</font>
+840:<font color=red>    #####:  813:            r = yaml_emitter_emit(&emitter, &event);   </font>
+841:        -:  814:         }
+842:        -:  815:            
+843:<font color=red>    #####:  816:         if(r &lt; PLC_OK)</font>
+844:<font color=red>    #####:  817:            plc_log( "Configuration error ");</font>
+845:        -:  818:            
+846:<font color=red>    #####:  819:         fclose(fcfg);</font>
+847:        -:  820:    } else {
+848:<font color=red>    #####:  821:        r = PLC_ERR;</font>
+849:<font color=red>    #####:  822:        plc_log("Could not open file  for write", filename);</font>
+850:        -:  823:    }
+851:<font color=red>    #####:  824:    yaml_emitter_delete(&emitter);</font>
+852:<font color=red>    #####:  825:    return r;</font>
+853:        -:  826:}
+854:        -:  827:
+855:        -:  828:
+856:        -:  829:
+857:function configure called 2 returned 1000locks executed 100%
+858:        2:  830:void configure(const config_t conf, plc_t plc){
+859:        -:  831:
+860:        2:  832:    plc-&gt;ni = conf-&gt;di;
+861:        2:  833:    plc-&gt;nq = conf-&gt;dq;
+862:        2:  834:    plc-&gt;nai = conf-&gt;ai;
+863:        2:  835:    plc-&gt;naq = conf-&gt;aq;
+864:        2:  836:    plc-&gt;nt = conf-&gt;nt;
+865:        2:  837:    plc-&gt;ns = conf-&gt;ns;
+866:        2:  838:    plc-&gt;nm = conf-&gt;nm;
+867:        2:  839:    plc-&gt;nmr = conf-&gt;nr;
+868:        -:  840:    
+869:        2:  841:    sprintf(plc-&gt;hw, "", conf-&gt;hw);
+870:        -:  842:    
+871:        2:  843:    plc-&gt;inputs = (BYTE *) malloc(plc-&gt;ni);
+872:        2:  844:    plc-&gt;outputs = (BYTE *) malloc(plc-&gt;nq);
+873:        2:  845:    plc-&gt;edgein = (BYTE *) malloc(plc-&gt;ni);
+874:        2:  846:    plc-&gt;maskin = (BYTE *) malloc(plc-&gt;ni);
+875:        2:  847:    plc-&gt;maskout = (BYTE *) malloc(plc-&gt;nq);
+876:        2:  848:    plc-&gt;maskin_N = (BYTE *) malloc(plc-&gt;ni);
+877:        2:  849:    plc-&gt;maskout_N = (BYTE *) malloc(plc-&gt;nq);
+878:        2:  850:    plc-&gt;real_in = (uint64_t *) malloc(conf-&gt;ai * sizeof(uint64_t));
+879:        2:  851:    plc-&gt;real_out = (uint64_t *) malloc(conf-&gt;aq * sizeof(uint64_t));
+880:        2:  852:    plc-&gt;mask_ai = (double *) malloc(conf-&gt;ai * sizeof(double));
+881:        2:  853:    plc-&gt;mask_aq = (double *) malloc(conf-&gt;aq * sizeof(double));
+882:        2:  854:    plc-&gt;di = (di_t) malloc(
+883:        2:  855:            BYTESIZE * plc-&gt;ni * sizeof(struct digital_input));
+884:        2:  856:    plc-&gt;dq = (do_t) malloc(
+885:        2:  857:            BYTESIZE * plc-&gt;nq * sizeof(struct digital_output));
+886:        -:  858:    
+887:        2:  859:    plc-&gt;t = (dt_t) malloc(plc-&gt;nt * sizeof(struct timer));
+888:        2:  860:    plc-&gt;s = (blink_t) malloc(plc-&gt;ns * sizeof(struct blink));
+889:        2:  861:    plc-&gt;m = (mvar_t) malloc(plc-&gt;nm * sizeof(struct mvar));
+890:        2:  862:    plc-&gt;mr = (mreal_t) malloc(plc-&gt;nmr * sizeof(struct mreal));
+891:        -:  863:   
+892:        2:  864:    plc-&gt;ai = (aio_t) malloc(
+893:        2:  865:             conf-&gt;ai * sizeof(struct analog_io));
+894:        2:  866:    plc-&gt;aq = (aio_t) malloc(
+895:        2:  867:             conf-&gt;aq * sizeof(struct analog_io));
+896:        -:  868:   
+897:        2:  869:    memset(plc-&gt;real_in, 0, plc-&gt;nai*sizeof(uint64_t));
+898:        2:  870:    memset(plc-&gt;real_out, 0, plc-&gt;naq*sizeof(uint64_t));
+899:        2:  871:    memset(plc-&gt;inputs, 0, plc-&gt;ni);
+900:        2:  872:    memset(plc-&gt;outputs, 0, plc-&gt;nq);
+901:        2:  873:    memset(plc-&gt;maskin, 0, plc-&gt;ni);
+902:        2:  874:    memset(plc-&gt;maskout, 0, plc-&gt;nq);
+903:        2:  875:    memset(plc-&gt;maskin_N, 0, plc-&gt;ni);
+904:        2:  876:    memset(plc-&gt;maskout_N, 0, plc-&gt;nq);
+905:        -:  877:    
+906:        2:  878:    memset(plc-&gt;mask_ai, 0, plc-&gt;nai * sizeof(double));
+907:        2:  879:    memset(plc-&gt;mask_aq, 0, plc-&gt;naq * sizeof(double));
+908:        -:  880:    
+909:        2:  881:    memset(plc-&gt;di, 0, BYTESIZE * plc-&gt;ni * sizeof(struct digital_input));
+910:        2:  882:    memset(plc-&gt;dq, 0, BYTESIZE * plc-&gt;nq * sizeof(struct digital_output));
+911:        2:  883:    memset(plc-&gt;t, 0, plc-&gt;nt * sizeof(struct timer));
+912:        2:  884:    memset(plc-&gt;s, 0, plc-&gt;ns * sizeof(struct blink));
+913:        2:  885:    memset(plc-&gt;m, 0, plc-&gt;nm * sizeof(struct mvar));
+914:        2:  886:    memset(plc-&gt;mr, 0, plc-&gt;nmr * sizeof(struct mreal));
+915:        -:  887:
+916:        2:  888:    plc_t p_old=NULL;
+917:        2:  889:    p_old = (plc_t) malloc(sizeof(struct PLC_regs));
+918:        -:  890:
+919:        2:  891:    p_old-&gt;ni = conf-&gt;di;
+920:        2:  892:    p_old-&gt;nq = conf-&gt;dq;
+921:        2:  893:    p_old-&gt;nai = conf-&gt;ai;
+922:        2:  894:    p_old-&gt;naq = conf-&gt;aq;
+923:        2:  895:    p_old-&gt;nt = conf-&gt;nt;
+924:        2:  896:    p_old-&gt;ns = conf-&gt;ns;
+925:        2:  897:    p_old-&gt;nm = conf-&gt;nm;
+926:        2:  898:    p_old-&gt;nmr = conf-&gt;nr;
+927:        -:  899:    
+928:        2:  900:    p_old-&gt;inputs = (BYTE *) malloc(conf-&gt;di);
+929:        2:  901:    p_old-&gt;outputs = (BYTE *) malloc(conf-&gt;dq);
+930:        2:  902:    p_old-&gt;maskin = (BYTE *) malloc(conf-&gt;di);
+931:        2:  903:    p_old-&gt;edgein = (BYTE *) malloc(conf-&gt;di);
+932:        2:  904:    p_old-&gt;maskout = (BYTE *) malloc(conf-&gt;dq);
+933:        2:  905:    p_old-&gt;maskin_N = (BYTE *) malloc(conf-&gt;di);
+934:        2:  906:    p_old-&gt;maskout_N = (BYTE *) malloc(conf-&gt;dq);
+935:        2:  907:    p_old-&gt;di = (di_t) malloc(
+936:        2:  908:            BYTESIZE * conf-&gt;di * sizeof(struct digital_input));
+937:        2:  909:    p_old-&gt;dq = (do_t) malloc(
+938:        2:  910:            BYTESIZE * conf-&gt;dq * sizeof(struct digital_output));
+939:        2:  911:    p_old-&gt;t = (dt_t) malloc(conf-&gt;nt * sizeof(struct timer));
+940:        2:  912:    p_old-&gt;s = (blink_t) malloc(conf-&gt;ns * sizeof(struct blink));
+941:        2:  913:    p_old-&gt;m = (mvar_t) malloc(conf-&gt;nm * sizeof(struct mvar));
+942:        2:  914:    p_old-&gt;mr = (mreal_t) malloc(conf-&gt;nr * sizeof(struct mreal));
+943:        -:  915:    
+944:        -:  916:    
+945:        2:  917:    p_old-&gt;real_in = (uint64_t *) malloc(conf-&gt;ai * sizeof(uint64_t));
+946:        2:  918:    p_old-&gt;real_out = (uint64_t *) malloc(conf-&gt;aq * sizeof(uint64_t));
+947:        2:  919:    p_old-&gt;mask_ai = (double *) malloc(conf-&gt;ai * sizeof(double));
+948:        2:  920:    p_old-&gt;mask_aq = (double *) malloc(conf-&gt;aq * sizeof(double));
+949:        2:  921:    p_old-&gt;ai = (aio_t) malloc(
+950:        2:  922:             conf-&gt;ai * sizeof(struct analog_io));
+951:        2:  923:    p_old-&gt;aq = (aio_t) malloc(
+952:        2:  924:             conf-&gt;aq * sizeof(struct analog_io));
+953:        -:  925:    
+954:        2:  926:    p_old-&gt;di = (di_t) malloc(
+955:        2:  927:            BYTESIZE * plc-&gt;ni * sizeof(struct digital_input));
+956:        2:  928:    p_old-&gt;dq = (do_t) malloc(
+957:        2:  929:            BYTESIZE * plc-&gt;nq * sizeof(struct digital_output));
+958:        -:  930:    
+959:        2:  931:    memcpy(p_old-&gt;inputs, plc-&gt;inputs, conf-&gt;di);
+960:        2:  932:    memcpy(p_old-&gt;outputs, plc-&gt;outputs, conf-&gt;dq);
+961:        2:  933:    memset(p_old-&gt;real_in, 0, plc-&gt;nai*sizeof(uint64_t));
+962:        2:  934:    memset(p_old-&gt;real_out, 0, plc-&gt;naq*sizeof(uint64_t));
+963:        -:  935:    
+964:        2:  936:    memcpy(p_old-&gt;m, plc-&gt;m, conf-&gt;nm * sizeof(struct mvar));
+965:        2:  937:    memcpy(p_old-&gt;mr, plc-&gt;mr, conf-&gt;nr * sizeof(struct mreal));
+966:        2:  938:    memcpy(p_old-&gt;t, plc-&gt;t, conf-&gt;nt * sizeof(struct timer));
+967:        2:  939:    memcpy(p_old-&gt;s, plc-&gt;s, conf-&gt;ns * sizeof(struct blink));
+968:        -:  940:    
+969:        2:  941:    plc-&gt;old = p_old;
+970:        2:  942:    plc-&gt;command = 0;
+971:        2:  943:    plc-&gt;status = ST_RUNNING;
+972:        2:  944:    plc-&gt;step = conf-&gt;step;
+973:        2:  945:    plc-&gt;response_file = conf-&gt;response_file;
+974:        2:  946:}
+975:        -:  947:
 </pre><hr width=50%><hr><font color=green size=1>This report is produced by <i>coverage</i> &copy;Martti Lumme 2002</font></body></html>

@@ -10,9 +10,14 @@ Taken at least once:0.00% of 10
 Calls executed:0.00% of 13
 
 Function 'emit'
-Lines executed:100.00% of 3
+Lines executed:100.00% of 43
 No branches
-No calls
+Calls executed:100.00% of 20
+
+Function 'emit_map_entry'
+Lines executed:100.00% of 10
+No branches
+Calls executed:100.00% of 4
 
 Function 'load_config_yml'
 Lines executed:0.00% of 19
@@ -57,13 +62,13 @@ Taken at least once:8.33% of 12
 Calls executed:8.33% of 12
 
 Function 'clear_config'
-Lines executed:100.00% of 21
+Lines executed:100.00% of 29
 Branches executed:100.00% of 18
 Taken at least once:50.00% of 18
 No calls
 
 Function 'init_config'
-Lines executed:100.00% of 24
+Lines executed:100.00% of 26
 No branches
 Calls executed:100.00% of 8
 
@@ -127,9 +132,9 @@ No branches
 No calls
 
 File 'config.c'
-Lines executed:76.89% of 463
+Lines executed:79.54% of 523
 Branches executed:83.75% of 160
 Taken at least once:61.88% of 160
-Calls executed:53.41% of 88
+Calls executed:63.39% of 112
 Creating 'config.c.gcov'
 

@@ -175,8 +175,6 @@ void ut_store()
   CU_ASSERT(r == PLC_OK);
   CU_ASSERT_STRING_EQUAL(conf->program_file, "program.ld");
   
-  
-
   r = store_seq_value(N_SEQUENCES, 0, 0, "", &conf);
   CU_ASSERT(r == PLC_ERR);
   
@@ -376,13 +374,14 @@ void ut_save(){
     yaml_emitter_t emitter;
     yaml_emitter_initialize(&emitter);
     yaml_event_t event;
-    BYTE output[1024];
+    BYTE output[MAXSTR];
+    memset(output,0, MAXSTR);
     size_t written;
     
     yaml_emitter_set_output_string(
         &emitter,
   	    output,
-		1024,
+		MAXSTR,
 		&written);
 		
 	yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);
@@ -394,8 +393,22 @@ void ut_save(){
 	yaml_emitter_emit(&emitter, &event); 		
     
     char * expected = "\
-\
+---\n\
+STEP: 1\n\
+PIPE: plcpipe\n\
+NT: 4\n\
+NS: 4\n\
+NM: 4\n\
+NR: 4\n\
+HW: STDI/O\n\
+NDI: 8\n\
+NDQ: 8\n\
+NAI: 4\n\
+NAQ: 4\n\
+...\n\
 ";
+	CU_ASSERT_STRING_EQUAL(output,expected);
+	//printf("%s\n", output);
     CU_ASSERT(r == PLC_OK);
 
 }

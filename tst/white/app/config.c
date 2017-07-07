@@ -239,7 +239,8 @@ config_t init_config(){
     conf->sigenable = 36;
     conf->page_width = 80;
     conf->page_len = 24;
-//hardware    
+//hardware
+    sprintf(conf->hw, "%s", "STDI/O"); //simulation is default    
     conf->base = ADVANTECH_HISTORICAL_BASE;
     conf->wr_offs = 0;
     conf->rd_offs = 8;
@@ -250,33 +251,46 @@ config_t init_config(){
     conf->comedi_subdev_aq = 3;
 //polling    
     conf->step = 1;
-    
+    sprintf(conf->pipe, "%s", "plcpipe");
     return conf;
 }
 
 void clear_config(config_t *c){
 
     if (*c != NULL){
-        if((*c)->aouts != NULL)
+        if((*c)->aouts != NULL){
             free((*c)->aouts);
-        if((*c)->ainps != NULL)
+            (*c)->aouts = NULL;
+        }
+        if((*c)->ainps != NULL){
             free((*c)->ainps);
-        if((*c)->douts != NULL)
+            (*c)->ainps = NULL; 
+        }
+        if((*c)->douts != NULL){
             free((*c)->douts);
-        if((*c)->dinps != NULL)
+            (*c)->douts = NULL;
+        }    
+        if((*c)->dinps != NULL){
             free((*c)->dinps);
-        
-        if((*c)->mvars != NULL)
+            (*c)->dinps = NULL;
+        }
+        if((*c)->mvars != NULL){
             free((*c)->mvars);
-        if((*c)->mregs != NULL)
+            (*c)->mvars = NULL;
+        }    
+        if((*c)->mregs != NULL){
             free((*c)->mregs);
-        if((*c)->timers != NULL)
+            (*c)->mregs = NULL;
+        }
+        if((*c)->timers != NULL){
             free((*c)->timers);
-        if((*c)->pulses != NULL)
+            (*c)->timers = NULL;
+        }
+        if((*c)->pulses != NULL){
             free((*c)->pulses);
-        
+            (*c)->pulses = NULL;
+        }
         free(*c);
-    
     }
     *c = NULL;    
 }
@@ -285,32 +299,42 @@ int log_yml_event(yaml_event_t event){
 
     switch(event.type){ 
     
-        case YAML_NO_EVENT: plc_log("No event!"); 
+        case YAML_NO_EVENT: 
+        	plc_log("No event!"); 
             break;
     /* Stream start/end */
-        case YAML_STREAM_START_EVENT: plc_log("STREAM START"); 
+        case YAML_STREAM_START_EVENT: 
+        	plc_log("STREAM START"); 
             break;
-        case YAML_STREAM_END_EVENT: plc_log("STREAM END");   
+        case YAML_STREAM_END_EVENT: 
+        	plc_log("STREAM END");   
             break;
     /* Block delimeters */
-        case YAML_DOCUMENT_START_EVENT: plc_log("Start Document"); 
+        case YAML_DOCUMENT_START_EVENT: 
+        	plc_log("Start Document"); 
             break;
-        case YAML_DOCUMENT_END_EVENT: plc_log("End Document");   
+        case YAML_DOCUMENT_END_EVENT: 
+        	plc_log("End Document");   
             break;
-        case YAML_SEQUENCE_START_EVENT: plc_log("Start Sequence"); 
+        case YAML_SEQUENCE_START_EVENT: 
+        	plc_log("Start Sequence"); 
             break;
-        case YAML_SEQUENCE_END_EVENT: plc_log("End Sequence");
+        case YAML_SEQUENCE_END_EVENT: 
+        	plc_log("End Sequence");
             break;
-        case YAML_MAPPING_START_EVENT: plc_log("Start Mapping");         
+        case YAML_MAPPING_START_EVENT: 
+        	plc_log("Start Mapping");         
             break;
-        case YAML_MAPPING_END_EVENT: plc_log("End Mapping");      
+        case YAML_MAPPING_END_EVENT: 
+        	plc_log("End Mapping");      
             break;
     /* Data */
-        case YAML_ALIAS_EVENT:  plc_log("Got alias (anchor %s)", event.data.alias.anchor); 
+        case YAML_ALIAS_EVENT:  
+        	plc_log("Got alias (anchor %s)", event.data.alias.anchor); 
             break;
-        case YAML_SCALAR_EVENT: plc_log("Got scalar (value %s)", event.data.scalar.value); 
-        
-        break;
+        case YAML_SCALAR_EVENT: 
+        	plc_log("Got scalar (value %s)", event.data.scalar.value); 
+        	break;
         default:
             plc_log("default?");
     }
@@ -359,12 +383,12 @@ int store_value(BYTE key, const char * value, config_t * c){
             strncpy((*c)->sim_out_file, value, MAXSTR);
             break;
             
-         case CONFIG_PROGRAM_IL:
-         case CONFIG_PROGRAM_LD:
+        case CONFIG_PROGRAM_IL:
+        case CONFIG_PROGRAM_LD:
             strncpy((*c)->program_file, value, MAXSTR);
             break;  
             
-         case CONFIG_NT:
+        case CONFIG_NT:
             config_timer_vars(atoi(value), c);
             break;                
         case CONFIG_NS:
@@ -477,9 +501,9 @@ int find_config_var(const char *name,
     return PLC_ERR;        
 }
 
-int process_scalar(const char *value,
+int process_scalar(const unsigned char *value,
                    BYTE is_seq,  
-                   config_t * conf, 
+                   config_t *conf, 
                    BYTE *storage, 
                    int *key,
                    int *seq,
@@ -490,12 +514,12 @@ int process_scalar(const char *value,
     if(*storage == STORE_KEY){
         if(is_seq)
             *key = find_config_var(
-                value, 
+                (char *)value, 
                 Variable_params,
                 N_VARIABLE_PARAMS);
         else{         
             *key = find_config_var(
-                value, 
+                (char *)value, 
                 Config_vars,
                 N_CONFIG_VARIABLES);
             if(IS_SEQUENCE(*key))
@@ -508,15 +532,15 @@ int process_scalar(const char *value,
     else{ //val
         if(is_seq){
             if(*key == VARIABLE_INDEX)
-                    *idx = atoi(value);
+                    *idx = atoi((char *)value);
             else  
                 ret = store_seq_value(*seq, 
                                           *idx, 
                                           *key, 
-                                          value, 
+                                          (char *)value, 
                                           conf);        
         } else 
-             ret = store_value(*key, value, conf);
+             ret = store_value(*key, (char *)value, conf);
         *storage = STORE_KEY; 
     } 
     
@@ -550,8 +574,8 @@ int process(int sequence,
         }
         else {
             
-            switch(event.type)
-            {
+            switch(event.type){
+            
                 case YAML_SCALAR_EVENT:
                     ret = process_scalar(
                         event.data
@@ -603,42 +627,159 @@ int process(int sequence,
 int load_config_yml(const char * filename, config_t conf) {
     yaml_parser_t parser;
     
-	FILE * fcfg;
-	char path[MAXSTR];
+    FILE * fcfg;
+    char path[MAXSTR];
 
     memset(path, 0, MAXSTR);
-	sprintf(path, "%s", filename);
-	
-	memset(&parser, 0, sizeof(parser));
-	
-	int r = PLC_OK;
+    sprintf(path, "%s", filename);
+    
+    memset(&parser, 0, sizeof(parser));
+    
+    int r = PLC_OK;
     
     if (!yaml_parser_initialize(&parser)) {
         yaml_parser_error(parser);
         return PLC_ERR;    
     }
     if ((fcfg = fopen(path, "r"))) {
-	    plc_log("Looking for configuration from %s ...", path);
-	    yaml_parser_set_input_file(&parser, fcfg);
-	    r = process(PLC_ERR, &parser, conf);
-	    if(r < PLC_OK)
-	        plc_log( "Configuration error ");
-		fclose(fcfg);
-	} else {
-	    r = PLC_ERR;
-	    plc_log("Could not open file %s", filename);
-	}
+        plc_log("Looking for configuration from %s ...", path);
+        yaml_parser_set_input_file(&parser, fcfg);
+        r = process(PLC_ERR, &parser, conf);
+        if(r < PLC_OK)
+            plc_log( "Configuration error ");
+        fclose(fcfg);
+    } else {
+        r = PLC_ERR;
+        plc_log("Could not open file %s", filename);
+    }
     yaml_parser_delete(&parser);
     return r;
 }
 
-yaml_event_t generate_events()
+int emit_map_entry(
+	char * name, 
+	char * value,
+	yaml_emitter_t *emitter) {
+    
+    int r = PLC_OK;     
+	yaml_event_t e;
+    
+    yaml_mapping_style_t  	style =  YAML_PLAIN_SCALAR_STYLE;
+    
+    yaml_scalar_event_initialize(
+    	&e,
+	    NULL,
+		NULL,
+		(unsigned char *)name,
+		strlen(name),
+		TRUE,TRUE, style); 	
+		
+	yaml_emitter_emit(emitter, &e);
+    
+    yaml_scalar_event_initialize(
+    	&e,
+	    NULL,
+		NULL,
+		(unsigned char *)value,
+		strlen(value),
+		TRUE,TRUE, style); 	
+		
+	yaml_emitter_emit(emitter, &e); 		
+    //yaml_event_delete(&e);
+    
+    return r; 
+}
 
 int emit(yaml_emitter_t *emitter, const config_t conf) {
-    int r = PLC_OK;         
+    int r = PLC_OK;     
+   
+    yaml_event_t e;
+    char val[MAXSTR];
+    memset(val,0,MAXSTR);
+    //doc start
+    yaml_document_start_event_initialize(&e, NULL, NULL, NULL, FALSE); 
+	yaml_emitter_emit(emitter, &e); 		
+    //mapping start
+    yaml_mapping_style_t  	map_style =  YAML_BLOCK_MAPPING_STYLE;
+     
+    yaml_mapping_start_event_initialize(&e,NULL,NULL,FALSE,map_style); 	    
+    yaml_emitter_emit(emitter, &e); 		
     
+    //emit step
+    sprintf(val, "%ld", conf->step);
     
+    emit_map_entry("STEP", val, emitter);
+    memset(val,0,MAXSTR);
+    	
+    //emit pipe
+    emit_map_entry("PIPE", conf->pipe, emitter);
     
+    //emit timers and pulses
+    sprintf(val, "%d", conf->nt);
+    
+    emit_map_entry("NT", val, emitter);
+    memset(val,0,MAXSTR);
+    
+    sprintf(val, "%d", conf->ns);
+    
+    emit_map_entry("NS", val, emitter);
+    memset(val,0,MAXSTR);
+    
+    //emit variables 
+    sprintf(val, "%d", conf->nm);
+    
+    emit_map_entry("NM", val, emitter);
+    memset(val,0,MAXSTR);
+    
+    sprintf(val, "%d", conf->nr);
+    
+    emit_map_entry("NR", val, emitter);
+    memset(val,0,MAXSTR);
+    
+    sprintf(val, "%d", conf->di);
+    //emit hardware tag
+    emit_map_entry("HW", conf->hw, emitter);
+    //emit hardware variables
+    
+    emit_map_entry("NDI", val, emitter);
+    memset(val,0,MAXSTR);
+    
+    sprintf(val, "%d", conf->dq);
+    
+    emit_map_entry("NDQ", val, emitter);
+    memset(val,0,MAXSTR);
+   
+    sprintf(val, "%d", conf->ai);
+    
+    emit_map_entry("NAI", val, emitter);
+    memset(val,0,MAXSTR);
+    
+    sprintf(val, "%d", conf->aq);
+    
+    emit_map_entry("NAQ", val, emitter);
+    memset(val,0,MAXSTR);
+   
+
+    //emit user space
+    
+    //emit comedi
+    
+    //emit simulation
+    
+    //emit variables configuration
+    
+    //emit program filename
+    
+
+
+    //mapping end
+    yaml_mapping_end_event_initialize(&e); 	
+    yaml_emitter_emit(emitter, &e); 		
+    
+    //doc end
+    yaml_document_end_event_initialize(&e,FALSE);
+    yaml_emitter_emit(emitter, &e); 		
+    yaml_event_delete(&e); 	
     return r;
 }
 
@@ -648,40 +789,40 @@ int save_config_yml(const char * filename, const config_t conf) {
     yaml_event_t event;
     
     FILE * fcfg;
-	char path[MAXSTR];
+    char path[MAXSTR];
     int r = PLC_OK;
     
     memset(path, 0, MAXSTR);
-	sprintf(path, "%s", filename);
+    sprintf(path, "%s", filename);
 
-	if(!yaml_emitter_initialize(&emitter)){
-	    return PLC_ERR;    
-	}
-	if ((fcfg = fopen(path, "wb"))) {
-	     plc_log("Save configuration to %s ...", path);
-	     
-	     yaml_emitter_set_output_file(&emitter, fcfg);
-	     yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);
-	     
-	     r = yaml_emitter_emit(&emitter, &event);
-	     
-	     if(r)
-	        r = emit(&emitter, conf);
-	     if(r){
-	        yaml_stream_end_event_initialize(&event);
-	        r = yaml_emitter_emit(&emitter, &event);   
-	     }
-	        
-	     if(r < PLC_OK)
-	        plc_log( "Configuration error ");
-	        
-		 fclose(fcfg);
-	} else {
-	    r = PLC_ERR;
-	    plc_log("Could not open file %s for write", filename);
-	}
-	yaml_emitter_delete(&emitter);
-	return r;
+    if(!yaml_emitter_initialize(&emitter)){
+        return PLC_ERR;    
+    }
+    if ((fcfg = fopen(path, "wb"))) {
+         plc_log("Save configuration to %s ...", path);
+         
+         yaml_emitter_set_output_file(&emitter, fcfg);
+         yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);
+         
+         r = yaml_emitter_emit(&emitter, &event);
+         
+         if(r)
+            r = emit(&emitter, conf);
+         if(r){
+            yaml_stream_end_event_initialize(&event);
+            r = yaml_emitter_emit(&emitter, &event);   
+         }
+            
+         if(r < PLC_OK)
+            plc_log( "Configuration error ");
+            
+         fclose(fcfg);
+    } else {
+        r = PLC_ERR;
+        plc_log("Could not open file %s for write", filename);
+    }
+    yaml_emitter_delete(&emitter);
+    return r;
 }
 
 
@@ -697,23 +838,23 @@ void configure(const config_t conf, plc_t plc){
     plc->nm = conf->nm;
     plc->nmr = conf->nr;
     
-	sprintf(plc->hw, "%s", conf->hw);
-	
+    sprintf(plc->hw, "%s", conf->hw);
+    
     plc->inputs = (BYTE *) malloc(plc->ni);
     plc->outputs = (BYTE *) malloc(plc->nq);
-	plc->edgein = (BYTE *) malloc(plc->ni);
-	plc->maskin = (BYTE *) malloc(plc->ni);
-	plc->maskout = (BYTE *) malloc(plc->nq);
-	plc->maskin_N = (BYTE *) malloc(plc->ni);
+    plc->edgein = (BYTE *) malloc(plc->ni);
+    plc->maskin = (BYTE *) malloc(plc->ni);
+    plc->maskout = (BYTE *) malloc(plc->nq);
+    plc->maskin_N = (BYTE *) malloc(plc->ni);
     plc->maskout_N = (BYTE *) malloc(plc->nq);
     plc->real_in = (uint64_t *) malloc(conf->ai * sizeof(uint64_t));
     plc->real_out = (uint64_t *) malloc(conf->aq * sizeof(uint64_t));
-	plc->mask_ai = (double *) malloc(conf->ai * sizeof(double));
+    plc->mask_ai = (double *) malloc(conf->ai * sizeof(double));
     plc->mask_aq = (double *) malloc(conf->aq * sizeof(double));
-	plc->di = (di_t) malloc(
-			BYTESIZE * plc->ni * sizeof(struct digital_input));
-	plc->dq = (do_t) malloc(
-			BYTESIZE * plc->nq * sizeof(struct digital_output));
+    plc->di = (di_t) malloc(
+            BYTESIZE * plc->ni * sizeof(struct digital_input));
+    plc->dq = (do_t) malloc(
+            BYTESIZE * plc->nq * sizeof(struct digital_output));
     
     plc->t = (dt_t) malloc(plc->nt * sizeof(struct timer));
     plc->s = (blink_t) malloc(plc->ns * sizeof(struct blink));
@@ -721,31 +862,31 @@ void configure(const config_t conf, plc_t plc){
     plc->mr = (mreal_t) malloc(plc->nmr * sizeof(struct mreal));
    
     plc->ai = (aio_t) malloc(
-			 conf->ai * sizeof(struct analog_io));
-	plc->aq = (aio_t) malloc(
-			 conf->aq * sizeof(struct analog_io));
+             conf->ai * sizeof(struct analog_io));
+    plc->aq = (aio_t) malloc(
+             conf->aq * sizeof(struct analog_io));
    
     memset(plc->real_in, 0, plc->nai*sizeof(uint64_t));
-	memset(plc->real_out, 0, plc->naq*sizeof(uint64_t));
+    memset(plc->real_out, 0, plc->naq*sizeof(uint64_t));
     memset(plc->inputs, 0, plc->ni);
-	memset(plc->outputs, 0, plc->nq);
+    memset(plc->outputs, 0, plc->nq);
     memset(plc->maskin, 0, plc->ni);
-	memset(plc->maskout, 0, plc->nq);
-	memset(plc->maskin_N, 0, plc->ni);
-	memset(plc->maskout_N, 0, plc->nq);
-	
+    memset(plc->maskout, 0, plc->nq);
+    memset(plc->maskin_N, 0, plc->ni);
+    memset(plc->maskout_N, 0, plc->nq);
+    
     memset(plc->mask_ai, 0, plc->nai * sizeof(double));
-	memset(plc->mask_aq, 0, plc->naq * sizeof(double));
+    memset(plc->mask_aq, 0, plc->naq * sizeof(double));
     
     memset(plc->di, 0, BYTESIZE * plc->ni * sizeof(struct digital_input));
-	memset(plc->dq, 0, BYTESIZE * plc->nq * sizeof(struct digital_output));
+    memset(plc->dq, 0, BYTESIZE * plc->nq * sizeof(struct digital_output));
     memset(plc->t, 0, plc->nt * sizeof(struct timer));
-	memset(plc->s, 0, plc->ns * sizeof(struct blink));
+    memset(plc->s, 0, plc->ns * sizeof(struct blink));
     memset(plc->m, 0, plc->nm * sizeof(struct mvar));
     memset(plc->mr, 0, plc->nmr * sizeof(struct mreal));
 
     plc_t p_old=NULL;
-	p_old = (plc_t) malloc(sizeof(struct PLC_regs));
+    p_old = (plc_t) malloc(sizeof(struct PLC_regs));
 
     p_old->ni = conf->di;
     p_old->nq = conf->dq;
@@ -756,51 +897,51 @@ void configure(const config_t conf, plc_t plc){
     p_old->nm = conf->nm;
     p_old->nmr = conf->nr;
     
-	p_old->inputs = (BYTE *) malloc(conf->di);
-	p_old->outputs = (BYTE *) malloc(conf->dq);
-	p_old->maskin = (BYTE *) malloc(conf->di);
-	p_old->edgein = (BYTE *) malloc(conf->di);
-	p_old->maskout = (BYTE *) malloc(conf->dq);
-	p_old->maskin_N = (BYTE *) malloc(conf->di);
-	p_old->maskout_N = (BYTE *) malloc(conf->dq);
-	p_old->di = (di_t) malloc(
-			BYTESIZE * conf->di * sizeof(struct digital_input));
-	p_old->dq = (do_t) malloc(
-			BYTESIZE * conf->dq * sizeof(struct digital_output));
-	p_old->t = (dt_t) malloc(conf->nt * sizeof(struct timer));
-	p_old->s = (blink_t) malloc(conf->ns * sizeof(struct blink));
-	p_old->m = (mvar_t) malloc(conf->nm * sizeof(struct mvar));
+    p_old->inputs = (BYTE *) malloc(conf->di);
+    p_old->outputs = (BYTE *) malloc(conf->dq);
+    p_old->maskin = (BYTE *) malloc(conf->di);
+    p_old->edgein = (BYTE *) malloc(conf->di);
+    p_old->maskout = (BYTE *) malloc(conf->dq);
+    p_old->maskin_N = (BYTE *) malloc(conf->di);
+    p_old->maskout_N = (BYTE *) malloc(conf->dq);
+    p_old->di = (di_t) malloc(
+            BYTESIZE * conf->di * sizeof(struct digital_input));
+    p_old->dq = (do_t) malloc(
+            BYTESIZE * conf->dq * sizeof(struct digital_output));
+    p_old->t = (dt_t) malloc(conf->nt * sizeof(struct timer));
+    p_old->s = (blink_t) malloc(conf->ns * sizeof(struct blink));
+    p_old->m = (mvar_t) malloc(conf->nm * sizeof(struct mvar));
     p_old->mr = (mreal_t) malloc(conf->nr * sizeof(struct mreal));
     
     
     p_old->real_in = (uint64_t *) malloc(conf->ai * sizeof(uint64_t));
     p_old->real_out = (uint64_t *) malloc(conf->aq * sizeof(uint64_t));
-	p_old->mask_ai = (double *) malloc(conf->ai * sizeof(double));
+    p_old->mask_ai = (double *) malloc(conf->ai * sizeof(double));
     p_old->mask_aq = (double *) malloc(conf->aq * sizeof(double));
     p_old->ai = (aio_t) malloc(
-			 conf->ai * sizeof(struct analog_io));
-	p_old->aq = (aio_t) malloc(
-			 conf->aq * sizeof(struct analog_io));
+             conf->ai * sizeof(struct analog_io));
+    p_old->aq = (aio_t) malloc(
+             conf->aq * sizeof(struct analog_io));
     
-	p_old->di = (di_t) malloc(
-			BYTESIZE * plc->ni * sizeof(struct digital_input));
-	p_old->dq = (do_t) malloc(
-			BYTESIZE * plc->nq * sizeof(struct digital_output));
+    p_old->di = (di_t) malloc(
+            BYTESIZE * plc->ni * sizeof(struct digital_input));
+    p_old->dq = (do_t) malloc(
+            BYTESIZE * plc->nq * sizeof(struct digital_output));
     
-	memcpy(p_old->inputs, plc->inputs, conf->di);
-	memcpy(p_old->outputs, plc->outputs, conf->dq);
-	memset(p_old->real_in, 0, plc->nai*sizeof(uint64_t));
-	memset(p_old->real_out, 0, plc->naq*sizeof(uint64_t));
-	
-	memcpy(p_old->m, plc->m, conf->nm * sizeof(struct mvar));
+    memcpy(p_old->inputs, plc->inputs, conf->di);
+    memcpy(p_old->outputs, plc->outputs, conf->dq);
+    memset(p_old->real_in, 0, plc->nai*sizeof(uint64_t));
+    memset(p_old->real_out, 0, plc->naq*sizeof(uint64_t));
+    
+    memcpy(p_old->m, plc->m, conf->nm * sizeof(struct mvar));
     memcpy(p_old->mr, plc->mr, conf->nr * sizeof(struct mreal));
     memcpy(p_old->t, plc->t, conf->nt * sizeof(struct timer));
     memcpy(p_old->s, plc->s, conf->ns * sizeof(struct blink));
     
     plc->old = p_old;
-	plc->command = 0;
-	plc->status = ST_RUNNING;
-	plc->step = conf->step;
-	plc->response_file = conf->response_file;
+    plc->command = 0;
+    plc->status = ST_RUNNING;
+    plc->step = conf->step;
+    plc->response_file = conf->response_file;
 }
 

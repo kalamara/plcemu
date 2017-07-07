@@ -239,7 +239,8 @@ config_t init_config(){
     conf->sigenable = 36;
     conf->page_width = 80;
     conf->page_len = 24;
-//hardware    
+//hardware
+    sprintf(conf->hw, "%s", "STDI/O"); //simulation is default    
     conf->base = ADVANTECH_HISTORICAL_BASE;
     conf->wr_offs = 0;
     conf->rd_offs = 8;
@@ -250,7 +251,7 @@ config_t init_config(){
     conf->comedi_subdev_aq = 3;
 //polling    
     conf->step = 1;
-    
+    sprintf(conf->pipe, "%s", "plcpipe");
     return conf;
 }
 
@@ -298,32 +299,42 @@ int log_yml_event(yaml_event_t event){
 
     switch(event.type){ 
     
-        case YAML_NO_EVENT: plc_log("No event!"); 
+        case YAML_NO_EVENT: 
+        	plc_log("No event!"); 
             break;
     /* Stream start/end */
-        case YAML_STREAM_START_EVENT: plc_log("STREAM START"); 
+        case YAML_STREAM_START_EVENT: 
+        	plc_log("STREAM START"); 
             break;
-        case YAML_STREAM_END_EVENT: plc_log("STREAM END");   
+        case YAML_STREAM_END_EVENT: 
+        	plc_log("STREAM END");   
             break;
     /* Block delimeters */
-        case YAML_DOCUMENT_START_EVENT: plc_log("Start Document"); 
+        case YAML_DOCUMENT_START_EVENT: 
+        	plc_log("Start Document"); 
             break;
-        case YAML_DOCUMENT_END_EVENT: plc_log("End Document");   
+        case YAML_DOCUMENT_END_EVENT: 
+        	plc_log("End Document");   
             break;
-        case YAML_SEQUENCE_START_EVENT: plc_log("Start Sequence"); 
+        case YAML_SEQUENCE_START_EVENT: 
+        	plc_log("Start Sequence"); 
             break;
-        case YAML_SEQUENCE_END_EVENT: plc_log("End Sequence");
+        case YAML_SEQUENCE_END_EVENT: 
+        	plc_log("End Sequence");
             break;
-        case YAML_MAPPING_START_EVENT: plc_log("Start Mapping");         
+        case YAML_MAPPING_START_EVENT: 
+        	plc_log("Start Mapping");         
             break;
-        case YAML_MAPPING_END_EVENT: plc_log("End Mapping");      
+        case YAML_MAPPING_END_EVENT: 
+        	plc_log("End Mapping");      
             break;
     /* Data */
-        case YAML_ALIAS_EVENT:  plc_log("Got alias (anchor %s)", event.data.alias.anchor); 
+        case YAML_ALIAS_EVENT:  
+        	plc_log("Got alias (anchor %s)", event.data.alias.anchor); 
             break;
-        case YAML_SCALAR_EVENT: plc_log("Got scalar (value %s)", event.data.scalar.value); 
-        
-        break;
+        case YAML_SCALAR_EVENT: 
+        	plc_log("Got scalar (value %s)", event.data.scalar.value); 
+        	break;
         default:
             plc_log("default?");
     }
@@ -372,12 +383,12 @@ int store_value(BYTE key, const char * value, config_t * c){
             strncpy((*c)->sim_out_file, value, MAXSTR);
             break;
             
-         case CONFIG_PROGRAM_IL:
-         case CONFIG_PROGRAM_LD:
+        case CONFIG_PROGRAM_IL:
+        case CONFIG_PROGRAM_LD:
             strncpy((*c)->program_file, value, MAXSTR);
             break;  
             
-         case CONFIG_NT:
+        case CONFIG_NT:
             config_timer_vars(atoi(value), c);
             break;                
         case CONFIG_NS:
@@ -490,9 +501,9 @@ int find_config_var(const char *name,
     return PLC_ERR;        
 }
 
-int process_scalar(const char *value,
+int process_scalar(const unsigned char *value,
                    BYTE is_seq,  
-                   config_t * conf, 
+                   config_t *conf, 
                    BYTE *storage, 
                    int *key,
                    int *seq,
@@ -503,12 +514,12 @@ int process_scalar(const char *value,
     if(*storage == STORE_KEY){
         if(is_seq)
             *key = find_config_var(
-                value, 
+                (char *)value, 
                 Variable_params,
                 N_VARIABLE_PARAMS);
         else{         
             *key = find_config_var(
-                value, 
+                (char *)value, 
                 Config_vars,
                 N_CONFIG_VARIABLES);
             if(IS_SEQUENCE(*key))
@@ -521,15 +532,15 @@ int process_scalar(const char *value,
     else{ //val
         if(is_seq){
             if(*key == VARIABLE_INDEX)
-                    *idx = atoi(value);
+                    *idx = atoi((char *)value);
             else  
                 ret = store_seq_value(*seq, 
                                           *idx, 
                                           *key, 
-                                          value, 
+                                          (char *)value, 
                                           conf);        
         } else 
-             ret = store_value(*key, value, conf);
+             ret = store_value(*key, (char *)value, conf);
         *storage = STORE_KEY; 
     } 
     
@@ -563,8 +574,8 @@ int process(int sequence,
         }
         else {
             
-            switch(event.type)
-            {
+            switch(event.type){
+            
                 case YAML_SCALAR_EVENT:
                     ret = process_scalar(
                         event.data
@@ -645,13 +656,130 @@ int load_config_yml(const char * filename, config_t conf) {
     return r;
 }
 
-yaml_event_t generate_events();
+int emit_map_entry(
+	char * name, 
+	char * value,
+	yaml_emitter_t *emitter) {
+    
+    int r = PLC_OK;     
+	yaml_event_t e;
+    
+    yaml_mapping_style_t  	style =  YAML_PLAIN_SCALAR_STYLE;
+    
+    yaml_scalar_event_initialize(
+    	&e,
+	    NULL,
+		NULL,
+		(unsigned char *)name,
+		strlen(name),
+		TRUE,TRUE, style); 	
+		
+	yaml_emitter_emit(emitter, &e);
+    
+    yaml_scalar_event_initialize(
+    	&e,
+	    NULL,
+		NULL,
+		(unsigned char *)value,
+		strlen(value),
+		TRUE,TRUE, style); 	
+		
+	yaml_emitter_emit(emitter, &e); 		
+    //yaml_event_delete(&e);
+    
+    return r; 
+}
 
 int emit(yaml_emitter_t *emitter, const config_t conf) {
-    int r = PLC_OK;         
+    int r = PLC_OK;     
+   
+    yaml_event_t e;
+    char val[MAXSTR];
+    memset(val,0,MAXSTR);
+    //doc start
+    yaml_document_start_event_initialize(&e, NULL, NULL, NULL, FALSE); 
+	yaml_emitter_emit(emitter, &e); 		
+    //mapping start
+    yaml_mapping_style_t  	map_style =  YAML_BLOCK_MAPPING_STYLE;
+     
+    yaml_mapping_start_event_initialize(&e,NULL,NULL,FALSE,map_style); 	    
+    yaml_emitter_emit(emitter, &e); 		
     
+    //emit step
+    sprintf(val, "%ld", conf->step);
     
+    emit_map_entry("STEP", val, emitter);
+    memset(val,0,MAXSTR);
+    	
+    //emit pipe
+    emit_map_entry("PIPE", conf->pipe, emitter);
     
+    //emit timers and pulses
+    sprintf(val, "%d", conf->nt);
+    
+    emit_map_entry("NT", val, emitter);
+    memset(val,0,MAXSTR);
+    
+    sprintf(val, "%d", conf->ns);
+    
+    emit_map_entry("NS", val, emitter);
+    memset(val,0,MAXSTR);
+    
+    //emit variables 
+    sprintf(val, "%d", conf->nm);
+    
+    emit_map_entry("NM", val, emitter);
+    memset(val,0,MAXSTR);
+    
+    sprintf(val, "%d", conf->nr);
+    
+    emit_map_entry("NR", val, emitter);
+    memset(val,0,MAXSTR);
+    
+    sprintf(val, "%d", conf->di);
+    //emit hardware tag
+    emit_map_entry("HW", conf->hw, emitter);
+    //emit hardware variables
+    
+    emit_map_entry("NDI", val, emitter);
+    memset(val,0,MAXSTR);
+    
+    sprintf(val, "%d", conf->dq);
+    
+    emit_map_entry("NDQ", val, emitter);
+    memset(val,0,MAXSTR);
+   
+    sprintf(val, "%d", conf->ai);
+    
+    emit_map_entry("NAI", val, emitter);
+    memset(val,0,MAXSTR);
+    
+    sprintf(val, "%d", conf->aq);
+    
+    emit_map_entry("NAQ", val, emitter);
+    memset(val,0,MAXSTR);
+   
+
+    //emit user space
+    
+    //emit comedi
+    
+    //emit simulation
+    
+    //emit variables configuration
+    
+    //emit program filename
+    
+
+
+    //mapping end
+    yaml_mapping_end_event_initialize(&e); 	
+    yaml_emitter_emit(emitter, &e); 		
+    
+    //doc end
+    yaml_document_end_event_initialize(&e,FALSE);
+    yaml_emitter_emit(emitter, &e); 		
+    yaml_event_delete(&e); 	
     return r;
 }
 
