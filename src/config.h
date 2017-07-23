@@ -68,25 +68,47 @@ typedef enum{
     CONFIG_TIMER,
     CONFIG_PULSE, 
     N_CONFIG_VARIABLES
-}CONFIG_VARIABLES;
+} CONFIG_VARIABLES;
 
 #define IS_SEQUENCE(x) x >= CONFIG_AI
 #define SEQUENCE(x) x - CONFIG_AI
 
-typedef enum{
+typedef enum {
     VARIABLE_INDEX,
     VARIABLE_ID,
     VARIABLE_VALUE,
     VARIABLE_MIN,
     VARIABLE_MAX,
     N_VARIABLE_PARAMS
-}VARIABLE_PARAMS;
+} VARIABLE_PARAMS;
 
-typedef enum{
+typedef enum {
     STORE_KEY,
     STORE_VAL,
     N_STORAGE_MODES
-}STORAGE_MODE;
+} STORAGE_MODE;
+
+typedef enum {
+    ENTRY_NONE,
+	ENTRY_INT,
+	ENTRY_STR,
+	ENTRY_MAP,
+	ENTRY_SEQ,
+	N_ENTRY_TYPES
+} ENTRY_TYPE;
+
+typedef struct entry {
+	int type_tag;
+	char * name;
+	struct entry * next;
+	union {
+	    int scalar_int;
+		char * scalar_str;
+		struct entry ** map;
+	} e;
+} * entry_t;
+
+typedef entry_t * entry_map_t;
 
 typedef struct variable {
     BYTE index;

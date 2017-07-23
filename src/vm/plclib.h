@@ -26,6 +26,7 @@
 #define MEDSTR	256
 #define SMALLSTR 128
 #define SMALLBUF 64
+#define TINYBUF 24
 #define TINYSTR 32
 #define COMMLEN 16
 

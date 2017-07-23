@@ -55,12 +55,12 @@ const char * Variable_params[N_VARIABLE_PARAMS] = {
     "MAX"
 };
 
-void yaml_config_error(yaml_parser_t parser){
+static void yaml_config_error(yaml_parser_t parser){
 
     //print line
 }
 
-void yaml_parser_error(yaml_parser_t parser){
+static void yaml_parser_error(yaml_parser_t parser){
 
      switch (parser.error)
      {
@@ -134,7 +134,7 @@ void yaml_parser_error(yaml_parser_t parser){
     }
 }
 
-void config_timer_vars(BYTE n, config_t * conf){
+static void config_timer_vars(BYTE n, config_t * conf){
 
     (*conf)->nt = n;
     if((*conf)->timers != NULL){
@@ -144,7 +144,7 @@ void config_timer_vars(BYTE n, config_t * conf){
     (*conf)->timers = (variable_t )malloc(n * sizeof(struct variable));
 }
 
-void config_pulse_vars(BYTE n, config_t * conf){
+static void config_pulse_vars(BYTE n, config_t * conf){
 
     (*conf)->ns = n;
     if((*conf)->pulses != NULL){
@@ -154,7 +154,7 @@ void config_pulse_vars(BYTE n, config_t * conf){
     (*conf)->pulses = (variable_t )malloc(n * sizeof(struct variable));
 }
 
-void config_mem_vars(BYTE n, config_t * conf){
+static void config_mem_vars(BYTE n, config_t * conf){
 
     (*conf)->nr = n;
     if((*conf)->mvars != NULL){
@@ -164,7 +164,7 @@ void config_mem_vars(BYTE n, config_t * conf){
     (*conf)->mvars = (variable_t )malloc(n * sizeof(struct variable));
 }
 
-void config_reg_vars(BYTE n, config_t * conf){
+static void config_reg_vars(BYTE n, config_t * conf){
 
     (*conf)->nm = n;
     if((*conf)->mregs != NULL){
@@ -174,7 +174,7 @@ void config_reg_vars(BYTE n, config_t * conf){
     (*conf)->mregs = (variable_t )malloc(n * sizeof(struct variable));
 }
 
-void config_di_vars(BYTE n, config_t * conf){
+static void config_di_vars(BYTE n, config_t * conf){
 
     (*conf)->di = n;
     if((*conf)->dinps != NULL){
@@ -184,7 +184,7 @@ void config_di_vars(BYTE n, config_t * conf){
     (*conf)->dinps = (variable_t )malloc(n * sizeof(struct variable));
 }
 
-void config_dq_vars(BYTE n, config_t * conf){
+static void config_dq_vars(BYTE n, config_t * conf){
 
     (*conf)->dq = n;
     if((*conf)->douts != NULL){
@@ -194,7 +194,7 @@ void config_dq_vars(BYTE n, config_t * conf){
     (*conf)->douts = (variable_t )malloc(n * sizeof(struct variable));
 }
 
-void config_ai_vars(BYTE n, config_t * conf){
+static void config_ai_vars(BYTE n, config_t * conf){
 
     (*conf)->ai = n;
     if((*conf)->ainps != NULL){
@@ -204,7 +204,7 @@ void config_ai_vars(BYTE n, config_t * conf){
     (*conf)->ainps = (variable_t )malloc(n * sizeof(struct variable));
 }
 
-void config_aq_vars(BYTE n, config_t * conf){
+static void config_aq_vars(BYTE n, config_t * conf){
 
     (*conf)->aq = n;
     if((*conf)->aouts != NULL){
@@ -295,7 +295,7 @@ void clear_config(config_t *c){
     *c = NULL;    
 }
 
-int log_yml_event(yaml_event_t event){
+static int log_yml_event(yaml_event_t event){
 
     switch(event.type){ 
     
@@ -491,7 +491,7 @@ int store_seq_value(BYTE seq,
     return PLC_OK;                       
 }
 
-int find_config_var(const char *name, 
+static int find_config_var(const char *name, 
                     const char **where, 
                     unsigned int size){
 
@@ -501,7 +501,7 @@ int find_config_var(const char *name,
     return PLC_ERR;        
 }
 
-int process_scalar(const unsigned char *value,
+static int process_scalar(const unsigned char *value,
                    BYTE is_seq,  
                    config_t *conf, 
                    BYTE *storage, 
@@ -656,112 +656,205 @@ int load_config_yml(const char * filename, config_t conf) {
     return r;
 }
 
-int emit_map_entry(
-	char * name, 
-	char * value,
-	yaml_emitter_t *emitter) {
-    
-    int r = PLC_OK;     
-	yaml_event_t e;
-    
-    yaml_mapping_style_t  	style =  YAML_PLAIN_SCALAR_STYLE;
-    
+static void emit_entry(entry_t entry, yaml_emitter_t *emitter) {
+    //int i = 0;
+    yaml_event_t evt;
+     
     yaml_scalar_event_initialize(
-    	&e,
+    	&evt,
 	    NULL,
 		NULL,
-		(unsigned char *)name,
-		strlen(name),
-		TRUE,TRUE, style); 	
+		(unsigned char *)entry->name,
+		strlen(entry->name),
+		TRUE,
+		TRUE, 
+		YAML_PLAIN_SCALAR_STYLE); 	
 		
-	yaml_emitter_emit(emitter, &e);
-    
-    yaml_scalar_event_initialize(
-    	&e,
-	    NULL,
-		NULL,
-		(unsigned char *)value,
-		strlen(value),
-		TRUE,TRUE, style); 	
+	yaml_emitter_emit(emitter, &evt);
+	//log_yml_event(evt);
+	char buf[TINYBUF];
+	memset(buf, 0, TINYBUF);
+	entry_t iter = NULL;
+	
+	switch (entry->type_tag){
+	
+		case ENTRY_STR:
 		
-	yaml_emitter_emit(emitter, &e); 		
-    //yaml_event_delete(&e);
-    
-    return r; 
+			yaml_scalar_event_initialize(
+    		&evt,
+	    	NULL,
+			NULL,
+			(unsigned char *)entry->e.scalar_str,
+			strlen(entry->e.scalar_str),
+			TRUE,
+			TRUE, 
+			YAML_PLAIN_SCALAR_STYLE); 	
+		
+			yaml_emitter_emit(emitter, &evt); 
+			//log_yml_event(evt);		
+			break;
+		
+		case ENTRY_INT:
+			
+			sprintf(buf, "%d", entry->e.scalar_int);
+			yaml_scalar_event_initialize(
+    		&evt,
+	    	NULL,
+			NULL,
+			(unsigned char *)buf,
+			strlen(buf),
+			TRUE,
+			TRUE, 
+			YAML_PLAIN_SCALAR_STYLE); 	
+		
+			yaml_emitter_emit(emitter, &evt);
+			//log_yml_event(evt); 		
+			break;
+				 
+		case ENTRY_MAP:
+		
+		    yaml_mapping_start_event_initialize(
+    			&evt,
+    			NULL,
+    			NULL,
+    			FALSE,
+    			YAML_BLOCK_MAPPING_STYLE);
+    	 	    
+    		yaml_emitter_emit(emitter, &evt);
+    		//log_yml_event(evt);
+    		iter = *entry->e.map;
+			while(iter != NULL) {
+				emit_entry(iter, emitter);  
+				iter = iter->next;
+			}	
+			yaml_mapping_end_event_initialize(&evt); 	
+    		yaml_emitter_emit(emitter, &evt); 
+    		//log_yml_event(evt);
+			break;
+			
+		default:break;
+	}
+	
+}
+
+static entry_map_t append_entry(entry_map_t map, entry_t item) {
+	
+	if(map != NULL) {
+	 
+	    entry_t iter = *map;
+	    while(iter->next != NULL) {
+	 
+	        iter = iter->next;
+	    }
+	    iter->next = item;
+	    return map;
+	}
+	else {
+	
+	    entry_map_t r = (entry_map_t)malloc(sizeof(entry_t));
+	    *r = item;
+	
+	    return r;
+	}
+	
+}
+
+static entry_t new_entry_int(int i, char * name) {
+
+	entry_t r = (entry_t)malloc(sizeof(struct entry));
+	r->next = NULL;
+	r->type_tag = ENTRY_INT;
+	r->name = name;
+	r->e.scalar_int = i;
+
+	return r;
+}
+
+static entry_t new_entry_str(char * str, char * name) {
+
+	entry_t r = (entry_t)malloc(sizeof(struct entry));
+	r->next = NULL;
+	r->type_tag = ENTRY_STR;
+	r->name = name;
+	r->e.scalar_str = str;
+
+	return r;
+}
+
+static entry_t new_entry_map(entry_t * map, char * name) {
+	
+	entry_t r = (entry_t)malloc(sizeof(struct entry));
+	r->next = NULL;
+	r->type_tag = ENTRY_MAP;
+	r->name = name;
+	r->e.map = map;
+
+	return r;
+}
+
+static entry_t new_entry_null() {
+	entry_t r = (entry_t)malloc(sizeof(struct entry));
+	r->next = NULL;
+	r->type_tag = ENTRY_NONE;
+	r->name = "";
+	r->e.scalar_int = 0;
+
+	return r;
+}
+
+entry_map_t serialize(const config_t conf) {
+	
+	entry_map_t uspace = append_entry(NULL,
+	    new_entry_int(conf->base, "USPACE_BASE"));
+	uspace = append_entry(uspace, 
+	    new_entry_int(conf->wr_offs, "USPACE_WR"));
+	uspace = append_entry(uspace, 
+	    new_entry_int(conf->rd_offs, "USPACE_RD"));
+	    
+	entry_map_t r = append_entry(NULL, 
+	                    new_entry_int(conf->step, "STEP"));
+	r = append_entry(r, new_entry_str(conf->pipe, "PIPE"));
+	r = append_entry(r, new_entry_int(conf->nt, "NT")); 
+	r = append_entry(r, new_entry_int(conf->ns, "NS"));
+	r = append_entry(r, new_entry_int(conf->ns, "NM"));
+	r = append_entry(r, new_entry_int(conf->nt, "NR"));
+	r = append_entry(r, new_entry_str(conf->hw, "HW"));
+	r = append_entry(r, new_entry_int(conf->di, "NDI"));
+	r = append_entry(r, new_entry_int(conf->dq, "NDQ"));
+	r = append_entry(r, new_entry_int(conf->ai, "NAI"));
+	r = append_entry(r, new_entry_int(conf->ai, "NAQ"));
+	r = append_entry(r, new_entry_map(uspace, "USPACE"));
+	return r;
 }
 
 int emit(yaml_emitter_t *emitter, const config_t conf) {
     int r = PLC_OK;     
    
-    yaml_event_t e;
+    yaml_event_t evt;
     char val[MAXSTR];
     memset(val,0,MAXSTR);
     //doc start
-    yaml_document_start_event_initialize(&e, NULL, NULL, NULL, FALSE); 
-	yaml_emitter_emit(emitter, &e); 		
-    //mapping start
-    yaml_mapping_style_t  	map_style =  YAML_BLOCK_MAPPING_STYLE;
+    yaml_document_start_event_initialize(&evt, NULL, NULL, NULL, FALSE); 
+	yaml_emitter_emit(emitter, &evt); 		
+   // log_yml_event(evt);
+    
+    yaml_mapping_start_event_initialize(
+    	&evt,
+    	NULL,
+    	NULL,
+    	FALSE,
+    	YAML_BLOCK_MAPPING_STYLE);
+    	 	    
+    yaml_emitter_emit(emitter, &evt);
+   // log_yml_event(evt);
+    
      
-    yaml_mapping_start_event_initialize(&e,NULL,NULL,FALSE,map_style); 	    
-    yaml_emitter_emit(emitter, &e); 		
-    
-    //emit step
-    sprintf(val, "%ld", conf->step);
-    
-    emit_map_entry("STEP", val, emitter);
-    memset(val,0,MAXSTR);
-    	
-    //emit pipe
-    emit_map_entry("PIPE", conf->pipe, emitter);
-    
-    //emit timers and pulses
-    sprintf(val, "%d", conf->nt);
-    
-    emit_map_entry("NT", val, emitter);
-    memset(val,0,MAXSTR);
-    
-    sprintf(val, "%d", conf->ns);
-    
-    emit_map_entry("NS", val, emitter);
-    memset(val,0,MAXSTR);
-    
-    //emit variables 
-    sprintf(val, "%d", conf->nm);
-    
-    emit_map_entry("NM", val, emitter);
-    memset(val,0,MAXSTR);
-    
-    sprintf(val, "%d", conf->nr);
-    
-    emit_map_entry("NR", val, emitter);
-    memset(val,0,MAXSTR);
-    
-    sprintf(val, "%d", conf->di);
-    //emit hardware tag
-    emit_map_entry("HW", conf->hw, emitter);
-    //emit hardware variables
-    
-    emit_map_entry("NDI", val, emitter);
-    memset(val,0,MAXSTR);
-    
-    sprintf(val, "%d", conf->dq);
-    
-    emit_map_entry("NDQ", val, emitter);
-    memset(val,0,MAXSTR);
-   
-    sprintf(val, "%d", conf->ai);
-    
-    emit_map_entry("NAI", val, emitter);
-    memset(val,0,MAXSTR);
-    
-    sprintf(val, "%d", conf->aq);
-    
-    emit_map_entry("NAQ", val, emitter);
-    memset(val,0,MAXSTR);
-   
-
-    //emit user space
-    
+    entry_map_t config_map = serialize(conf);
+    entry_t iter = *config_map;
+    while(iter != NULL) {
+    	emit_entry(iter, emitter);
+    	iter = iter->next;
+    }
     //emit comedi
     
     //emit simulation
@@ -769,17 +862,17 @@ int emit(yaml_emitter_t *emitter, const config_t conf) {
     //emit variables configuration
     
     //emit program filename
-    
-
-
+   
     //mapping end
-    yaml_mapping_end_event_initialize(&e); 	
-    yaml_emitter_emit(emitter, &e); 		
+    yaml_mapping_end_event_initialize(&evt); 	
+    yaml_emitter_emit(emitter, &evt); 		
+    //log_yml_event(evt);
     
     //doc end
-    yaml_document_end_event_initialize(&e,FALSE);
-    yaml_emitter_emit(emitter, &e); 		
-    yaml_event_delete(&e); 	
+    yaml_document_end_event_initialize(&evt,FALSE);
+    yaml_emitter_emit(emitter, &evt);
+    //log_yml_event(evt); 		
+    yaml_event_delete(&evt); 	
     return r;
 }
 

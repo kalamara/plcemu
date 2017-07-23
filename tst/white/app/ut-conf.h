@@ -405,10 +405,14 @@ NDI: 8\n\
 NDQ: 8\n\
 NAI: 4\n\
 NAQ: 4\n\
+USPACE:\n\
+  USPACE_BASE: 50176\n\
+  USPACE_WR: 0\n\
+  USPACE_RD: 8\n\
 ...\n\
 ";
 	CU_ASSERT_STRING_EQUAL(output,expected);
-	//printf("%s\n", output);
+	printf("%s\n", output);
     CU_ASSERT(r == PLC_OK);
 
 }
