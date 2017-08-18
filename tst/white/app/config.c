@@ -1,7 +1,7 @@
 #include <yaml.h>
 #include "util.h"
-#include "plclib.h"
 #include "config.h"
+#include "plclib.h"
 
 const char * Config_vars[N_CONFIG_VARIABLES] = {
     "STEP",
@@ -20,19 +20,8 @@ const char * Config_vars[N_CONFIG_VARIABLES] = {
     "NAQ",
     "RESPONSE",
     "USPACE",
-    "USPACE_BASE",
-    "USPACE_WR",
-    "USPACE_RD",
     "COMEDI",
-    "COMEDI_FILE",
-    "COMEDI_SUBDEV",
-    "SUBDEV_IN",
-    "SUBDEV_OUT",
-    "SUBDEV_ADC",
-    "SUBDEV_DAC",
     "SIM",
-    "SIM_INPUT",
-    "SIM_OUTPUT",
     "IL",
     "LD",
     //sequences
@@ -47,7 +36,6 @@ const char * Config_vars[N_CONFIG_VARIABLES] = {
 };
 
 const char * Variable_params[N_VARIABLE_PARAMS] = {
-
     "INDEX",
     "ID",
     "VALUE",
@@ -134,165 +122,280 @@ static void yaml_parser_error(yaml_parser_t parser){
     }
 }
 
-static void config_timer_vars(BYTE n, config_t * conf){
+static entry_t new_entry_int(int i, char * name) {
 
-    (*conf)->nt = n;
-    if((*conf)->timers != NULL){
-        free((*conf)->timers);
-        (*conf)->timers = NULL;
-    }    
-    (*conf)->timers = (variable_t )malloc(n * sizeof(struct variable));
+	entry_t r = (entry_t)malloc(sizeof(struct entry));
+	r->type_tag = ENTRY_INT;
+	r->name = name;
+	r->e.scalar_int = i;
+
+	return r;
 }
 
-static void config_pulse_vars(BYTE n, config_t * conf){
+static entry_t new_entry_str(char * str, char * name) {
 
-    (*conf)->ns = n;
-    if((*conf)->pulses != NULL){
-        free((*conf)->pulses);
-        (*conf)->pulses = NULL;
-    }    
-    (*conf)->pulses = (variable_t )malloc(n * sizeof(struct variable));
+	entry_t r = (entry_t)malloc(sizeof(struct entry));
+	r->type_tag = ENTRY_STR;
+	r->name = name;
+	r->e.scalar_str = (char *)malloc(sizeof(str));
+    sprintf(r->e.scalar_str, "%s", str);
+	return r;
 }
 
-static void config_mem_vars(BYTE n, config_t * conf){
+static entry_t new_entry_map(config_t map, char * name) {
+	
+	entry_t r = (entry_t)malloc(sizeof(struct entry));
+	r->type_tag = ENTRY_MAP;
+	r->name = name;
+	r->e.conf = map;
 
-    (*conf)->nr = n;
-    if((*conf)->mvars != NULL){
-        free((*conf)->mvars);
-        (*conf)->mvars = NULL;
-    }    
-    (*conf)->mvars = (variable_t )malloc(n * sizeof(struct variable));
+	return r;
 }
 
-static void config_reg_vars(BYTE n, config_t * conf){
+static entry_t new_entry_seq(sequence_t seq, char * name) {
+	
+	entry_t r = (entry_t)malloc(sizeof(struct entry));
+	r->type_tag = ENTRY_SEQ;
+	r->name = name;
+	r->e.seq = seq;
 
-    (*conf)->nm = n;
-    if((*conf)->mregs != NULL){
-        free((*conf)->mregs);
-        (*conf)->mregs = NULL;
-    }    
-    (*conf)->mregs = (variable_t )malloc(n * sizeof(struct variable));
+	return r;
 }
 
-static void config_di_vars(BYTE n, config_t * conf){
+static entry_t new_entry_null() {
+	entry_t r = (entry_t)malloc(sizeof(struct entry));
+	r->type_tag = ENTRY_NONE;
+	r->name = "";
+	r->e.scalar_int = 0;
 
-    (*conf)->di = n;
-    if((*conf)->dinps != NULL){
-        free((*conf)->dinps);
-        (*conf)->dinps = NULL;
-    }    
-    (*conf)->dinps = (variable_t )malloc(n * sizeof(struct variable));
+	return r;
 }
 
-static void config_dq_vars(BYTE n, config_t * conf){
-
-    (*conf)->dq = n;
-    if((*conf)->douts != NULL){
-        free((*conf)->douts);
-        (*conf)->douts = NULL;
-    }    
-    (*conf)->douts = (variable_t )malloc(n * sizeof(struct variable));
+static config_t update_entry(
+    unsigned int key, 
+    const entry_t item,
+    const config_t conf) {
+    
+    if( conf == NULL ||
+        key >= conf->size) {
+    
+        return conf;
+    } else {
+    
+        config_t r = conf;
+        r->map[key] = item;
+        
+        return r;
+    }
 }
 
-static void config_ai_vars(BYTE n, config_t * conf){
+entry_t get_entry(int key, const config_t conf){
 
-    (*conf)->ai = n;
-    if((*conf)->ainps != NULL){
-        free((*conf)->ainps);
-        (*conf)->ainps = NULL;
-    }    
-    (*conf)->ainps = (variable_t )malloc(n * sizeof(struct variable));
+    if(conf == NULL || 
+        key < 0 || 
+        key > conf->size) {
+        
+        return NULL;    
+    }
+    
+    return conf->map[key];
 }
 
-static void config_aq_vars(BYTE n, config_t * conf){
+int get_var_key(const char * name){
+    for(int i = 0; i < N_VARIABLE_PARAMS; i++) {
+        if(!strcmp(name, Variable_params[i])) {
+            
+            return i;
+        }
+    }
+    
+    return PLC_ERR;
+}
 
-    (*conf)->aq = n;
-    if((*conf)->aouts != NULL){
-        free((*conf)->aouts);
-        (*conf)->aouts = NULL;
-    }    
-    (*conf)->aouts = (variable_t )malloc(n * sizeof(struct variable));
+int get_key(const char * name, const config_t where) {
+     if(where != NULL){
+    
+        for(int i = 0; i < where->size; i++) {
+            if( where->map[i] != NULL &&
+                !strcmp(name, where->map[i]->name)) {
+                
+                return i;
+            }
+        }
+    }
+    
+    return PLC_ERR;  
+}
 
+config_t new_config(int size) {
+    config_t r = (config_t)malloc(sizeof(struct config));
+	memset(r, 0, sizeof(struct config));
+	r->size = size;
+	r->map = (entry_map_t)malloc(size*sizeof(struct entry));
+    memset(r->map, 0, size*sizeof(struct entry));
+    
+	return r;
+}
+
+sequence_t new_sequence(int size) {
+    sequence_t r = (sequence_t)malloc(size*sizeof(struct sequence));
+	memset(r, 0, sizeof(struct sequence));
+	r->size = size;
+	r->vars = (variable_t)malloc(size*sizeof(struct variable));
+	memset(r->vars, 0, size*sizeof(struct variable));
+	/*
+	int i = 0;
+	for(; i < size; i++){
+	     
+	}
+    */
+	return r;
 }
 
 config_t init_config(){
+ //note: in a c++ implementation this all can be done automatically 
+ //using a hashmap
+    config_t conf = new_config(N_CONFIG_VARIABLES);
+   
+    config_t uspace = new_config(N_USPACE_VARS);
+        
+    uspace = update_entry(
+        USPACE_BASE,
+	    new_entry_int(50176, "USPACE_BASE"),
+	    uspace);
+	
+	uspace = update_entry(
+	    USPACE_WR, 
+	    new_entry_int(0, "USPACE_WR"),
+	    uspace);
+	    
+	uspace = update_entry(
+	    USPACE_RD, 
+	    new_entry_int(8, "USPACE_RD"),
+	    uspace);
+	
+	config_t subdev = new_config(N_SUBDEV_VARS);
+	
+    subdev = update_entry(
+        SUBDEV_IN,
+	    new_entry_int(0, "SUBDEV_IN"),
+	    subdev);
+	    
+	subdev = update_entry(
+	    SUBDEV_OUT,
+	    new_entry_int(1, "SUBDEV_OUT"),
+	    subdev);
+	    
+    subdev = update_entry(
+        SUBDEV_ADC, 
+	    new_entry_int(2, "SUBDEV_ADC"),
+	    subdev);
+	    
+	subdev = update_entry(
+	    SUBDEV_DAC, 
+	    new_entry_int(3, "SUBDEV_DAC"),
+	    subdev);
+	
+	config_t comedi = new_config(N_COMEDI_VARS);
+	
+	comedi = update_entry(
+	    COMEDI_FILE,
+	    new_entry_int(0, "COMEDI_FILE"),
+	    comedi);
+	    
+	comedi = update_entry(
+	    COMEDI_SUBDEV, 
+	    new_entry_map(subdev, "COMEDI_SUBDEV"),
+	    comedi);
+    
+    config_t sim = new_config(N_SIM_VARS);
+    
+    sim = update_entry(
+        SIM_INPUT,
+        new_entry_str("sim.in", "SIM_INPUT"), 
+        sim);
+        
+    sim = update_entry(
+        SIM_OUTPUT,
+        new_entry_str("sim.out", "SIM_OUTPUT"),
+        sim);    
+
+    conf = update_entry(
+        CONFIG_STEP,
+        new_entry_int(1, "STEP"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_PIPE,
+        new_entry_str("plcpipe", "PIPE"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_HW,
+        new_entry_str("STDI/O", "HW"),
+        conf);
+        
+    conf = update_entry(
+        CONFIG_USPACE,
+        new_entry_map(uspace, "USPACE"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_COMEDI,
+        new_entry_map(comedi, "COMEDI"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_SIM,
+        new_entry_map(sim, "SIM"),
+        conf);
+   /*******************************************/
+   
+    conf = update_entry(
+        CONFIG_TIMER,
+        new_entry_seq(new_sequence(4), "TIMERS"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_PULSE,
+        new_entry_seq(new_sequence(4), "PULSES"),
+        conf);
+        
+    conf = update_entry(
+        CONFIG_MREG,
+        new_entry_seq(new_sequence(4), "MREG"),
+        conf);
+        
+    conf = update_entry(
+        CONFIG_MVAR,
+        new_entry_seq(new_sequence(4), "MVAR"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_DI,
+        new_entry_seq(new_sequence(8), "DI"),
+        conf);
  
-    config_t conf = (config_t)malloc(sizeof(struct config));
-    memset(conf, 0, sizeof(struct config));
-//registers    
-    config_timer_vars(4, &conf);
-    config_pulse_vars(4, &conf);
+    conf = update_entry(
+        CONFIG_DQ,
+        new_entry_seq(new_sequence(8), "DQ"),
+        conf);
     
-    config_reg_vars(4, &conf);
+    conf = update_entry(
+        CONFIG_AI,
+        new_entry_seq(new_sequence(8), "AI"),
+        conf);
     
-    config_mem_vars(4, &conf);
-    
-    config_di_vars(8, &conf);
-    
-    config_dq_vars(8, &conf);
-    
-    config_ai_vars(4, &conf);
-    
-    config_aq_vars(4, &conf);
-    
-//ui    
-    conf->sigenable = 36;
-    conf->page_width = 80;
-    conf->page_len = 24;
-//hardware
-    sprintf(conf->hw, "%s", "STDI/O"); //simulation is default    
-    conf->base = ADVANTECH_HISTORICAL_BASE;
-    conf->wr_offs = 0;
-    conf->rd_offs = 8;
-    conf->comedi_file = 0;
-    conf->comedi_subdev_i = 0;
-    conf->comedi_subdev_q = 1;
-    conf->comedi_subdev_ai = 2;
-    conf->comedi_subdev_aq = 3;
-//polling    
-    conf->step = 1;
-    sprintf(conf->pipe, "%s", "plcpipe");
+    conf = update_entry(
+        CONFIG_AQ,
+        new_entry_seq(new_sequence(8), "AQ"),
+        conf);
+
     return conf;
 }
 
 void clear_config(config_t *c){
 
-    if (*c != NULL){
-        if((*c)->aouts != NULL){
-            free((*c)->aouts);
-            (*c)->aouts = NULL;
-        }
-        if((*c)->ainps != NULL){
-            free((*c)->ainps);
-            (*c)->ainps = NULL; 
-        }
-        if((*c)->douts != NULL){
-            free((*c)->douts);
-            (*c)->douts = NULL;
-        }    
-        if((*c)->dinps != NULL){
-            free((*c)->dinps);
-            (*c)->dinps = NULL;
-        }
-        if((*c)->mvars != NULL){
-            free((*c)->mvars);
-            (*c)->mvars = NULL;
-        }    
-        if((*c)->mregs != NULL){
-            free((*c)->mregs);
-            (*c)->mregs = NULL;
-        }
-        if((*c)->timers != NULL){
-            free((*c)->timers);
-            (*c)->timers = NULL;
-        }
-        if((*c)->pulses != NULL){
-            free((*c)->pulses);
-            (*c)->pulses = NULL;
-        }
-        free(*c);
-    }
-    *c = NULL;    
 }
 
 static int log_yml_event(yaml_event_t event){
@@ -341,79 +444,40 @@ static int log_yml_event(yaml_event_t event){
     return PLC_OK;
 }
 
+char * strdup_r(const char * dest, const char * src) {
+//strdup with realloc
+    char * r = (dest == NULL)?(char *)malloc(sizeof(src)):dest;
+        
+    realloc(r, sizeof(src));
+    memset(r, 0, sizeof(src));
+    sprintf(r, "%s", src);
+    
+    return r;
+}
+
 int store_value(BYTE key, const char * value, config_t * c){
-    switch(key){
-        case CONFIG_HW:
-            strncpy((*c)->hw, value, MAXSTR);
+
+    entry_t e; 
+    if( c == NULL) 
+        return PLC_ERR;
+    
+    e = get_entry(key, *c);
+    
+    if(e == NULL)
+        return PLC_ERR;
+        
+    switch(e->type_tag){
+         case ENTRY_INT:
+            e->e.scalar_int = atoi(value);
             break;
-        case CONFIG_PIPE:
-            strncpy((*c)->pipe, value, MAXSTR);
-            break;    
-        case CONFIG_STEP:
-            (*c)->step = atol(value);
-            break;
-        case CONFIG_USPACE_BASE:
-            (*c)->base = atol(value);
-            break;
-        case CONFIG_USPACE_WR:
-            (*c)->wr_offs = atoi(value);
-            break;
-        case CONFIG_USPACE_RD:
-            (*c)->rd_offs = atoi(value);
-            break;                
-        case CONFIG_COMEDI_FILE:
-            (*c)->comedi_file = atoi(value);
-            break;
-        case CONFIG_SUBDEV_IN:
-            (*c)->comedi_subdev_i = atol(value);
-            break;
-        case CONFIG_SUBDEV_OUT:
-            (*c)->comedi_subdev_q = atol(value);
-            break;
-        case CONFIG_SUBDEV_ADC:
-            (*c)->comedi_subdev_ai = atoi(value);
-            break;
-        case CONFIG_SUBDEV_DAC:
-            (*c)->comedi_subdev_aq = atoi(value);
-            break;                    
-        case CONFIG_SIM_INPUT:
-            strncpy((*c)->sim_in_file, value, MAXSTR);
-            break;
-        case CONFIG_SIM_OUTPUT:
-            strncpy((*c)->sim_out_file, value, MAXSTR);
+         
+         case ENTRY_STR:
+         
+            e->e.scalar_str = strdup_r(e->e.scalar_str, value);
             break;
             
-        case CONFIG_PROGRAM_IL:
-        case CONFIG_PROGRAM_LD:
-            strncpy((*c)->program_file, value, MAXSTR);
-            break;  
-            
-        case CONFIG_NT:
-            config_timer_vars(atoi(value), c);
-            break;                
-        case CONFIG_NS:
-            config_pulse_vars(atoi(value), c);
-            break;
-        case CONFIG_NM:
-            config_reg_vars(atoi(value), c);
-            break;
-        case CONFIG_NR:
-            config_mem_vars(atoi(value), c);
-            break;
-        case CONFIG_NDI:
-            config_di_vars(atoi(value), c);
-            break;
-        case CONFIG_NDQ:
-            config_dq_vars(atoi(value), c);
-            break;                    
-        case CONFIG_NAI:
-            config_ai_vars(atoi(value), c);
-            break;
-        case CONFIG_NAQ:
-            config_aq_vars(atoi(value), c);
-            break;                    
-        default: return PLC_ERR;
-    }
+         default: return PLC_ERR;
+    }    
     return PLC_OK;
 }
 
@@ -423,128 +487,43 @@ int store_seq_value(BYTE seq,
                     const char * value, 
                     config_t * c){
                     
-    variable_t vars;
-    switch(seq) {
-        case SEQ_AI:
-            vars = (*c)->ainps;
-            if(idx >= (*c)->ai)
-                return PLC_ERR;
-            break;
-        case SEQ_AQ:
-            vars = (*c)->aouts;
-            if(idx >= (*c)->aq)
-                return PLC_ERR;
-            break;    
-        case SEQ_DI:
-            vars = (*c)->dinps;
-            if(idx >= (*c)->di)
-                return PLC_ERR;
-            break;
-        case SEQ_DQ:
-            vars = (*c)->douts;
-            if(idx >= (*c)->dq)
-                return PLC_ERR;
-            break;   
-        case SEQ_MVAR:
-            vars = (*c)->mvars;
-            if(idx >= (*c)->nr)
-                return PLC_ERR;
-            break;
-        case SEQ_MREG:
-            vars = (*c)->mregs;
-            if(idx >= (*c)->nr)
-                return PLC_ERR;
-            break;    
-        case SEQ_TIMER:
-            vars = (*c)->timers;
-            if(idx >= (*c)->nt)
-                return PLC_ERR;
-            break;
-        case SEQ_PULSE:
-            vars = (*c)->pulses;
-            if(idx >= (*c)->ns)
-                return PLC_ERR;
-            break;         
+    entry_t s = (*c)->map[seq];
+    
+    if( s == NULL ||
+        s->type_tag != ENTRY_SEQ ||
+        idx >= s->e.seq->size) {
         
-        default:
-            return PLC_ERR;
-    }
+        return PLC_ERR;
+    }            
+    
+    variable_t vars = s->e.seq->vars;
+    
     switch(key) {
         case VARIABLE_INDEX: 
             vars[idx].index = atoi(value);
             break;
+            
         case VARIABLE_ID: 
-            strncpy(vars[idx].name, value, MAXSTR);
+            vars[idx].name = strdup_r(vars[idx].name, value);
             break;
+            
         case VARIABLE_VALUE: 
-            strncpy(vars[idx].value, value, MAXSTR);
+            vars[idx].value = strdup_r(vars[idx].value, value);
             break;
+            
         case VARIABLE_MAX: 
-            strncpy(vars[idx].max, value, MAXSTR);
+            vars[idx].max = strdup_r(vars[idx].max, value);
             break; 
+            
         case VARIABLE_MIN: 
-            strncpy(vars[idx].min, value, MAXSTR);
-            break;            
+            vars[idx].min = strdup_r(vars[idx].min, value);
+            break;         
+               
         default: 
             return PLC_ERR;    
-    }    
-    return PLC_OK;                       
-}
-
-static int find_config_var(const char *name, 
-                    const char **where, 
-                    unsigned int size){
-
-    for(int i = 0; i < size; i++)
-        if(!strcmp(name, where[i]))
-            return i;
-    return PLC_ERR;        
-}
-
-static int process_scalar(const unsigned char *value,
-                   BYTE is_seq,  
-                   config_t *conf, 
-                   BYTE *storage, 
-                   int *key,
-                   int *seq,
-                   int *idx){
-                   
-    int ret = PLC_OK;
-    
-    if(*storage == STORE_KEY){
-        if(is_seq)
-            *key = find_config_var(
-                (char *)value, 
-                Variable_params,
-                N_VARIABLE_PARAMS);
-        else{         
-            *key = find_config_var(
-                (char *)value, 
-                Config_vars,
-                N_CONFIG_VARIABLES);
-            if(IS_SEQUENCE(*key))
-                *seq = SEQUENCE(*key);
-        }      
-        if(*key < PLC_OK)
-            ret = *key;                          
-        *storage = STORE_VAL;
     }
-    else{ //val
-        if(is_seq){
-            if(*key == VARIABLE_INDEX)
-                    *idx = atoi((char *)value);
-            else  
-                ret = store_seq_value(*seq, 
-                                          *idx, 
-                                          *key, 
-                                          (char *)value, 
-                                          conf);        
-        } else 
-             ret = store_value(*key, (char *)value, conf);
-        *storage = STORE_KEY; 
-    } 
-    
-    return ret;                
+        
+    return PLC_OK;                       
 }
 
 int process(int sequence, 
@@ -555,13 +534,13 @@ int process(int sequence,
      BYTE storage = STORE_KEY;   
      int done = FALSE;
      int key = PLC_ERR;
-     int seq = sequence;
      int found_seq = sequence > PLC_ERR;
      int idx = PLC_ERR;
      yaml_event_t event;
      memset(&event, 0, sizeof(event));
      
      if(parser == NULL
+//     || parser->context == NULL 
      || conf == NULL)
      
         return PLC_ERR;
@@ -571,39 +550,81 @@ int process(int sequence,
         if (!yaml_parser_parse(parser, &event)){   
                 yaml_parser_error(*parser);
                 ret = PLC_ERR;
-        }
-        else {
-            
+        } else {
+   
             switch(event.type){
             
-                case YAML_SCALAR_EVENT:
-                    ret = process_scalar(
-                        event.data
-                             .scalar
-                             .value,
-                        found_seq,
-                        &conf,
-                        &storage,
-                        &key,
-                        &seq,
-                        &idx);
-                    break;
+                case YAML_SCALAR_EVENT: {
+                    char * val = (char *)event.data.scalar.value;
+                    
+                    if(storage == STORE_KEY) {
+                        if(found_seq) {
+                            
+                            key = get_var_key(val);
+                        } else {
+                        
+                            key = get_key(val,conf);    
+                        }
+                        storage = STORE_VAL;
+                    } else {
+   
+                        if(found_seq) {
+                        
+                            if(key == VARIABLE_INDEX){
+                             
+                                 idx = atoi(val);
+                            } else {  
+                             
+                                ret = store_seq_value(
+                                         sequence, 
+                                         idx, 
+                                         key, 
+                                         val, 
+                                         &conf);       
+                            }   
+                        } else {
+                        
+                            ret = store_value(key, val, &conf);
+                        }
+                        storage = STORE_KEY;    
+                    }
+                }   break;
                 
                 case YAML_SEQUENCE_START_EVENT:
+                
                     found_seq = TRUE;
                     break;
                 
                 case YAML_SEQUENCE_END_EVENT:
+                
                     found_seq = FALSE;
                     break;
                 
-                case YAML_MAPPING_START_EVENT:
-                    ret = process(seq, parser, conf);
-                    storage = STORE_KEY;   
-                    break;
+                case YAML_MAPPING_START_EVENT: {
+                    
+                    entry_t c = get_entry(key, conf);
+                    if( c != NULL &&
+                        c->type_tag == ENTRY_MAP) {
+                    
+                        ret = process(
+                            found_seq?key:-1, 
+                            parser, 
+                            c->e.conf);
+                        
+                    } else {
+                    
+                        ret = process(
+                            found_seq?key:-1, 
+                            parser, 
+                            conf);
+                    }
+                    storage = STORE_KEY;
+                    
+                }   break;
                     
                 case YAML_MAPPING_END_EVENT:
                 case YAML_STREAM_END_EVENT:     
+                    
                     done = TRUE;
                     break;
                     
@@ -616,7 +637,7 @@ int process(int sequence,
          }
          if(ret < PLC_OK) {
              done = TRUE;
-             log_yml_event(event);
+             //log_yml_event(event);
          }                                              
          yaml_event_delete(&event);   
      }
@@ -656,8 +677,143 @@ int load_config_yml(const char * filename, config_t conf) {
     return r;
 }
 
+static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
+    yaml_event_t evt;
+    if( var->name != NULL &&
+        var->name[0]) {
+       
+       char idx[4];
+       memset(idx, 0, 4);
+    
+       yaml_mapping_start_event_initialize(
+    			        &evt,
+    			        NULL,
+    			        NULL,
+    			        FALSE,
+    			        YAML_BLOCK_MAPPING_STYLE);
+    	 	    
+       yaml_emitter_emit(emitter, &evt);
+    		//log_yml_event(evt);
+    		            
+       yaml_scalar_event_initialize(
+                        	&evt,
+                    	    NULL,
+                    		NULL,
+                    		"INDEX",
+                    		5,
+                    		TRUE,
+                    		TRUE, 
+                    		YAML_PLAIN_SCALAR_STYLE); 
+       yaml_emitter_emit(emitter, &evt);
+                    		
+       sprintf(idx, "%d", var->index);		
+       yaml_scalar_event_initialize(
+                        	&evt,
+                    	    NULL,
+                    		NULL,
+                    		(unsigned char *)idx,
+                    		strlen(idx),
+                    		TRUE,
+                    		TRUE, 
+                    		YAML_PLAIN_SCALAR_STYLE); 	
+       yaml_emitter_emit(emitter, &evt);
+    		            
+   
+       yaml_scalar_event_initialize(
+                        	&evt,
+                    	    NULL,
+                    		NULL,
+                    		"ID",
+                    		2,
+                    		TRUE,
+                    		TRUE, 
+                    		YAML_PLAIN_SCALAR_STYLE); 
+       yaml_emitter_emit(emitter, &evt);
+                    			
+       yaml_scalar_event_initialize(
+                        	&evt,
+                    	    NULL,
+                    		NULL,
+                    		(unsigned char *)var->name,
+                    		strlen(var->name),
+                    		TRUE,
+                    		TRUE, 
+                    		YAML_PLAIN_SCALAR_STYLE); 	
+       yaml_emitter_emit(emitter, &evt);
+
+       yaml_scalar_event_initialize(
+                        	&evt,
+                    	    NULL,
+                    		NULL,
+                    		"VALUE",
+                    		5,
+                    		TRUE,
+                    		TRUE, 
+                    		YAML_PLAIN_SCALAR_STYLE); 
+       yaml_emitter_emit(emitter, &evt);
+                    			
+       yaml_scalar_event_initialize(
+                        	&evt,
+                    	    NULL,
+                    		NULL,
+                    		(unsigned char *)var->value,
+                    		strlen(var->value),
+                    		TRUE,
+                    		TRUE, 
+                    		YAML_PLAIN_SCALAR_STYLE); 	
+        yaml_emitter_emit(emitter, &evt);
+        if(strcmp(var->min, var->max)) {
+            yaml_scalar_event_initialize(
+                        	&evt,
+                    	    NULL,
+                    		NULL,
+                    		"MIN",
+                    		3,
+                    		TRUE,
+                    		TRUE, 
+                    		YAML_PLAIN_SCALAR_STYLE); 
+            yaml_emitter_emit(emitter, &evt);
+                    			
+            yaml_scalar_event_initialize(
+                        	&evt,
+                    	    NULL,
+                    		NULL,
+                    		(unsigned char *)var->min,
+                    		strlen(var->min),
+                    		TRUE,
+                    		TRUE, 
+                    		YAML_PLAIN_SCALAR_STYLE); 	
+            yaml_emitter_emit(emitter, &evt);
+
+            yaml_scalar_event_initialize(
+                        	&evt,
+                    	    NULL,
+                    		NULL,
+                    		"MAX",
+                    		3,
+                    		TRUE,
+                    		TRUE, 
+                    		YAML_PLAIN_SCALAR_STYLE); 
+            yaml_emitter_emit(emitter, &evt);
+                    			
+            yaml_scalar_event_initialize(
+                        	&evt,
+                    	    NULL,
+                    		NULL,
+                    		(unsigned char *)var->max,
+                    		strlen(var->max),
+                    		TRUE,
+                    		TRUE, 
+                    		YAML_PLAIN_SCALAR_STYLE); 	
+            yaml_emitter_emit(emitter, &evt);
+        }       
+        yaml_mapping_end_event_initialize(&evt); 	
+        yaml_emitter_emit(emitter, &evt); 
+    }
+} 
+
 static void emit_entry(entry_t entry, yaml_emitter_t *emitter) {
-    //int i = 0;
+    int i = 0;
     yaml_event_t evt;
      
     yaml_scalar_event_initialize(
@@ -675,6 +831,7 @@ static void emit_entry(entry_t entry, yaml_emitter_t *emitter) {
 	char buf[TINYBUF];
 	memset(buf, 0, TINYBUF);
 	entry_t iter = NULL;
+	variable_t viter = NULL;
 	
 	switch (entry->type_tag){
 	
@@ -722,12 +879,55 @@ static void emit_entry(entry_t entry, yaml_emitter_t *emitter) {
     	 	    
     		yaml_emitter_emit(emitter, &evt);
     		//log_yml_event(evt);
-    		iter = *entry->e.map;
-			while(iter != NULL) {
-				emit_entry(iter, emitter);  
-				iter = iter->next;
+    		iter = *(entry->e.conf->map);
+    		
+			while(i < entry->e.conf->size){
+			    if(iter != NULL) {
+				    emit_entry(iter, emitter);  
+				}
+				iter = (entry->e.conf->map)[++i];
 			}	
 			yaml_mapping_end_event_initialize(&evt); 	
+    		yaml_emitter_emit(emitter, &evt); 
+    		//log_yml_event(evt);
+			break;
+		
+		case ENTRY_SEQ:
+		  yaml_sequence_start_event_initialize(
+    			&evt,
+    			NULL,
+    			NULL,
+    			TRUE,
+    			YAML_BLOCK_SEQUENCE_STYLE);
+    		//log_yml_event(evt);
+    	    yaml_emitter_emit(emitter, &evt); 	
+		//emit size as int
+		  
+		    sprintf(buf, "%d", entry->e.seq->size);
+			yaml_scalar_event_initialize(
+    		&evt,
+	    	NULL,
+			NULL,
+			(unsigned char *)buf,
+			strlen(buf),
+			TRUE,
+			TRUE, 
+			YAML_PLAIN_SCALAR_STYLE); 	
+		
+			yaml_emitter_emit(emitter, &evt);
+			//log_yml_event(evt); 		
+			//emit values as map
+			viter = entry->e.seq->vars;
+    		
+    		i = 0;
+			while(i < entry->e.seq->size){
+			    if(viter != NULL) {
+				   emit_variable(viter, emitter);
+				}
+				*viter = (entry->e.seq->vars)[++i];
+			}	
+			
+			yaml_sequence_end_event_initialize(&evt); 	
     		yaml_emitter_emit(emitter, &evt); 
     		//log_yml_event(evt);
 			break;
@@ -735,96 +935,6 @@ static void emit_entry(entry_t entry, yaml_emitter_t *emitter) {
 		default:break;
 	}
 	
-}
-
-static entry_map_t append_entry(entry_map_t map, entry_t item) {
-	
-	if(map != NULL) {
-	 
-	    entry_t iter = *map;
-	    while(iter->next != NULL) {
-	 
-	        iter = iter->next;
-	    }
-	    iter->next = item;
-	    return map;
-	}
-	else {
-	
-	    entry_map_t r = (entry_map_t)malloc(sizeof(entry_t));
-	    *r = item;
-	
-	    return r;
-	}
-	
-}
-
-static entry_t new_entry_int(int i, char * name) {
-
-	entry_t r = (entry_t)malloc(sizeof(struct entry));
-	r->next = NULL;
-	r->type_tag = ENTRY_INT;
-	r->name = name;
-	r->e.scalar_int = i;
-
-	return r;
-}
-
-static entry_t new_entry_str(char * str, char * name) {
-
-	entry_t r = (entry_t)malloc(sizeof(struct entry));
-	r->next = NULL;
-	r->type_tag = ENTRY_STR;
-	r->name = name;
-	r->e.scalar_str = str;
-
-	return r;
-}
-
-static entry_t new_entry_map(entry_t * map, char * name) {
-	
-	entry_t r = (entry_t)malloc(sizeof(struct entry));
-	r->next = NULL;
-	r->type_tag = ENTRY_MAP;
-	r->name = name;
-	r->e.map = map;
-
-	return r;
-}
-
-static entry_t new_entry_null() {
-	entry_t r = (entry_t)malloc(sizeof(struct entry));
-	r->next = NULL;
-	r->type_tag = ENTRY_NONE;
-	r->name = "";
-	r->e.scalar_int = 0;
-
-	return r;
-}
-
-entry_map_t serialize(const config_t conf) {
-	
-	entry_map_t uspace = append_entry(NULL,
-	    new_entry_int(conf->base, "USPACE_BASE"));
-	uspace = append_entry(uspace, 
-	    new_entry_int(conf->wr_offs, "USPACE_WR"));
-	uspace = append_entry(uspace, 
-	    new_entry_int(conf->rd_offs, "USPACE_RD"));
-	    
-	entry_map_t r = append_entry(NULL, 
-	                    new_entry_int(conf->step, "STEP"));
-	r = append_entry(r, new_entry_str(conf->pipe, "PIPE"));
-	r = append_entry(r, new_entry_int(conf->nt, "NT")); 
-	r = append_entry(r, new_entry_int(conf->ns, "NS"));
-	r = append_entry(r, new_entry_int(conf->ns, "NM"));
-	r = append_entry(r, new_entry_int(conf->nt, "NR"));
-	r = append_entry(r, new_entry_str(conf->hw, "HW"));
-	r = append_entry(r, new_entry_int(conf->di, "NDI"));
-	r = append_entry(r, new_entry_int(conf->dq, "NDQ"));
-	r = append_entry(r, new_entry_int(conf->ai, "NAI"));
-	r = append_entry(r, new_entry_int(conf->ai, "NAQ"));
-	r = append_entry(r, new_entry_map(uspace, "USPACE"));
-	return r;
 }
 
 int emit(yaml_emitter_t *emitter, const config_t conf) {
@@ -849,19 +959,15 @@ int emit(yaml_emitter_t *emitter, const config_t conf) {
    // log_yml_event(evt);
     
      
-    entry_map_t config_map = serialize(conf);
+    entry_map_t config_map = conf->map;
     entry_t iter = *config_map;
-    while(iter != NULL) {
-    	emit_entry(iter, emitter);
-    	iter = iter->next;
+    int i = 0;
+    while(i < N_CONFIG_VARIABLES) {
+        if(iter != NULL){
+    	    emit_entry(iter, emitter);
+    	}
+    	iter = config_map[++i];
     }
-    //emit comedi
-    
-    //emit simulation
-    
-    //emit variables configuration
-    
-    //emit program filename
    
     //mapping end
     yaml_mapping_end_event_initialize(&evt); 	
@@ -916,125 +1022,5 @@ int save_config_yml(const char * filename, const config_t conf) {
     }
     yaml_emitter_delete(&emitter);
     return r;
-}
-
-
-
-void configure(const config_t conf, plc_t plc){
-
-    plc->ni = conf->di;
-    plc->nq = conf->dq;
-    plc->nai = conf->ai;
-    plc->naq = conf->aq;
-    plc->nt = conf->nt;
-    plc->ns = conf->ns;
-    plc->nm = conf->nm;
-    plc->nmr = conf->nr;
-    
-    sprintf(plc->hw, "%s", conf->hw);
-    
-    plc->inputs = (BYTE *) malloc(plc->ni);
-    plc->outputs = (BYTE *) malloc(plc->nq);
-    plc->edgein = (BYTE *) malloc(plc->ni);
-    plc->maskin = (BYTE *) malloc(plc->ni);
-    plc->maskout = (BYTE *) malloc(plc->nq);
-    plc->maskin_N = (BYTE *) malloc(plc->ni);
-    plc->maskout_N = (BYTE *) malloc(plc->nq);
-    plc->real_in = (uint64_t *) malloc(conf->ai * sizeof(uint64_t));
-    plc->real_out = (uint64_t *) malloc(conf->aq * sizeof(uint64_t));
-    plc->mask_ai = (double *) malloc(conf->ai * sizeof(double));
-    plc->mask_aq = (double *) malloc(conf->aq * sizeof(double));
-    plc->di = (di_t) malloc(
-            BYTESIZE * plc->ni * sizeof(struct digital_input));
-    plc->dq = (do_t) malloc(
-            BYTESIZE * plc->nq * sizeof(struct digital_output));
-    
-    plc->t = (dt_t) malloc(plc->nt * sizeof(struct timer));
-    plc->s = (blink_t) malloc(plc->ns * sizeof(struct blink));
-    plc->m = (mvar_t) malloc(plc->nm * sizeof(struct mvar));
-    plc->mr = (mreal_t) malloc(plc->nmr * sizeof(struct mreal));
-   
-    plc->ai = (aio_t) malloc(
-             conf->ai * sizeof(struct analog_io));
-    plc->aq = (aio_t) malloc(
-             conf->aq * sizeof(struct analog_io));
-   
-    memset(plc->real_in, 0, plc->nai*sizeof(uint64_t));
-    memset(plc->real_out, 0, plc->naq*sizeof(uint64_t));
-    memset(plc->inputs, 0, plc->ni);
-    memset(plc->outputs, 0, plc->nq);
-    memset(plc->maskin, 0, plc->ni);
-    memset(plc->maskout, 0, plc->nq);
-    memset(plc->maskin_N, 0, plc->ni);
-    memset(plc->maskout_N, 0, plc->nq);
-    
-    memset(plc->mask_ai, 0, plc->nai * sizeof(double));
-    memset(plc->mask_aq, 0, plc->naq * sizeof(double));
-    
-    memset(plc->di, 0, BYTESIZE * plc->ni * sizeof(struct digital_input));
-    memset(plc->dq, 0, BYTESIZE * plc->nq * sizeof(struct digital_output));
-    memset(plc->t, 0, plc->nt * sizeof(struct timer));
-    memset(plc->s, 0, plc->ns * sizeof(struct blink));
-    memset(plc->m, 0, plc->nm * sizeof(struct mvar));
-    memset(plc->mr, 0, plc->nmr * sizeof(struct mreal));
-
-    plc_t p_old=NULL;
-    p_old = (plc_t) malloc(sizeof(struct PLC_regs));
-
-    p_old->ni = conf->di;
-    p_old->nq = conf->dq;
-    p_old->nai = conf->ai;
-    p_old->naq = conf->aq;
-    p_old->nt = conf->nt;
-    p_old->ns = conf->ns;
-    p_old->nm = conf->nm;
-    p_old->nmr = conf->nr;
-    
-    p_old->inputs = (BYTE *) malloc(conf->di);
-    p_old->outputs = (BYTE *) malloc(conf->dq);
-    p_old->maskin = (BYTE *) malloc(conf->di);
-    p_old->edgein = (BYTE *) malloc(conf->di);
-    p_old->maskout = (BYTE *) malloc(conf->dq);
-    p_old->maskin_N = (BYTE *) malloc(conf->di);
-    p_old->maskout_N = (BYTE *) malloc(conf->dq);
-    p_old->di = (di_t) malloc(
-            BYTESIZE * conf->di * sizeof(struct digital_input));
-    p_old->dq = (do_t) malloc(
-            BYTESIZE * conf->dq * sizeof(struct digital_output));
-    p_old->t = (dt_t) malloc(conf->nt * sizeof(struct timer));
-    p_old->s = (blink_t) malloc(conf->ns * sizeof(struct blink));
-    p_old->m = (mvar_t) malloc(conf->nm * sizeof(struct mvar));
-    p_old->mr = (mreal_t) malloc(conf->nr * sizeof(struct mreal));
-    
-    
-    p_old->real_in = (uint64_t *) malloc(conf->ai * sizeof(uint64_t));
-    p_old->real_out = (uint64_t *) malloc(conf->aq * sizeof(uint64_t));
-    p_old->mask_ai = (double *) malloc(conf->ai * sizeof(double));
-    p_old->mask_aq = (double *) malloc(conf->aq * sizeof(double));
-    p_old->ai = (aio_t) malloc(
-             conf->ai * sizeof(struct analog_io));
-    p_old->aq = (aio_t) malloc(
-             conf->aq * sizeof(struct analog_io));
-    
-    p_old->di = (di_t) malloc(
-            BYTESIZE * plc->ni * sizeof(struct digital_input));
-    p_old->dq = (do_t) malloc(
-            BYTESIZE * plc->nq * sizeof(struct digital_output));
-    
-    memcpy(p_old->inputs, plc->inputs, conf->di);
-    memcpy(p_old->outputs, plc->outputs, conf->dq);
-    memset(p_old->real_in, 0, plc->nai*sizeof(uint64_t));
-    memset(p_old->real_out, 0, plc->naq*sizeof(uint64_t));
-    
-    memcpy(p_old->m, plc->m, conf->nm * sizeof(struct mvar));
-    memcpy(p_old->mr, plc->mr, conf->nr * sizeof(struct mreal));
-    memcpy(p_old->t, plc->t, conf->nt * sizeof(struct timer));
-    memcpy(p_old->s, plc->s, conf->ns * sizeof(struct blink));
-    
-    plc->old = p_old;
-    plc->command = 0;
-    plc->status = ST_RUNNING;
-    plc->step = conf->step;
-    plc->response_file = conf->response_file;
 }
 

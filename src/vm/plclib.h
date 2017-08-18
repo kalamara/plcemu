@@ -908,6 +908,13 @@ int resolve( plc_t p,
  */
 int down_timer( plc_t p, int idx);
 
+/**
+ * @brief configure a plc with a configuration
+ * @param the config
+ * @param the plc
+ */
+void configure(const config_t conf, plc_t plc);
+
 /*******************debugging tools****************/
 void dump_label( char * label, char * dump);
 void dump_instruction( instruction_t ins, char * dump);

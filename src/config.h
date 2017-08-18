@@ -15,16 +15,31 @@ typedef enum{
 }CONFIG_MAPPINGS;
 
 typedef enum{
-    SEQ_AI,
-    SEQ_AQ,
-    SEQ_DI,
-    SEQ_DQ,
-    SEQ_MVAR,
-    SEQ_MREG,
-    SEQ_TIMER,
-    SEQ_PULSE,
-    N_SEQUENCES
-}CONFIG_SEQUENCES; 
+    USPACE_BASE,
+    USPACE_WR,
+    USPACE_RD,
+    N_USPACE_VARS
+}USPACE_VARS;
+
+typedef enum{
+    SUBDEV_IN,
+    SUBDEV_OUT,
+    SUBDEV_ADC,
+    SUBDEV_DAC,
+    N_SUBDEV_VARS
+}SUBDEV_VARS;
+
+typedef enum{
+    COMEDI_FILE,
+    COMEDI_SUBDEV,
+    N_COMEDI_VARS
+}COMEDI_VARS; 
+
+typedef enum {
+    SIM_INPUT,
+    SIM_OUTPUT,
+    N_SIM_VARS
+}SIM_VARS;
 
 typedef enum{
     CONFIG_STEP,
@@ -43,19 +58,8 @@ typedef enum{
     CONFIG_NAQ,
     CONFIG_RESPONSE,//DEPRECATED
     CONFIG_USPACE,
-    CONFIG_USPACE_BASE,
-    CONFIG_USPACE_WR,
-    CONFIG_USPACE_RD,
     CONFIG_COMEDI,
-    CONFIG_COMEDI_FILE,
-    CONFIG_COMEDI_SUBDEV,
-    CONFIG_SUBDEV_IN,
-    CONFIG_SUBDEV_OUT,
-    CONFIG_SUBDEV_ADC,
-    CONFIG_SUBDEV_DAC,
     CONFIG_SIM,
-    CONFIG_SIM_INPUT,
-    CONFIG_SIM_OUTPUT,
     CONFIG_PROGRAM_IL,
     CONFIG_PROGRAM_LD,
      //(runtime updatable) sequences,
@@ -69,9 +73,6 @@ typedef enum{
     CONFIG_PULSE, 
     N_CONFIG_VARIABLES
 } CONFIG_VARIABLES;
-
-#define IS_SEQUENCE(x) x >= CONFIG_AI
-#define SEQUENCE(x) x - CONFIG_AI
 
 typedef enum {
     VARIABLE_INDEX,
@@ -97,79 +98,37 @@ typedef enum {
 	N_ENTRY_TYPES
 } ENTRY_TYPE;
 
+typedef struct variable {
+    unsigned char index;
+    char * name ;
+    char * value;
+    char * min;
+    char * max;
+      
+} * variable_t;
+
+typedef struct sequence {
+    int size;
+    variable_t vars;
+} * sequence_t;
+
 typedef struct entry {
 	int type_tag;
 	char * name;
-	struct entry * next;
+	
 	union {
 	    int scalar_int;
 		char * scalar_str;
-		struct entry ** map;
+		sequence_t seq;
+		struct config * conf;
 	} e;
 } * entry_t;
 
 typedef entry_t * entry_map_t;
 
-typedef struct variable {
-    BYTE index;
-    char  name[MAXSTR];
-    char  value[MAXSTR];
-    char  min[MAXSTR];
-    char  max[MAXSTR];
-      
-} * variable_t;
-
 typedef struct config {
-    //FILE * ErrLog;
-    
-    //vm configuration    
-    BYTE nt;
-    BYTE ns;
-    BYTE nm;
-    BYTE nr;
-    BYTE di;
-    BYTE dq;
-    BYTE ai;
-    BYTE aq; 
-
-    //ui
-    int sigenable;
-    BYTE page_width;
-    BYTE page_len;
-    
-    //hw
-    char hw[MAXSTR];
-    //userland device
-    unsigned int base;
-    BYTE wr_offs;
-    BYTE rd_offs;
-    //comedi
-    unsigned int comedi_file;    
-    unsigned int comedi_subdev_i;
-    unsigned int comedi_subdev_q;
-    unsigned int comedi_subdev_ai;
-    unsigned int comedi_subdev_aq;
-    //simulation
-    char sim_in_file[MAXSTR];
-    char sim_out_file[MAXSTR];
-    
-    //sampling
-    unsigned long step;
-    char pipe[MAXSTR];
-    //obsolete
-    char response_file[MAXSTR];
-    
-    //initialization
-    variable_t  mvars;
-    variable_t  mregs;
-    variable_t  dinps;
-    variable_t  douts;
-    variable_t  timers;
-    variable_t  pulses;
-    variable_t  ainps;
-    variable_t  aouts;
-    
-    char program_file[MAXSTR];
+    unsigned int size;
+    entry_map_t map;
 } * config_t;
 
 /**
@@ -201,11 +160,14 @@ int load_config_yml(const char * filename, config_t conf);
 int save_config_yml(const char * filename, const config_t conf);
 
 /**
- * @brief configure a plc with a configuration
- * @param the config
- * @param the plc
+ * @brief get config entry by key
  */
-void configure(const config_t conf, plc_t plc);
+entry_t get_entry(int key, const config_t conf);
+
+/**
+ * @brief get config key by viteral alpha value
+ */
+int get_key(const char * value, const config_t conf);
 
 /**
  * @brief store a value to a map
@@ -214,7 +176,7 @@ void configure(const config_t conf, plc_t plc);
  * @param where to store
  * @return OK or ERR 
  */
-int store_value(BYTE key, const char * value, config_t * c);
+int store_value(unsigned char key, const char * value, config_t * c);
 
 /**
  * @brief store a value to a map that is nested in a sequence
@@ -225,9 +187,9 @@ int store_value(BYTE key, const char * value, config_t * c);
  * @param where to store
  * @return OK or ERR 
  */
-int store_seq_value(BYTE seq,
-                    BYTE idx, 
-                    BYTE key, 
+int store_seq_value(unsigned char seq,
+                    unsigned char idx, 
+                    unsigned char key, 
                     const char * value, 
                     config_t * c);
 

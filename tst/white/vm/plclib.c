@@ -1708,6 +1708,127 @@ int plc_func(BYTE *update, plc_t p) {
     return r;
 }
 
+
+void configure(const config_t conf, plc_t plc){
+/*
+    plc->ni = conf->di;
+    plc->nq = conf->dq;
+    plc->nai = conf->ai;
+    plc->naq = conf->aq;
+    plc->nt = conf->nt;
+    plc->ns = conf->ns;
+    plc->nm = conf->nm;
+    plc->nmr = conf->nr;
+    
+    sprintf(plc->hw, "%s", conf->hw);
+    
+    plc->inputs = (BYTE *) malloc(plc->ni);
+    plc->outputs = (BYTE *) malloc(plc->nq);
+    plc->edgein = (BYTE *) malloc(plc->ni);
+    plc->maskin = (BYTE *) malloc(plc->ni);
+    plc->maskout = (BYTE *) malloc(plc->nq);
+    plc->maskin_N = (BYTE *) malloc(plc->ni);
+    plc->maskout_N = (BYTE *) malloc(plc->nq);
+    plc->real_in = (uint64_t *) malloc(conf->ai * sizeof(uint64_t));
+    plc->real_out = (uint64_t *) malloc(conf->aq * sizeof(uint64_t));
+    plc->mask_ai = (double *) malloc(conf->ai * sizeof(double));
+    plc->mask_aq = (double *) malloc(conf->aq * sizeof(double));
+    plc->di = (di_t) malloc(
+            BYTESIZE * plc->ni * sizeof(struct digital_input));
+    plc->dq = (do_t) malloc(
+            BYTESIZE * plc->nq * sizeof(struct digital_output));
+    
+    plc->t = (dt_t) malloc(plc->nt * sizeof(struct timer));
+    plc->s = (blink_t) malloc(plc->ns * sizeof(struct blink));
+    plc->m = (mvar_t) malloc(plc->nm * sizeof(struct mvar));
+    plc->mr = (mreal_t) malloc(plc->nmr * sizeof(struct mreal));
+   
+    plc->ai = (aio_t) malloc(
+             conf->ai * sizeof(struct analog_io));
+    plc->aq = (aio_t) malloc(
+             conf->aq * sizeof(struct analog_io));
+   
+    memset(plc->real_in, 0, plc->nai*sizeof(uint64_t));
+    memset(plc->real_out, 0, plc->naq*sizeof(uint64_t));
+    memset(plc->inputs, 0, plc->ni);
+    memset(plc->outputs, 0, plc->nq);
+    memset(plc->maskin, 0, plc->ni);
+    memset(plc->maskout, 0, plc->nq);
+    memset(plc->maskin_N, 0, plc->ni);
+    memset(plc->maskout_N, 0, plc->nq);
+    
+    memset(plc->mask_ai, 0, plc->nai * sizeof(double));
+    memset(plc->mask_aq, 0, plc->naq * sizeof(double));
+    
+    memset(plc->di, 0, BYTESIZE * plc->ni * sizeof(struct digital_input));
+    memset(plc->dq, 0, BYTESIZE * plc->nq * sizeof(struct digital_output));
+    memset(plc->t, 0, plc->nt * sizeof(struct timer));
+    memset(plc->s, 0, plc->ns * sizeof(struct blink));
+    memset(plc->m, 0, plc->nm * sizeof(struct mvar));
+    memset(plc->mr, 0, plc->nmr * sizeof(struct mreal));
+
+    plc_t p_old=NULL;
+    p_old = (plc_t) malloc(sizeof(struct PLC_regs));
+
+    p_old->ni = conf->di;
+    p_old->nq = conf->dq;
+    p_old->nai = conf->ai;
+    p_old->naq = conf->aq;
+    p_old->nt = conf->nt;
+    p_old->ns = conf->ns;
+    p_old->nm = conf->nm;
+    p_old->nmr = conf->nr;
+    
+    p_old->inputs = (BYTE *) malloc(conf->di);
+    p_old->outputs = (BYTE *) malloc(conf->dq);
+    p_old->maskin = (BYTE *) malloc(conf->di);
+    p_old->edgein = (BYTE *) malloc(conf->di);
+    p_old->maskout = (BYTE *) malloc(conf->dq);
+    p_old->maskin_N = (BYTE *) malloc(conf->di);
+    p_old->maskout_N = (BYTE *) malloc(conf->dq);
+    p_old->di = (di_t) malloc(
+            BYTESIZE * conf->di * sizeof(struct digital_input));
+    p_old->dq = (do_t) malloc(
+            BYTESIZE * conf->dq * sizeof(struct digital_output));
+    p_old->t = (dt_t) malloc(conf->nt * sizeof(struct timer));
+    p_old->s = (blink_t) malloc(conf->ns * sizeof(struct blink));
+    p_old->m = (mvar_t) malloc(conf->nm * sizeof(struct mvar));
+    p_old->mr = (mreal_t) malloc(conf->nr * sizeof(struct mreal));
+    
+    
+    p_old->real_in = (uint64_t *) malloc(conf->ai * sizeof(uint64_t));
+    p_old->real_out = (uint64_t *) malloc(conf->aq * sizeof(uint64_t));
+    p_old->mask_ai = (double *) malloc(conf->ai * sizeof(double));
+    p_old->mask_aq = (double *) malloc(conf->aq * sizeof(double));
+    p_old->ai = (aio_t) malloc(
+             conf->ai * sizeof(struct analog_io));
+    p_old->aq = (aio_t) malloc(
+             conf->aq * sizeof(struct analog_io));
+    
+    p_old->di = (di_t) malloc(
+            BYTESIZE * plc->ni * sizeof(struct digital_input));
+    p_old->dq = (do_t) malloc(
+            BYTESIZE * plc->nq * sizeof(struct digital_output));
+    
+    memcpy(p_old->inputs, plc->inputs, conf->di);
+    memcpy(p_old->outputs, plc->outputs, conf->dq);
+    memset(p_old->real_in, 0, plc->nai*sizeof(uint64_t));
+    memset(p_old->real_out, 0, plc->naq*sizeof(uint64_t));
+    
+    memcpy(p_old->m, plc->m, conf->nm * sizeof(struct mvar));
+    memcpy(p_old->mr, plc->mr, conf->nr * sizeof(struct mreal));
+    memcpy(p_old->t, plc->t, conf->nt * sizeof(struct timer));
+    memcpy(p_old->s, plc->s, conf->ns * sizeof(struct blink));
+    
+    plc->old = p_old;*/
+    plc->command = 0;
+    plc->status = ST_RUNNING;
+    plc->step = get_entry(CONFIG_STEP, conf)->e.scalar_int ;
+    //plc->response_file = conf->response_file;
+
+}
+
+
 /*******************debugging tools***************/
 /*TODO: factor out utilities*/
 void dump_label(char * label, char * dump) {

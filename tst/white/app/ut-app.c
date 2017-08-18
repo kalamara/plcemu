@@ -8,9 +8,9 @@
 #include "CUnit/Console.h"
 #include "CUnit/Automated.h"
 
-#include "plclib.h"
 #include "plcemu.h"
 #include "config.h"
+#include "plclib.h"
 #include "ut-conf.h"
 
 #define TRUE 1
@@ -64,7 +64,6 @@ int main ()
   || ADD_TEST(suite_conf, ut_save)
   || ADD_TEST(suite_conf, ut_store)
   || ADD_TEST(suite_conf, ut_process)
-  || ADD_TEST(suite_conf, ut_apply)
      )
   {
 	CU_cleanup_registry ();
