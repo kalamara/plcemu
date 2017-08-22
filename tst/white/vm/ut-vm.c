@@ -7,6 +7,7 @@
 #include "CUnit/Console.h"
 #include "CUnit/Automated.h"
 
+#include "config.h"
 #include "plclib.h"
 #include "plcemu.h"
 #include "parser-tree.h"
@@ -175,7 +176,7 @@ int main ()
   
   //initialization
  if(ADD_TEST(suite_init, ut_extract) 
- || ADD_TEST(suite_init, ut_load)
+ || ADD_TEST(suite_init, ut_construct)
      )
   {
 	CU_cleanup_registry ();

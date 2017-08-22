@@ -909,11 +909,39 @@ int resolve( plc_t p,
 int down_timer( plc_t p, int idx);
 
 /**
- * @brief configure a plc with a configuration
- * @param the config
- * @param the plc
+ * @brief construct a new plc with a configuration
+ * @param number of digital inputs
+ * @param number of digital outputs
+ * @param number of analog inputs 
+ * @param number of analog outputs
+ * @param number of timers
+ * @param number of pulses
+ * @param number of integer memory variables
+ * @param number of real memory variables
+ * @param cycle time in milliseconds
+ * @param hardware identifier        
+
+ * @return configured plc
  */
-void configure(const config_t conf, plc_t plc);
+plc_t new_plc(
+    int di, 
+    int dq,
+    int ai,
+    int aq,
+    int nt, 
+    int ns,
+    int nm,
+    int nr,
+    int step,
+    const char * hw);
+
+
+/**
+ * @brief copy constructor
+ * @param source plc
+ * @return newly allocated copy
+ */
+plc_t duplicate(const plc_t plc); 
 
 /*******************debugging tools****************/
 void dump_label( char * label, char * dump);

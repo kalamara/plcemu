@@ -243,12 +243,7 @@ sequence_t new_sequence(int size) {
 	r->size = size;
 	r->vars = (variable_t)malloc(size*sizeof(struct variable));
 	memset(r->vars, 0, size*sizeof(struct variable));
-	/*
-	int i = 0;
-	for(; i < size; i++){
-	     
-	}
-    */
+	
 	return r;
 }
 
