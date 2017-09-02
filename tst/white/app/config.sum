@@ -29,19 +29,31 @@ Taken at least once:0.00% of 6
 Calls executed:0.00% of 10
 
 Function 'process'
-Lines executed:95.92% of 49
-Branches executed:100.00% of 33
-Taken at least once:90.91% of 33
-Calls executed:100.00% of 11
+Lines executed:94.29% of 35
+Branches executed:100.00% of 19
+Taken at least once:94.74% of 19
+Calls executed:100.00% of 5
+
+Function 'process_mapping'
+Lines executed:100.00% of 10
+Branches executed:100.00% of 8
+Taken at least once:87.50% of 8
+Calls executed:100.00% of 3
+
+Function 'process_scalar'
+Lines executed:100.00% of 18
+Branches executed:100.00% of 8
+Taken at least once:100.00% of 8
+Calls executed:100.00% of 5
 
 Function 'store_seq_value'
-Lines executed:90.00% of 20
-Branches executed:100.00% of 12
-Taken at least once:75.00% of 12
-Calls executed:80.00% of 5
+Lines executed:100.00% of 33
+Branches executed:100.00% of 11
+Taken at least once:81.82% of 11
+Calls executed:100.00% of 4
 
 Function 'store_value'
-Lines executed:84.62% of 13
+Lines executed:87.50% of 16
 Branches executed:100.00% of 7
 Taken at least once:71.43% of 7
 Calls executed:100.00% of 3
@@ -139,9 +151,9 @@ No branches
 No calls
 
 File 'config.c'
-Lines executed:63.00% of 400
-Branches executed:72.46% of 138
-Taken at least once:56.52% of 138
-Calls executed:62.15% of 177
+Lines executed:66.05% of 430
+Branches executed:72.66% of 139
+Taken at least once:58.27% of 139
+Calls executed:62.92% of 178
 Creating 'config.c.gcov'
 

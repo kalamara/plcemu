@@ -444,7 +444,7 @@ int main(int argc, char **argv)
     if(cvalue == NULL)
        cvalue = confstr;
        
-    if (load_config_yml(cvalue, conf) < PLC_OK) {
+    if ((load_config_yml(cvalue, conf))->err < PLC_OK) {
         plc_log("Invalid configuration file %s\n", cvalue);
         return PLC_ERR;
     }

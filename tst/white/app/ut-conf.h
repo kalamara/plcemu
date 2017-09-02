@@ -3,7 +3,7 @@
 
 void ut_conf()
 {
-  config_t conf = init_config();
+   config_t conf = init_config();
   //defaults
 
   //bullshit should return NULL
@@ -61,32 +61,33 @@ void ut_conf()
 void ut_store()
 {
     config_t conf = init_config();
-    int r = store_value(N_CONFIG_VARIABLES, "",  &conf);
-    CU_ASSERT(r == PLC_ERR);
+    config_t updated = store_value(N_CONFIG_VARIABLES, "",  conf);
+    CU_ASSERT(updated->err == PLC_ERR);
+    updated->err = PLC_OK;
   
-    r = store_value(CONFIG_HW, "simulation",  &conf);
-    CU_ASSERT(r == PLC_OK);
+    updated = store_value(CONFIG_HW, "simulation",  conf);
+    CU_ASSERT(updated->err == PLC_OK);
     CU_ASSERT_STRING_EQUAL(
-    get_entry(CONFIG_HW,conf)->e.scalar_str, "simulation");
+    get_entry(CONFIG_HW,updated)->e.scalar_str, "simulation");
   
-    r = store_value(CONFIG_PIPE, "pipe",  &conf);
-    CU_ASSERT(r == PLC_OK);
+    updated = store_value(CONFIG_PIPE, "pipe",  conf);
+    CU_ASSERT(updated->err == PLC_OK);
     CU_ASSERT_STRING_EQUAL(
     get_entry(CONFIG_PIPE,conf)->e.scalar_str, "pipe");
 
-    r = store_value(CONFIG_STEP, "1000000",  &conf);
+    updated = store_value(CONFIG_STEP, "1000000",  conf);
     CU_ASSERT(
         get_entry(CONFIG_STEP, conf)->e.scalar_int == 1000000);
     
-    CU_ASSERT(r == PLC_OK);
+    CU_ASSERT(updated->err == PLC_OK);
     
 /*store in a config within a config*/
-    r = store_value(
+    updated = store_value(
         USPACE_BASE, 
         "12345678",  
-        &(get_entry(CONFIG_USPACE, conf)->e.conf));
+        (get_entry(CONFIG_USPACE, conf)->e.conf));
 
-    CU_ASSERT(r == PLC_OK);
+    CU_ASSERT(updated->err == PLC_OK);
     CU_ASSERT(
         get_entry(
             USPACE_BASE,
@@ -95,45 +96,48 @@ void ut_store()
                 conf)->e.conf)->e.scalar_int == 12345678);
 
 /*store in a sequence*/
-  r = store_seq_value(-1, 0, 0, "", &conf);
+  updated = store_seq_value(-1, 0, 0, "", conf);
 
-  CU_ASSERT(r == PLC_ERR);
+  CU_ASSERT(updated->err == PLC_ERR);
+  updated->err = PLC_OK;
   
-  r = store_seq_value(CONFIG_AI, 0, VARIABLE_MAX, "1.0", &conf);
+  updated = store_seq_value(CONFIG_AI, 0, VARIABLE_MAX, "1.0", conf);
   CU_ASSERT_STRING_EQUAL(
     get_entry(CONFIG_AI, conf)->e.seq->vars[0].max, 
     "1.0");
-  CU_ASSERT(r == PLC_OK);
+  CU_ASSERT(updated->err == PLC_OK);
   
-  r = store_seq_value(CONFIG_AQ, 0, N_VARIABLE_PARAMS, "", &conf);
-  CU_ASSERT(r == PLC_ERR);  
-  clear_config(&conf);
+  updated = store_seq_value(CONFIG_AQ, 0, N_VARIABLE_PARAMS, "", conf);
+  CU_ASSERT(updated->err == PLC_ERR);  
+  clear_config(conf);
     
 }
 
 void ut_process()
 {
-    int r = process(PLC_ERR, NULL, NULL);
-    CU_ASSERT(r == PLC_ERR);
+    config_t conf = process(PLC_ERR, NULL, NULL);
+    CU_ASSERT(conf == NULL);
     
-    config_t conf = init_config();
-    r = process(PLC_ERR, NULL, conf);
-    CU_ASSERT(r == PLC_ERR);
+    conf = init_config();
+    conf = process(PLC_ERR, NULL, conf);
+    CU_ASSERT(conf->err == PLC_ERR);
+    
+    conf->err = PLC_OK;
     
     yaml_parser_t parser;
-    r = process(PLC_ERR, &parser, conf);
-    CU_ASSERT(r == PLC_ERR);
+    conf = process(PLC_ERR, &parser, conf);
+    CU_ASSERT(conf->err == PLC_ERR);
+    conf->err = PLC_OK;
     
     memset(&parser, 0, sizeof(parser));
     yaml_parser_initialize(&parser);
     
     yaml_parser_set_input_string(&parser, "STEP: 100", 9); 
-    r = process(PLC_ERR, &parser, conf);
-    CU_ASSERT(r == PLC_OK);
+    conf = process(PLC_ERR, &parser, conf);
+    CU_ASSERT(conf->err == PLC_OK);
     
     entry_t got = get_entry(CONFIG_STEP, conf);
     CU_ASSERT(got->e.scalar_int == 100);
-
     
     char * input = 
 "#SIMULATION IO \n\
@@ -145,8 +149,8 @@ SIM: \n\
     yaml_parser_initialize(&parser);
     yaml_parser_set_input_string(&parser, input, strlen(input)); 
 
-    r = process(PLC_ERR, &parser, conf);
-    CU_ASSERT(r == PLC_OK);
+    conf = process(PLC_ERR, &parser, conf);
+    CU_ASSERT(conf->err == PLC_OK);
     
     got = get_entry(
             SIM_INPUT, 
@@ -176,8 +180,8 @@ COMEDI: \n\
     (yaml_char_t * )input, 
     strlen(input)); 
 
-    r = process(PLC_ERR, &parser, conf);
-    CU_ASSERT(r == PLC_OK);
+    conf = process(PLC_ERR, &parser, conf);
+    CU_ASSERT(conf->err == PLC_OK);
     
     got = get_entry(
             SUBDEV_IN, 
@@ -200,8 +204,8 @@ AI:  \n\
     yaml_parser_initialize(&parser);
     yaml_parser_set_input_string(&parser, input, strlen(input)); 
 
-    r = process(PLC_ERR, &parser, conf);
-    CU_ASSERT(r == PLC_OK);
+    conf = process(PLC_ERR, &parser, conf);
+    CU_ASSERT(conf->err == PLC_OK);
     
     got = get_entry(CONFIG_AI,conf);
     CU_ASSERT(got->type_tag == ENTRY_SEQ);

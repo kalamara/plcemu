@@ -941,7 +941,7 @@ plc_t new_plc(
  * @param source plc
  * @return newly allocated copy
  */
-plc_t duplicate(const plc_t plc); 
+plc_t copy_plc(const plc_t plc); 
 
 /*******************debugging tools****************/
 void dump_label( char * label, char * dump);

@@ -1793,12 +1793,12 @@ plc_t new_plc(
   
     plc = allocate(plc);
     
-    plc->old = duplicate(plc);
+    plc->old = copy_plc(plc);
   
     return plc;
 }
 
-plc_t duplicate(const plc_t plc) {
+plc_t copy_plc(const plc_t plc) {
 
     plc_t p = (plc_t)malloc(sizeof(struct PLC_regs));
     memset(p, 0, sizeof(struct PLC_regs));

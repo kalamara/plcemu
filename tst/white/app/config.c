@@ -389,8 +389,9 @@ config_t init_config(){
     return conf;
 }
 
-void clear_config(config_t *c){
+config_t clear_config(config_t c){
 
+    return (config_t)NULL;
 }
 
 static int log_yml_event(yaml_event_t event){
@@ -450,17 +451,23 @@ char * strdup_r(const char * dest, const char * src) {
     return r;
 }
 
-int store_value(BYTE key, const char * value, config_t * c){
+config_t store_value(BYTE key, const char * value, config_t config){
 
     entry_t e; 
-    if( c == NULL) 
-        return PLC_ERR;
+    if( config == NULL) {
     
-    e = get_entry(key, *c);
+        return NULL;
+    }
     
-    if(e == NULL)
-        return PLC_ERR;
+    config_t conf = config;
+    e = get_entry(key, conf);
+    
+    if(e == NULL) {
+        conf->err = PLC_ERR;
         
+        return conf;
+    }
+    
     switch(e->type_tag){
          case ENTRY_INT:
             e->e.scalar_int = atoi(value);
@@ -472,118 +479,193 @@ int store_value(BYTE key, const char * value, config_t * c){
             break;
             
          default: return PLC_ERR;
-    }    
-    return PLC_OK;
+    }        
+    conf->map[key] = e;
+       
+    return conf;
 }
 
-int store_seq_value(BYTE seq,
+config_t store_seq_value(BYTE seq,
                     BYTE idx, 
                     BYTE key, 
                     const char * value, 
-                    config_t * c){
+                    config_t config){
                     
-    entry_t s = (*c)->map[seq];
+    config_t conf = config;                
+    entry_t s = conf->map[seq];
     
     if( s == NULL ||
         s->type_tag != ENTRY_SEQ ||
         idx >= s->e.seq->size) {
         
-        return PLC_ERR;
+        conf->err = PLC_ERR;
+        
+        return conf;
     }            
     
-    variable_t vars = s->e.seq->vars;
+    variable_t var = &(conf->map[seq]
+                            ->e.seq
+                            ->vars[idx]);
     
+    conf->map[seq]
+                ->e.seq
+                ->vars[idx].index = idx;
+     
     switch(key) {
-        case VARIABLE_INDEX: 
-            vars[idx].index = atoi(value);
-            break;
-            
+                
         case VARIABLE_ID: 
-            vars[idx].name = strdup_r(vars[idx].name, value);
+            
+            conf->map[seq]
+                ->e.seq
+                ->vars[idx].name = strdup_r(var->name, value);
             break;
             
         case VARIABLE_VALUE: 
-            vars[idx].value = strdup_r(vars[idx].value, value);
+            conf->map[seq]
+                ->e.seq
+                ->vars[idx].value = strdup_r(var->value, value);
             break;
             
         case VARIABLE_MAX: 
-            vars[idx].max = strdup_r(vars[idx].max, value);
+            conf->map[seq]
+                ->e.seq
+                ->vars[idx].max = strdup_r(var->max, value);
             break; 
             
         case VARIABLE_MIN: 
-            vars[idx].min = strdup_r(vars[idx].min, value);
+            conf->map[seq]
+                ->e.seq
+                ->vars[idx].min = strdup_r(var->min, value);
             break;         
                
-        default: 
-            return PLC_ERR;    
+        default: case VARIABLE_INDEX: 
+         
+            conf->err = PLC_ERR;    
     }
-        
-    return PLC_OK;                       
+   
+    return conf;                       
 }
 
-int process(int sequence, 
+static config_t process_scalar(
+                   yaml_event_t event,
+                   int sequence, 
+                   BYTE * storage,
+                   int * key,
+                   int * idx,
+                   config_t config){
+    
+    config_t conf = config;
+    char * val = (char *)event.data.scalar.value;
+    int found_seq = sequence > PLC_ERR;
+                    
+    if(*storage == STORE_KEY) {
+         if(found_seq) {
+                            
+             *key = get_var_key(val);         
+         } else {
+                        
+             *key = get_key(val,conf);    
+         }
+         
+         *storage = STORE_VAL;
+    } else {
+        if(found_seq) {            
+            if(*key == VARIABLE_INDEX){
+                             
+                *idx = atoi(val);
+            } else {  
+                             
+                conf = store_seq_value(sequence, 
+                                      *idx, 
+                                      *key, 
+                                      val, 
+                                      conf);       
+            }   
+        } else {
+                        
+        conf = store_value(*key, val, conf);
+        }
+//swap storage to process val after key and vice versa        
+        *storage = STORE_KEY;     
+    }                 
+      
+    return conf;                       
+}
+
+static config_t process_mapping(
+                    int found_seq,
+                    int key,
+                    BYTE * storage,
+                    yaml_parser_t *parser,
+                    config_t config){
+    
+    config_t conf = config;                
+    entry_t c = get_entry(key, conf);
+    if( c != NULL &&
+        c->type_tag == ENTRY_MAP) {
+                    
+                        c->e.conf = process(
+                            found_seq?key:PLC_ERR, 
+                            parser, 
+                            c->e.conf);
+                        
+                        conf->map[key] = c;
+                    } else {
+                    
+                        conf = process(
+                            found_seq?key:PLC_ERR, 
+                            parser, 
+                            conf);
+    }
+    
+    *storage = STORE_KEY;
+    return conf;    
+} 
+
+config_t process(int sequence, 
             yaml_parser_t *parser, 
-            config_t conf){
+            config_t configuration){
              
-     int ret = PLC_OK;
-     BYTE storage = STORE_KEY;   
-     int done = FALSE;
-     int key = PLC_ERR;
-     int found_seq = sequence > PLC_ERR;
-     int idx = PLC_ERR;
-     yaml_event_t event;
-     memset(&event, 0, sizeof(event));
+    config_t config = configuration;
+    BYTE storage = STORE_KEY;   
+    int done = FALSE;
+    int key = PLC_ERR;
+    int found_seq = sequence > PLC_ERR;
+    int idx = PLC_ERR;
+    yaml_event_t event;
+    memset(&event, 0, sizeof(event));
+    
+    if(config == NULL) {
      
-     if(parser == NULL
+        return NULL;
+     }
+     
+     if(parser == NULL) {
+        config->err = PLC_ERR;
+     
+        return config;
+     }
 //     || parser->context == NULL 
-     || conf == NULL)
-     
-        return PLC_ERR;
            
      while(done == FALSE){
      
         if (!yaml_parser_parse(parser, &event)){   
                 yaml_parser_error(*parser);
-                ret = PLC_ERR;
+                config->err = PLC_ERR;
         } else {
    
             switch(event.type){
             
-                case YAML_SCALAR_EVENT: {
-                    char * val = (char *)event.data.scalar.value;
-                    
-                    if(storage == STORE_KEY) {
-                        if(found_seq) {
-                            
-                            key = get_var_key(val);
-                        } else {
-                        
-                            key = get_key(val,conf);    
-                        }
-                        storage = STORE_VAL;
-                    } else {
-   
-                        if(found_seq) {
-                        
-                            if(key == VARIABLE_INDEX){
-                             
-                                 idx = atoi(val);
-                            } else {  
-                             
-                                ret = store_seq_value(
-                                         sequence, 
-                                         idx, 
-                                         key, 
-                                         val, 
-                                         &conf);       
-                            }   
-                        } else {
-                        
-                            ret = store_value(key, val, &conf);
-                        }
-                        storage = STORE_KEY;    
-                    }
-                }   break;
+                case YAML_SCALAR_EVENT: 
+                
+                    config = process_scalar(
+                                event,
+                                found_seq?sequence:PLC_ERR,
+                                &storage,
+                                &key,
+                                &idx,
+                                config);
+                    break;
                 
                 case YAML_SEQUENCE_START_EVENT:
                 
@@ -595,27 +677,15 @@ int process(int sequence,
                     found_seq = FALSE;
                     break;
                 
-                case YAML_MAPPING_START_EVENT: {
-                    
-                    entry_t c = get_entry(key, conf);
-                    if( c != NULL &&
-                        c->type_tag == ENTRY_MAP) {
-                    
-                        ret = process(
-                            found_seq?key:-1, 
-                            parser, 
-                            c->e.conf);
-                        
-                    } else {
-                    
-                        ret = process(
-                            found_seq?key:-1, 
-                            parser, 
-                            conf);
-                    }
-                    storage = STORE_KEY;
-                    
-                }   break;
+                case YAML_MAPPING_START_EVENT:
+                
+                    config = process_mapping(
+                                found_seq,
+                                key,
+                                &storage,
+                                parser,
+                                config); 
+                    break;
                     
                 case YAML_MAPPING_END_EVENT:
                 case YAML_STREAM_END_EVENT:     
@@ -624,23 +694,23 @@ int process(int sequence,
                     break;
                     
                 case YAML_NO_EVENT:
-                    ret = PLC_ERR;
+                    config->err = PLC_ERR;
                     break;    
                     
                 default: break;    
             }
          }
-         if(ret < PLC_OK) {
+         if(config->err < PLC_OK) {
              done = TRUE;
              //log_yml_event(event);
          }                                              
          yaml_event_delete(&event);   
      }
      
-     return ret;
+     return config;
 }
              
-int load_config_yml(const char * filename, config_t conf) {
+config_t load_config_yml(const char * filename, config_t conf) {
     yaml_parser_t parser;
     
     FILE * fcfg;
@@ -651,7 +721,7 @@ int load_config_yml(const char * filename, config_t conf) {
     
     memset(&parser, 0, sizeof(parser));
     
-    int r = PLC_OK;
+    config_t r = conf;
     
     if (!yaml_parser_initialize(&parser)) {
         yaml_parser_error(parser);
@@ -661,11 +731,11 @@ int load_config_yml(const char * filename, config_t conf) {
         plc_log("Looking for configuration from %s ...", path);
         yaml_parser_set_input_file(&parser, fcfg);
         r = process(PLC_ERR, &parser, conf);
-        if(r < PLC_OK)
+        if(r->err < PLC_OK)
             plc_log( "Configuration error ");
         fclose(fcfg);
     } else {
-        r = PLC_ERR;
+        r->err = PLC_ERR;
         plc_log("Could not open file %s", filename);
     }
     yaml_parser_delete(&parser);

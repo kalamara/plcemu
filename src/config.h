@@ -128,6 +128,7 @@ typedef entry_t * entry_map_t;
 
 typedef struct config {
     unsigned int size;
+    int err;
     entry_map_t map;
 } * config_t;
 
@@ -140,16 +141,17 @@ config_t init_config();
 /**
  * @brief cleanup and free configuration
  * @param the configuration
+ * @return NULL
  */
-void clear_config(config_t *c);
+config_t clear_config(config_t c);
 
 /**
  * @brief entry point: load text file into configuration
  * @param filename (full path)
  * @param the configuration
- * @return OK or ERR
+ * @return new config
  */
-int load_config_yml(const char * filename, config_t conf);
+config_t load_config_yml(const char * filename, config_t conf);
 
 /**
  * @brief entry point: save configuration to text file 
@@ -174,9 +176,12 @@ int get_key(const char * value, const config_t conf);
  * @param the key
  * @param the value
  * @param where to store
- * @return OK or ERR 
+ * @return config with applied value or changed errorcode 
  */
-int store_value(unsigned char key, const char * value, config_t * c);
+config_t store_value(
+    unsigned char key, 
+    const char * value, 
+    config_t c);
 
 /**
  * @brief store a value to a map that is nested in a sequence
@@ -185,13 +190,13 @@ int store_value(unsigned char key, const char * value, config_t * c);
  * @param the key
  * @param the value
  * @param where to store
- * @return OK or ERR 
+ * @return config with applied value or changed errorcode
  */
-int store_seq_value(unsigned char seq,
+config_t store_seq_value(unsigned char seq,
                     unsigned char idx, 
                     unsigned char key, 
                     const char * value, 
-                    config_t * c);
+                    config_t c);
 
 /**
  * @brief process an initialized parser, recursively for each mapping
@@ -199,12 +204,11 @@ int store_seq_value(unsigned char seq,
  * PLC_ERR otherwise
  * @param the parser
  * @param the configuration where the parsed values are stored
- * @return OK or ERR
+ * @return config with applied values or changed errorcode
  */
-int process(int sequence, 
+config_t process(int sequence, 
             yaml_parser_t *parser, 
             config_t conf);
-
 
 /**
  * @brief emit all configuration values to a yaml emitter
