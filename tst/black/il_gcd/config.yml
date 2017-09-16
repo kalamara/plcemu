@@ -33,23 +33,23 @@ SIM:
 
 #PROGRAM    
 DI:
-    -Index: 0
-    Identifier: A
-    -Index: 1
-    Identifier: B
+    -INDEX: 0
+    ID: A
+    -INDEX: 1
+    ID: B
     
 DQ: 
-    -Index: 0
-    Identifier: OUTPUT
+    -INDEX: 0
+    ID: OUTPUT
         
 
 MREG:
-    -Index: 0
-    Identifier: RESULT
-    Value: 64   
+    -INDEX: 0
+    ID: RESULT
+    VALUE: 64   
     
-    -Index: 1
-    Identifier: TEMP
+    -INDEX: 1
+    ID: TEMP
           
 IL: "gcd.il"    
 

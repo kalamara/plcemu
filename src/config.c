@@ -35,6 +35,7 @@ const char * Config_vars[N_CONFIG_VARIABLES] = {
     "PULSE"
 };
 
+/*
 const char * Variable_params[N_VARIABLE_PARAMS] = {
     "INDEX",
     "ID",
@@ -42,6 +43,18 @@ const char * Variable_params[N_VARIABLE_PARAMS] = {
     "MIN",
     "MAX"
 };
+*/
+char * strdup_r(const char * dest, const char * src) {
+//strdup with realloc
+    char * r = (dest == NULL)?(char *)malloc(sizeof(src)):dest;
+        
+    r = realloc(r, sizeof(src));
+    memset(r, 0, sizeof(src));
+    sprintf(r, "%s", src);
+    
+    return r;
+}
+
 
 static void yaml_config_error(yaml_parser_t parser){
 
@@ -201,6 +214,7 @@ entry_t get_entry(int key, const config_t conf){
     return conf->map[key];
 }
 
+/*
 int get_var_key(const char * name){
     for(int i = 0; i < N_VARIABLE_PARAMS; i++) {
         if(!strcmp(name, Variable_params[i])) {
@@ -210,6 +224,76 @@ int get_var_key(const char * name){
     }
     
     return PLC_ERR;
+}
+*/
+//TODO: in a c++ impl. this would be a hashmap
+param_t new_param(const char * key, 
+                     const char * val){
+    
+        param_t n = (param_t)malloc(sizeof(struct param));
+        n->key = strdup(key);
+        n->value = strdup(val);
+        n->next = NULL;
+        
+        return n;        
+}
+
+param_t get_param(const char * key, const param_t params){
+    param_t it = params;
+    while(it && key){
+        if(!strcmp(it->key, key)){
+        
+            return it;
+        }
+        it = it->next;            
+    }
+    
+    return NULL;
+}
+
+char * get_param_val(const char * key, const param_t params){
+    param_t it = get_param(key, params);
+    
+    return it?it->value:NULL;
+}
+
+param_t append_param(const param_t params, 
+                     const char * key, 
+                     const char * val){
+        
+    if(params == NULL){
+        
+        return new_param(key, val);
+    } else {
+        param_t ret = params;
+        param_t it = params;
+        while(it->next){
+            it = it->next;
+        }
+        it->next = new_param(key, val);
+                
+        return ret;    
+    }
+}
+
+param_t update_param(const param_t params, 
+                     const char * key, 
+                     const char * val){
+        
+    if(params == NULL){
+        
+        return new_param(key, val);         
+    } else {
+        param_t ret = params;
+        param_t par = get_param(key, params);
+        if(par){
+            par->value = strdup_r(par->value, val);
+        } else {
+        //FIXME: ..and this is why we need a hashmap.
+            ret = append_param(ret, key, val);  
+        } 
+        return ret;    
+    }
 }
 
 int get_key(const char * name, const config_t where) {
@@ -248,7 +332,7 @@ sequence_t new_sequence(int size) {
 }
 
 config_t init_config(){
- //note: in a c++ implementation this all can be done automatically 
+ //TODO: in a c++ implementation this all can be done automatically 
  //using a hashmap
     config_t conf = new_config(N_CONFIG_VARIABLES);
    
@@ -440,17 +524,6 @@ static int log_yml_event(yaml_event_t event){
     return PLC_OK;
 }
 
-char * strdup_r(const char * dest, const char * src) {
-//strdup with realloc
-    char * r = (dest == NULL)?(char *)malloc(sizeof(src)):dest;
-        
-    realloc(r, sizeof(src));
-    memset(r, 0, sizeof(src));
-    sprintf(r, "%s", src);
-    
-    return r;
-}
-
 config_t store_value(BYTE key, const char * value, config_t config){
 
     entry_t e; 
@@ -486,8 +559,8 @@ config_t store_value(BYTE key, const char * value, config_t config){
 }
 
 config_t store_seq_value(BYTE seq,
-                    BYTE idx, 
-                    BYTE key, 
+                    BYTE idx,  
+                    const char * key,
                     const char * value, 
                     config_t config){
                     
@@ -495,6 +568,8 @@ config_t store_seq_value(BYTE seq,
     entry_t s = conf->map[seq];
     
     if( s == NULL ||
+        key == NULL || 
+        value == NULL ||
         s->type_tag != ENTRY_SEQ ||
         idx >= s->e.seq->size) {
         
@@ -508,117 +583,96 @@ config_t store_seq_value(BYTE seq,
                             ->vars[idx]);
     
     conf->map[seq]
-                ->e.seq
-                ->vars[idx].index = idx;
-     
-    switch(key) {
-                
-        case VARIABLE_ID: 
-            
-            conf->map[seq]
-                ->e.seq
-                ->vars[idx].name = strdup_r(var->name, value);
-            break;
-            
-        case VARIABLE_VALUE: 
-            conf->map[seq]
-                ->e.seq
-                ->vars[idx].value = strdup_r(var->value, value);
-            break;
-            
-        case VARIABLE_MAX: 
-            conf->map[seq]
-                ->e.seq
-                ->vars[idx].max = strdup_r(var->max, value);
-            break; 
-            
-        case VARIABLE_MIN: 
-            conf->map[seq]
-                ->e.seq
-                ->vars[idx].min = strdup_r(var->min, value);
-            break;         
-               
-        default: case VARIABLE_INDEX: 
-         
-            conf->err = PLC_ERR;    
-    }
-   
+        ->e.seq
+        ->vars[idx].index = idx;
+    
+    if(!strcmp(key, "ID")){
+         conf->map[seq]
+             ->e.seq
+             ->vars[idx].name = strdup_r(var->name, value);
+    } else {
+        
+        conf->map[seq]
+            ->e.seq
+            ->vars[idx].params = update_param(
+                conf->map[seq]
+                    ->e.seq
+                    ->vars[idx].params,
+                key,
+                value);    
+    }   
+        
     return conf;                       
 }
 
-static config_t process_scalar(
+static config_t process_seq_element(
                    yaml_event_t event,
                    int sequence, 
-                   BYTE * storage,
-                   int * key,
+                   const char * key,
                    int * idx,
                    config_t config){
     
     config_t conf = config;
     char * val = (char *)event.data.scalar.value;
-    int found_seq = sequence > PLC_ERR;
                     
-    if(*storage == STORE_KEY) {
-         if(found_seq) {
-                            
-             *key = get_var_key(val);         
-         } else {
-                        
-             *key = get_key(val,conf);    
-         }
-         
-         *storage = STORE_VAL;
-    } else {
-        if(found_seq) {            
-            if(*key == VARIABLE_INDEX){
+          
+    if(!strcmp(key, "INDEX")){
                              
-                *idx = atoi(val);
-            } else {  
+            *idx = atoi(val);
+    } else {  
                              
-                conf = store_seq_value(sequence, 
+            conf = store_seq_value(sequence, 
                                       *idx, 
-                                      *key, 
+                                      key, 
                                       val, 
                                       conf);       
-            }   
-        } else {
-                        
-        conf = store_value(*key, val, conf);
-        }
-//swap storage to process val after key and vice versa        
-        *storage = STORE_KEY;     
-    }                 
+    }                      
       
     return conf;                       
 }
 
+static config_t process_scalar(
+                   yaml_event_t event,
+                   const char * key,
+                   config_t config){
+    
+    config_t conf = config;
+    char * val = (char *)event.data.scalar.value;
+               
+    conf = store_value(
+                    get_key(key, conf), 
+                    val, 
+                    conf);
+                 
+    return conf;                       
+}
+
 static config_t process_mapping(
-                    int found_seq,
-                    int key,
-                    BYTE * storage,
+                    const char * key,
+                    int seq,
                     yaml_parser_t *parser,
                     config_t config){
     
     config_t conf = config;                
-    entry_t c = get_entry(key, conf);
+    int k = get_key(key, conf);
+    entry_t c = get_entry(k, conf);
+    
     if( c != NULL &&
         c->type_tag == ENTRY_MAP) {
                     
-                        c->e.conf = process(
-                            found_seq?key:PLC_ERR, 
-                            parser, 
-                            c->e.conf);
-                        
-                        conf->map[key] = c;
-                    } else {
+        c->e.conf = process(
+                        seq, 
+                        parser, 
+                        c->e.conf);        
+        conf->map[k] = c;
+    } else {
                     
-                        conf = process(
-                            found_seq?key:PLC_ERR, 
-                            parser, 
-                            conf);
+        conf = process(
+            seq, 
+            parser, 
+            conf);
     }
     
-    *storage = STORE_KEY;
     return conf;    
 } 
 
@@ -629,12 +683,11 @@ config_t process(int sequence,
     config_t config = configuration;
     BYTE storage = STORE_KEY;   
     int done = FALSE;
-    int key = PLC_ERR;
-    int found_seq = sequence > PLC_ERR;
+    char key[MAXSTR];
     int idx = PLC_ERR;
     yaml_event_t event;
     memset(&event, 0, sizeof(event));
-    
+    memset(key, 0, MAXSTR);
     if(config == NULL) {
      
         return NULL;
@@ -655,36 +708,52 @@ config_t process(int sequence,
         } else {
    
             switch(event.type){
-            
                 case YAML_SCALAR_EVENT: 
-                
-                    config = process_scalar(
-                                event,
-                                found_seq?sequence:PLC_ERR,
-                                &storage,
-                                &key,
-                                &idx,
-                                config);
+//swap storage to process val after key and vice versa 
+                    if(storage == STORE_KEY) {
+                        memset(key, 0, MAXSTR);
+                        sprintf(key, "%s", 
+                            (char *)event.data.scalar.value);
+                        
+                        storage = STORE_VAL;
+                    } else {
+                        if(sequence > PLC_ERR) {
+                    
+                            config = process_seq_element(
+                                    event,
+                                    sequence,
+                                    key,
+                                    &idx,
+                                    config);
+                        } else {
+                            
+                            config = process_scalar(
+                                    event,
+                                    key,
+                                    config);
+                        }
+                        storage = STORE_KEY;            
+                    }
                     break;
                 
                 case YAML_SEQUENCE_START_EVENT:
-                
-                    found_seq = TRUE;
+
+                    sequence = get_key(key, config);
                     break;
                 
                 case YAML_SEQUENCE_END_EVENT:
-                
-                    found_seq = FALSE;
+
+                    sequence = PLC_ERR;
                     break;
                 
                 case YAML_MAPPING_START_EVENT:
                 
                     config = process_mapping(
-                                found_seq,
                                 key,
-                                &storage,
+                                sequence,
                                 parser,
                                 config); 
+                    storage = STORE_KEY;            
                     break;
                     
                 case YAML_MAPPING_END_EVENT:
@@ -724,8 +793,8 @@ config_t load_config_yml(const char * filename, config_t conf) {
     config_t r = conf;
     
     if (!yaml_parser_initialize(&parser)) {
-        yaml_parser_error(parser);
-        return PLC_ERR;    
+    
+        yaml_parser_error(parser);    
     }
     if ((fcfg = fopen(path, "r"))) {
         plc_log("Looking for configuration from %s ...", path);
@@ -744,23 +813,23 @@ config_t load_config_yml(const char * filename, config_t conf) {
 
 static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
     yaml_event_t evt;
-    if( var->name != NULL &&
+    if(var->name != NULL &&
         var->name[0]) {
        
-       char idx[4];
-       memset(idx, 0, 4);
+        char idx[4];
+        memset(idx, 0, 4);
     
-       yaml_mapping_start_event_initialize(
+        yaml_mapping_start_event_initialize(
     			        &evt,
     			        NULL,
     			        NULL,
     			        FALSE,
     			        YAML_BLOCK_MAPPING_STYLE);
     	 	    
-       yaml_emitter_emit(emitter, &evt);
+        yaml_emitter_emit(emitter, &evt);
     		//log_yml_event(evt);
     		            
-       yaml_scalar_event_initialize(
+        yaml_scalar_event_initialize(
                         	&evt,
                     	    NULL,
                     		NULL,
@@ -769,10 +838,10 @@ static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
                     		TRUE,
                     		TRUE, 
                     		YAML_PLAIN_SCALAR_STYLE); 
-       yaml_emitter_emit(emitter, &evt);
+        yaml_emitter_emit(emitter, &evt);
                     		
-       sprintf(idx, "%d", var->index);		
-       yaml_scalar_event_initialize(
+        sprintf(idx, "%d", var->index);		
+        yaml_scalar_event_initialize(
                         	&evt,
                     	    NULL,
                     		NULL,
@@ -781,10 +850,10 @@ static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
                     		TRUE,
                     		TRUE, 
                     		YAML_PLAIN_SCALAR_STYLE); 	
-       yaml_emitter_emit(emitter, &evt);
+        yaml_emitter_emit(emitter, &evt);
     		            
    
-       yaml_scalar_event_initialize(
+        yaml_scalar_event_initialize(
                         	&evt,
                     	    NULL,
                     		NULL,
@@ -793,9 +862,9 @@ static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
                     		TRUE,
                     		TRUE, 
                     		YAML_PLAIN_SCALAR_STYLE); 
-       yaml_emitter_emit(emitter, &evt);
+        yaml_emitter_emit(emitter, &evt);
                     			
-       yaml_scalar_event_initialize(
+        yaml_scalar_event_initialize(
                         	&evt,
                     	    NULL,
                     		NULL,
@@ -804,8 +873,35 @@ static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
                     		TRUE,
                     		TRUE, 
                     		YAML_PLAIN_SCALAR_STYLE); 	
-       yaml_emitter_emit(emitter, &evt);
-
+        yaml_emitter_emit(emitter, &evt);
+       
+        param_t it = var->params;
+        while(it){
+            yaml_scalar_event_initialize(
+                        	&evt,
+                    	    NULL,
+                    		NULL,
+                    		(unsigned char *)it->key,
+                    		strlen(it->key),
+                    		TRUE,
+                    		TRUE, 
+                    		YAML_PLAIN_SCALAR_STYLE); 
+            yaml_emitter_emit(emitter, &evt);
+                    			
+            yaml_scalar_event_initialize(
+                        	&evt,
+                    	    NULL,
+                    		NULL,
+                    		(unsigned char *)it->value,
+                    		strlen(it->value),
+                    		TRUE,
+                    		TRUE, 
+                    		YAML_PLAIN_SCALAR_STYLE); 	
+            yaml_emitter_emit(emitter, &evt);
+            it = it->next; 
+        }    
+       
+/*
        yaml_scalar_event_initialize(
                         	&evt,
                     	    NULL,
@@ -827,6 +923,7 @@ static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
                     		TRUE, 
                     		YAML_PLAIN_SCALAR_STYLE); 	
         yaml_emitter_emit(emitter, &evt);
+        
         if(strcmp(var->min, var->max)) {
             yaml_scalar_event_initialize(
                         	&evt,
@@ -871,7 +968,7 @@ static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
                     		TRUE, 
                     		YAML_PLAIN_SCALAR_STYLE); 	
             yaml_emitter_emit(emitter, &evt);
-        }       
+       }       */
         yaml_mapping_end_event_initialize(&evt); 	
         yaml_emitter_emit(emitter, &evt); 
     }

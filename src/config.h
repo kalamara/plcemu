@@ -74,6 +74,7 @@ typedef enum{
     N_CONFIG_VARIABLES
 } CONFIG_VARIABLES;
 
+/*
 typedef enum {
     VARIABLE_INDEX,
     VARIABLE_ID,
@@ -82,6 +83,7 @@ typedef enum {
     VARIABLE_MAX,
     N_VARIABLE_PARAMS
 } VARIABLE_PARAMS;
+*/
 
 typedef enum {
     STORE_KEY,
@@ -98,13 +100,23 @@ typedef enum {
 	N_ENTRY_TYPES
 } ENTRY_TYPE;
 
+typedef struct param {
+    char * key; //min, max, default, preset, readonly, countdown, etc.
+    char * value;
+    struct param * next;
+} * param_t;
+
+#define MAX_PARAM 256
+typedef param_t * param_table_t;
+
 typedef struct variable {
     unsigned char index;
     char * name ;
-    char * value;
+/*    char * value;
     char * min;
     char * max;
-      
+  */
+  param_t params;    
 } * variable_t;
 
 typedef struct sequence {
@@ -167,9 +179,32 @@ int save_config_yml(const char * filename, const config_t conf);
 entry_t get_entry(int key, const config_t conf);
 
 /**
- * @brief get config key by viteral alpha value
+ * @brief get config key by literal value
  */
 int get_key(const char * value, const config_t conf);
+
+/**
+ * @brief get param key by literal value
+ */
+char * get_param_val(const char * key, const param_t params);
+
+/**
+ * @brief get param by literal value
+ */
+param_t get_param(const char * key, const param_t params);
+
+/**
+ * @brief append param
+ */
+param_t append_param(const param_t params, 
+                     const char * key, 
+                     const char * val);
+/**
+ * @brief append or update param value
+ */
+param_t update_param(const param_t params, 
+                     const char * key, 
+                     const char * val);
 
 /**
  * @brief store a value to a map
@@ -194,7 +229,7 @@ config_t store_value(
  */
 config_t store_seq_value(unsigned char seq,
                     unsigned char idx, 
-                    unsigned char key, 
+                    const char * key, 
                     const char * value, 
                     config_t c);
 

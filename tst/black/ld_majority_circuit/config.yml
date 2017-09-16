@@ -35,26 +35,26 @@ SIM:
 
 #PROGRAM    
 DI:
-    -Index: 0
-    Identifier:    A    
-    -Index: 1
-    Identifier:    B    
-    -Index: 2
-    Identifier:    C        
+    -INDEX: 0
+    ID:    A    
+    -INDEX: 1
+    ID:    B    
+    -INDEX: 2
+    ID:    C        
  
 DQ:
-    -Index: 0
-    Identifier:    RESULT
+    -INDEX: 0
+    ID:    RESULT
 
 TIMER:
-    -Index: 1
-    Resolution: 10
-    Preset: 10
+    -INDEX: 1
+    RESOLUTION: 10
+    PRESET: 10
             
 
 PULSE:
-    -Index: 1    
-    Resolution: 100    
+    -INDEX: 1    
+    RESOLUTION: 100    
 
 
 # triple majority circuit

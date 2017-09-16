@@ -17,52 +17,51 @@ Taken at least once:76.92% of 13
 Calls executed:100.00% of 18
 
 Function 'emit_variable'
-Lines executed:7.50% of 40
+Lines executed:9.38% of 32
 Branches executed:33.33% of 6
 Taken at least once:16.67% of 6
-Calls executed:0.00% of 24
+Calls executed:0.00% of 16
 
 Function 'load_config_yml'
-Lines executed:0.00% of 19
+Lines executed:0.00% of 18
 Branches executed:0.00% of 6
 Taken at least once:0.00% of 6
 Calls executed:0.00% of 10
 
 Function 'process'
-Lines executed:94.29% of 35
-Branches executed:100.00% of 19
-Taken at least once:94.74% of 19
-Calls executed:100.00% of 5
+Lines executed:95.35% of 43
+Branches executed:100.00% of 21
+Taken at least once:95.24% of 21
+Calls executed:85.71% of 7
 
 Function 'process_mapping'
 Lines executed:100.00% of 10
-Branches executed:100.00% of 8
-Taken at least once:87.50% of 8
-Calls executed:100.00% of 3
+Branches executed:100.00% of 4
+Taken at least once:100.00% of 4
+Calls executed:100.00% of 4
 
 Function 'process_scalar'
-Lines executed:100.00% of 18
-Branches executed:100.00% of 8
-Taken at least once:100.00% of 8
-Calls executed:100.00% of 5
+Lines executed:100.00% of 6
+No branches
+Calls executed:100.00% of 2
+
+Function 'process_seq_element'
+Lines executed:100.00% of 8
+Branches executed:100.00% of 2
+Taken at least once:100.00% of 2
+Calls executed:100.00% of 2
 
 Function 'store_seq_value'
-Lines executed:100.00% of 33
-Branches executed:100.00% of 11
-Taken at least once:81.82% of 11
-Calls executed:100.00% of 4
+Lines executed:100.00% of 27
+Branches executed:100.00% of 12
+Taken at least once:75.00% of 12
+Calls executed:100.00% of 2
 
 Function 'store_value'
 Lines executed:87.50% of 16
 Branches executed:100.00% of 7
 Taken at least once:71.43% of 7
 Calls executed:100.00% of 3
-
-Function 'strdup_r'
-Lines executed:100.00% of 6
-Branches executed:100.00% of 2
-Taken at least once:100.00% of 2
-No calls
 
 Function 'log_yml_event'
 Lines executed:0.00% of 26
@@ -96,10 +95,33 @@ Branches executed:100.00% of 8
 Taken at least once:87.50% of 8
 No calls
 
-Function 'get_var_key'
-Lines executed:80.00% of 5
+Function 'update_param'
+Lines executed:88.89% of 9
 Branches executed:100.00% of 4
 Taken at least once:75.00% of 4
+Calls executed:75.00% of 4
+
+Function 'append_param'
+Lines executed:88.89% of 9
+Branches executed:100.00% of 4
+Taken at least once:75.00% of 4
+Calls executed:50.00% of 2
+
+Function 'get_param_val'
+Lines executed:100.00% of 3
+Branches executed:100.00% of 2
+Taken at least once:50.00% of 2
+Calls executed:100.00% of 1
+
+Function 'get_param'
+Lines executed:100.00% of 7
+Branches executed:100.00% of 6
+Taken at least once:83.33% of 6
+No calls
+
+Function 'new_param'
+Lines executed:100.00% of 6
+No branches
 No calls
 
 Function 'get_entry'
@@ -140,20 +162,26 @@ No branches
 No calls
 
 Function 'yaml_parser_error'
-Lines executed:16.13% of 31
-Branches executed:45.45% of 11
-Taken at least once:9.09% of 11
-Calls executed:12.50% of 8
+Lines executed:0.00% of 31
+Branches executed:0.00% of 11
+Taken at least once:0.00% of 11
+Calls executed:0.00% of 8
 
 Function 'yaml_config_error'
 Lines executed:0.00% of 2
 No branches
 No calls
 
+Function 'strdup_r'
+Lines executed:100.00% of 6
+Branches executed:100.00% of 2
+Taken at least once:100.00% of 2
+No calls
+
 File 'config.c'
-Lines executed:66.05% of 430
-Branches executed:72.66% of 139
-Taken at least once:58.27% of 139
-Calls executed:62.92% of 178
+Lines executed:68.08% of 448
+Branches executed:70.14% of 144
+Taken at least once:56.94% of 144
+Calls executed:64.97% of 177
 Creating 'config.c.gcov'
 

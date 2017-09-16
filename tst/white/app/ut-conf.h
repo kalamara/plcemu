@@ -101,13 +101,14 @@ void ut_store()
   CU_ASSERT(updated->err == PLC_ERR);
   updated->err = PLC_OK;
   
-  updated = store_seq_value(CONFIG_AI, 0, VARIABLE_MAX, "1.0", conf);
+  updated = store_seq_value(CONFIG_AI, 0, "MAX", "1.0", conf);
   CU_ASSERT_STRING_EQUAL(
-    get_entry(CONFIG_AI, conf)->e.seq->vars[0].max, 
+    get_param_val("MAX",
+        get_entry(CONFIG_AI, conf)->e.seq->vars[0].params), 
     "1.0");
   CU_ASSERT(updated->err == PLC_OK);
   
-  updated = store_seq_value(CONFIG_AQ, 0, N_VARIABLE_PARAMS, "", conf);
+  updated = store_seq_value(CONFIG_AQ, 0, "", NULL, conf);
   CU_ASSERT(updated->err == PLC_ERR);  
   clear_config(conf);
     
@@ -211,7 +212,8 @@ AI:  \n\
     CU_ASSERT(got->type_tag == ENTRY_SEQ);
     
     CU_ASSERT_STRING_EQUAL(
-    get_entry(CONFIG_AI, conf)->e.seq->vars[1].max, 
+    get_param_val("MAX",
+        get_entry(CONFIG_AI, conf)->e.seq->vars[1].params), 
     "24.0");
                
     yaml_parser_delete(&parser);
