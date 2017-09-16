@@ -17,10 +17,10 @@ Taken at least once:76.92% of 13
 Calls executed:100.00% of 18
 
 Function 'emit_variable'
-Lines executed:9.38% of 32
-Branches executed:33.33% of 6
-Taken at least once:16.67% of 6
-Calls executed:0.00% of 16
+Lines executed:100.00% of 32
+Branches executed:100.00% of 6
+Taken at least once:83.33% of 6
+Calls executed:100.00% of 16
 
 Function 'load_config_yml'
 Lines executed:0.00% of 18
@@ -179,9 +179,9 @@ Taken at least once:100.00% of 2
 No calls
 
 File 'config.c'
-Lines executed:68.08% of 448
-Branches executed:70.14% of 144
-Taken at least once:56.94% of 144
-Calls executed:64.97% of 177
+Lines executed:74.55% of 448
+Branches executed:72.92% of 144
+Taken at least once:59.72% of 144
+Calls executed:74.01% of 177
 Creating 'config.c.gcov'
 

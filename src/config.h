@@ -74,17 +74,6 @@ typedef enum{
     N_CONFIG_VARIABLES
 } CONFIG_VARIABLES;
 
-/*
-typedef enum {
-    VARIABLE_INDEX,
-    VARIABLE_ID,
-    VARIABLE_VALUE,
-    VARIABLE_MIN,
-    VARIABLE_MAX,
-    N_VARIABLE_PARAMS
-} VARIABLE_PARAMS;
-*/
-
 typedef enum {
     STORE_KEY,
     STORE_VAL,
@@ -113,8 +102,6 @@ typedef struct variable {
     unsigned char index;
     char * name ;
 /*    char * value;
-    char * min;
-    char * max;
   */
   param_t params;    
 } * variable_t;

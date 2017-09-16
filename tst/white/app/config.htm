@@ -50,16 +50,16 @@
  49:        -:   44:    "MAX"
  50:        -:   45:};
  51:        -:   46:*/
- 52:function strdup_r called 10 returned 1000locks executed 100%
- 53:       10:   47:char * strdup_r(const char * dest, const char * src) {
+ 52:function strdup_r called 12 returned 1000locks executed 100%
+ 53:       12:   47:char * strdup_r(const char * dest, const char * src) {
  54:        -:   48://strdup with realloc
- 55:       10:   49:    char * r = (dest == NULL)?(char *)malloc(sizeof(src)):dest;
+ 55:       12:   49:    char * r = (dest == NULL)?(char *)malloc(sizeof(src)):dest;
  56:        -:   50:        
- 57:       10:   51:    r = realloc(r, sizeof(src));
- 58:       10:   52:    memset(r, 0, sizeof(src));
- 59:       10:   53:    sprintf(r, "", src);
+ 57:       12:   51:    r = realloc(r, sizeof(src));
+ 58:       12:   52:    memset(r, 0, sizeof(src));
+ 59:       12:   53:    sprintf(r, "", src);
  60:        -:   54:    
- 61:       10:   55:    return r;
+ 61:       12:   55:    return r;
  62:        -:   56:}
  63:        -:   57:
  64:        -:   58:
@@ -243,16 +243,16 @@
 242:        -:  227:}
 243:        -:  228:*/
 244:        -:  229://TODO: in a c++ impl. this would be a hashmap
-245:function new_param called 8 returned 1000locks executed 100%
-246:        8:  230:param_t new_param(const char * key, 
+245:function new_param called 10 returned 1000locks executed 100%
+246:       10:  230:param_t new_param(const char * key, 
 247:        -:  231:                     const char * val){
 248:        -:  232:    
-249:        8:  233:        param_t n = (param_t)malloc(sizeof(struct param));
-250:        8:  234:        n-&gt;key = strdup(key);
-251:        8:  235:        n-&gt;value = strdup(val);
-252:        8:  236:        n-&gt;next = NULL;
+249:       10:  233:        param_t n = (param_t)malloc(sizeof(struct param));
+250:       10:  234:        n-&gt;key = strdup(key);
+251:       10:  235:        n-&gt;value = strdup(val);
+252:       10:  236:        n-&gt;next = NULL;
 253:        -:  237:        
-254:        8:  238:        return n;        
+254:       10:  238:        return n;        
 255:        -:  239:}
 256:        -:  240:
 257:function get_param called 8 returned 1000locks executed 100%
@@ -296,14 +296,14 @@
 295:        -:  276:    }
 296:        -:  277:}
 297:        -:  278:
-298:function update_param called 8 returned 1000locks executed 78%
-299:        8:  279:param_t update_param(const param_t params, 
+298:function update_param called 10 returned 1000locks executed 78%
+299:       10:  279:param_t update_param(const param_t params, 
 300:        -:  280:                     const char * key, 
 301:        -:  281:                     const char * val){
 302:        -:  282:        
-303:        8:  283:    if(params == NULL){
+303:       10:  283:    if(params == NULL){
 304:        -:  284:        
-305:        4:  285:        return new_param(key, val);         
+305:        6:  285:        return new_param(key, val);         
 306:        -:  286:    } else {
 307:        4:  287:        param_t ret = params;
 308:        4:  288:        param_t par = get_param(key, params);
@@ -579,59 +579,59 @@
 578:        8:  551:            e-&gt;e.scalar_str = strdup_r(e-&gt;e.scalar_str, value);
 579:        8:  552:            break;
 580:        -:  553:            
-581:<font color=red>    #####:  554:         default: return PLC_ERR;</font>
+581:<font color=red>    #####:  554:         default: return conf;</font>
 582:        -:  555:    }        
 583:       24:  556:    conf-&gt;map[key] = e;
 584:        -:  557:       
 585:       24:  558:    return conf;
 586:        -:  559:}
 587:        -:  560:
-588:function store_seq_value called 14 returned 1000locks executed 100%
-589:       14:  561:config_t store_seq_value(BYTE seq,
+588:function store_seq_value called 18 returned 1000locks executed 100%
+589:       18:  561:config_t store_seq_value(BYTE seq,
 590:        -:  562:                    BYTE idx,  
 591:        -:  563:                    const char * key,
 592:        -:  564:                    const char * value, 
 593:        -:  565:                    config_t config){
 594:        -:  566:                    
-595:       14:  567:    config_t conf = config;                
-596:       14:  568:    entry_t s = conf-&gt;map[seq];
+595:       18:  567:    config_t conf = config;                
+596:       18:  568:    entry_t s = conf-&gt;map[seq];
 597:        -:  569:    
-598:       14:  570:    if( s == NULL ||
-599:       12:  571:        key == NULL || 
-600:       10:  572:        value == NULL ||
-601:       20:  573:        s-&gt;type_tag != ENTRY_SEQ ||
-602:       10:  574:        idx &gt;= s-&gt;e.seq-&gt;size) {
+598:       18:  570:    if( s == NULL ||
+599:       16:  571:        key == NULL || 
+600:       14:  572:        value == NULL ||
+601:       28:  573:        s-&gt;type_tag != ENTRY_SEQ ||
+602:       14:  574:        idx &gt;= s-&gt;e.seq-&gt;size) {
 603:        -:  575:        
 604:        4:  576:        conf-&gt;err = PLC_ERR;
 605:        -:  577:        
 606:        4:  578:        return conf;
 607:        -:  579:    }            
 608:        -:  580:    
-609:       30:  581:    variable_t var = &(conf-&gt;map[seq]
-610:       10:  582:                            -&gt;e.seq
-611:       20:  583:                            -&gt;vars[idx]);
+609:       42:  581:    variable_t var = &(conf-&gt;map[seq]
+610:       14:  582:                            -&gt;e.seq
+611:       28:  583:                            -&gt;vars[idx]);
 612:        -:  584:    
-613:       10:  585:    conf-&gt;map[seq]
-614:       10:  586:        -&gt;e.seq
-615:       10:  587:        -&gt;vars[idx].index = idx;
+613:       14:  585:    conf-&gt;map[seq]
+614:       14:  586:        -&gt;e.seq
+615:       14:  587:        -&gt;vars[idx].index = idx;
 616:        -:  588:    
-617:       10:  589:    if(!strcmp(key, "ID")){
-618:        2:  590:         conf-&gt;map[seq]
-619:        2:  591:             -&gt;e.seq
-620:        2:  592:             -&gt;vars[idx].name = strdup_r(var-&gt;name, value);
+617:       14:  589:    if(!strcmp(key, "ID")){
+618:        4:  590:         conf-&gt;map[seq]
+619:        4:  591:             -&gt;e.seq
+620:        4:  592:             -&gt;vars[idx].name = strdup_r(var-&gt;name, value);
 621:        -:  593:    } else {
 622:        -:  594:        
-623:        8:  595:        conf-&gt;map[seq]
-624:        8:  596:            -&gt;e.seq
-625:       16:  597:            -&gt;vars[idx].params = update_param(
-626:        8:  598:                conf-&gt;map[seq]
-627:        8:  599:                    -&gt;e.seq
-628:        8:  600:                    -&gt;vars[idx].params,
+623:       10:  595:        conf-&gt;map[seq]
+624:       10:  596:            -&gt;e.seq
+625:       20:  597:            -&gt;vars[idx].params = update_param(
+626:       10:  598:                conf-&gt;map[seq]
+627:       10:  599:                    -&gt;e.seq
+628:       10:  600:                    -&gt;vars[idx].params,
 629:        -:  601:                key,
 630:        -:  602:                value);    
 631:        -:  603:    }   
 632:        -:  604:        
-633:       10:  605:    return conf;                       
+633:       14:  605:    return conf;                       
 634:        -:  606:}
 635:        -:  607:
 636:function process_seq_element called 10 returned 1000locks executed 100%
@@ -645,583 +645,513 @@
 644:       10:  615:    config_t conf = config;
 645:       10:  616:    char * val = (char *)event.data.scalar.value;
 646:        -:  617:                    
-647:        -:  618:          
-648:       10:  619:    if(!strcmp(key, "INDEX")){
-649:        -:  620:                             
-650:        2:  621:            *idx = atoi(val);
-651:        -:  622:    } else {  
-652:        -:  623:                             
-653:        8:  624:            conf = store_seq_value(sequence, 
-654:        8:  625:                                      *idx, 
-655:        -:  626:                                      key, 
-656:        -:  627:                                      val, 
-657:        -:  628:                                      conf);       
-658:        -:  629:    }                      
-659:        -:  630:      
-660:       10:  631:    return conf;                       
-661:        -:  632:}
-662:        -:  633:
-663:function process_scalar called 16 returned 1000locks executed 100%
-664:       16:  634:static config_t process_scalar(
-665:        -:  635:                   yaml_event_t event,
-666:        -:  636:                   const char * key,
-667:        -:  637:                   config_t config){
-668:        -:  638:    
-669:       16:  639:    config_t conf = config;
-670:       16:  640:    char * val = (char *)event.data.scalar.value;
-671:        -:  641:               
-672:       16:  642:    conf = store_value(
-673:       16:  643:                    get_key(key, conf), 
-674:        -:  644:                    val, 
-675:        -:  645:                    conf);
-676:        -:  646:                 
-677:       16:  647:    return conf;                       
-678:        -:  648:}
-679:        -:  649:
-680:function process_mapping called 16 returned 1000locks executed 100%
-681:       16:  650:static config_t process_mapping(
-682:        -:  651:                    const char * key,
-683:        -:  652:                    int seq,
-684:        -:  653:                    yaml_parser_t *parser,
-685:        -:  654:                    config_t config){
-686:        -:  655:    
-687:       16:  656:    config_t conf = config;                
-688:       16:  657:    int k = get_key(key, conf);
-689:       16:  658:    entry_t c = get_entry(k, conf);
-690:        -:  659:    
-691:       24:  660:    if( c != NULL &&
-692:        8:  661:        c-&gt;type_tag == ENTRY_MAP) {
-693:        -:  662:                    
-694:        6:  663:        c-&gt;e.conf = process(
-695:        -:  664:                        seq, 
-696:        -:  665:                        parser, 
-697:        -:  666:                        c-&gt;e.conf);        
-698:        6:  667:        conf-&gt;map[k] = c;
-699:        -:  668:    } else {
-700:        -:  669:                    
-701:       10:  670:        conf = process(
-702:        -:  671:            seq, 
-703:        -:  672:            parser, 
-704:        -:  673:            conf);
-705:        -:  674:    }
-706:        -:  675:    
-707:       16:  676:    return conf;    
-708:        -:  677:} 
-709:        -:  678:
-710:function process called 30 returned 1000locks executed 94%
-711:       30:  679:config_t process(int sequence, 
-712:        -:  680:            yaml_parser_t *parser, 
-713:        -:  681:            config_t configuration){
-714:        -:  682:             
-715:       30:  683:    config_t config = configuration;
-716:       30:  684:    BYTE storage = STORE_KEY;   
-717:       30:  685:    int done = FALSE;
-718:        -:  686:    char key[MAXSTR];
-719:       30:  687:    int idx = PLC_ERR;
-720:        -:  688:    yaml_event_t event;
-721:       30:  689:    memset(&event, 0, sizeof(event));
-722:       30:  690:    memset(key, 0, MAXSTR);
-723:       30:  691:    if(config == NULL) {
-724:        -:  692:     
-725:        2:  693:        return NULL;
-726:        -:  694:     }
-727:        -:  695:     
-728:       28:  696:     if(parser == NULL) {
-729:        2:  697:        config-&gt;err = PLC_ERR;
-730:        -:  698:     
-731:        2:  699:        return config;
-732:        -:  700:     }
-733:        -:  701://     || parser-&gt;context == NULL 
-734:        -:  702:           
-735:      182:  703:     while(done == FALSE){
-736:        -:  704:     
-737:      130:  705:        if (!yaml_parser_parse(parser, &event)){   
-738:<font color=red>    #####:  706:                yaml_parser_error(*parser);</font>
-739:<font color=red>    #####:  707:                config-&gt;err = PLC_ERR;</font>
-740:        -:  708:        } else {
-741:        -:  709:   
-742:      130:  710:            switch(event.type){
-743:        -:  711:                case YAML_SCALAR_EVENT: 
-744:        -:  712://swap storage to process val after key and vice versa 
-745:       60:  713:                    if(storage == STORE_KEY) {
-746:       34:  714:                        memset(key, 0, MAXSTR);
-747:       34:  715:                        sprintf(key, "", 
-748:       34:  716:                            (char *)event.data.scalar.value);
-749:        -:  717:                        
-750:       34:  718:                        storage = STORE_VAL;
-751:        -:  719:                    } else {
-752:       26:  720:                        if(sequence &gt; PLC_ERR) {
-753:        -:  721:                    
-754:       10:  722:                            config = process_seq_element(
-755:        -:  723:                                    event,
-756:        -:  724:                                    sequence,
-757:        -:  725:                                    key,
-758:        -:  726:                                    &idx,
-759:        -:  727:                                    config);
-760:        -:  728:                        } else {
-761:        -:  729:                            
-762:       16:  730:                            config = process_scalar(
-763:        -:  731:                                    event,
-764:        -:  732:                                    key,
-765:        -:  733:                                    config);
-766:        -:  734:                        }
-767:       26:  735:                        storage = STORE_KEY;            
-768:        -:  736:                    }
-769:       60:  737:                    break;
-770:        -:  738:                
-771:        -:  739:                case YAML_SEQUENCE_START_EVENT:
-772:        -:  740:
-773:        2:  741:                    sequence = get_key(key, config);
-774:        2:  742:                    break;
-775:        -:  743:                
-776:        -:  744:                case YAML_SEQUENCE_END_EVENT:
-777:        -:  745:
-778:        2:  746:                    sequence = PLC_ERR;
-779:        2:  747:                    break;
-780:        -:  748:                
-781:        -:  749:                case YAML_MAPPING_START_EVENT:
-782:        -:  750:                
-783:       16:  751:                    config = process_mapping(
-784:        -:  752:                                key,
-785:        -:  753:                                sequence,
-786:        -:  754:                                parser,
-787:        -:  755:                                config); 
-788:       16:  756:                    storage = STORE_KEY;            
-789:       16:  757:                    break;
-790:        -:  758:                    
-791:        -:  759:                case YAML_MAPPING_END_EVENT:
-792:        -:  760:                case YAML_STREAM_END_EVENT:     
-793:        -:  761:                    
-794:       24:  762:                    done = TRUE;
-795:       24:  763:                    break;
-796:        -:  764:                    
-797:        -:  765:                case YAML_NO_EVENT:
-798:        2:  766:                    config-&gt;err = PLC_ERR;
-799:        2:  767:                    break;    
-800:        -:  768:                    
-801:       24:  769:                default: break;    
-802:        -:  770:            }
-803:        -:  771:         }
-804:      130:  772:         if(config-&gt;err &lt; PLC_OK) {
-805:        2:  773:             done = TRUE;
-806:        -:  774:             //log_yml_event(event);
-807:        -:  775:         }                                              
-808:      130:  776:         yaml_event_delete(&event);   
-809:        -:  777:     }
-810:        -:  778:     
-811:       26:  779:     return config;
-812:        -:  780:}
-813:        -:  781:             
-814:function load_config_yml called 0 returned 00locks executed 0%
-815:<font color=red>    #####:  782:config_t load_config_yml(const char * filename, config_t conf) {</font>
-816:        -:  783:    yaml_parser_t parser;
-817:        -:  784:    
-818:        -:  785:    FILE * fcfg;
-819:        -:  786:    char path[MAXSTR];
-820:        -:  787:
-821:<font color=red>    #####:  788:    memset(path, 0, MAXSTR);</font>
-822:<font color=red>    #####:  789:    sprintf(path, "", filename);</font>
-823:        -:  790:    
-824:<font color=red>    #####:  791:    memset(&parser, 0, sizeof(parser));</font>
-825:        -:  792:    
-826:<font color=red>    #####:  793:    config_t r = conf;</font>
-827:        -:  794:    
-828:<font color=red>    #####:  795:    if (!yaml_parser_initialize(&parser)) {</font>
-829:        -:  796:    
-830:<font color=red>    #####:  797:        yaml_parser_error(parser);    </font>
-831:        -:  798:    }
-832:<font color=red>    #####:  799:    if ((fcfg = fopen(path, "r"))) {</font>
-833:<font color=red>    #####:  800:        plc_log("Looking for configuration from  ...", path);</font>
-834:<font color=red>    #####:  801:        yaml_parser_set_input_file(&parser, fcfg);</font>
-835:<font color=red>    #####:  802:        r = process(PLC_ERR, &parser, conf);</font>
-836:<font color=red>    #####:  803:        if(r-&gt;err &lt; PLC_OK)</font>
-837:<font color=red>    #####:  804:            plc_log( "Configuration error ");</font>
-838:<font color=red>    #####:  805:        fclose(fcfg);</font>
-839:        -:  806:    } else {
-840:<font color=red>    #####:  807:        r-&gt;err = PLC_ERR;</font>
-841:<font color=red>    #####:  808:        plc_log("Could not open file ", filename);</font>
-842:        -:  809:    }
-843:<font color=red>    #####:  810:    yaml_parser_delete(&parser);</font>
-844:<font color=red>    #####:  811:    return r;</font>
-845:        -:  812:}
-846:        -:  813:
-847:function emit_variable called 96 returned 1000locks executed 9%
-848:       96:  814:static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
-849:        -:  815:    yaml_event_t evt;
-850:       96:  816:    if(var-&gt;name != NULL &&
-851:<font color=red>    #####:  817:        var-&gt;name[0]) {</font>
-852:        -:  818:       
-853:        -:  819:        char idx[4];
-854:<font color=red>    #####:  820:        memset(idx, 0, 4);</font>
-855:        -:  821:    
-856:<font color=red>    #####:  822:        yaml_mapping_start_event_initialize(</font>
-857:        -:  823:    			        &evt,
+647:       10:  618:    if(!strcmp(key, "INDEX")){
+648:        -:  619:                             
+649:        2:  620:            *idx = atoi(val);
+650:        -:  621:    } else {  
+651:        -:  622:                             
+652:        8:  623:            conf = store_seq_value(sequence, 
+653:        8:  624:                                      *idx, 
+654:        -:  625:                                      key, 
+655:        -:  626:                                      val, 
+656:        -:  627:                                      conf);       
+657:        -:  628:    }                      
+658:        -:  629:      
+659:       10:  630:    return conf;                       
+660:        -:  631:}
+661:        -:  632:
+662:function process_scalar called 16 returned 1000locks executed 100%
+663:       16:  633:static config_t process_scalar(
+664:        -:  634:                   yaml_event_t event,
+665:        -:  635:                   const char * key,
+666:        -:  636:                   config_t config){
+667:        -:  637:    
+668:       16:  638:    config_t conf = config;
+669:       16:  639:    char * val = (char *)event.data.scalar.value;
+670:        -:  640:               
+671:       16:  641:    conf = store_value(
+672:       16:  642:                    get_key(key, conf), 
+673:        -:  643:                    val, 
+674:        -:  644:                    conf);
+675:        -:  645:                 
+676:       16:  646:    return conf;                       
+677:        -:  647:}
+678:        -:  648:
+679:function process_mapping called 16 returned 1000locks executed 100%
+680:       16:  649:static config_t process_mapping(
+681:        -:  650:                    const char * key,
+682:        -:  651:                    int seq,
+683:        -:  652:                    yaml_parser_t *parser,
+684:        -:  653:                    config_t config){
+685:        -:  654:    
+686:       16:  655:    config_t conf = config;                
+687:       16:  656:    int k = get_key(key, conf);
+688:       16:  657:    entry_t c = get_entry(k, conf);
+689:        -:  658:    
+690:       24:  659:    if( c != NULL &&
+691:        8:  660:        c-&gt;type_tag == ENTRY_MAP) {
+692:        -:  661:                    
+693:        6:  662:        c-&gt;e.conf = process(
+694:        -:  663:                        seq, 
+695:        -:  664:                        parser, 
+696:        -:  665:                        c-&gt;e.conf);        
+697:        6:  666:        conf-&gt;map[k] = c;
+698:        -:  667:    } else {
+699:        -:  668:                    
+700:       10:  669:        conf = process(
+701:        -:  670:            seq, 
+702:        -:  671:            parser, 
+703:        -:  672:            conf);
+704:        -:  673:    }
+705:        -:  674:    
+706:       16:  675:    return conf;    
+707:        -:  676:} 
+708:        -:  677:
+709:function process called 30 returned 1000locks executed 94%
+710:       30:  678:config_t process(int sequence, 
+711:        -:  679:            yaml_parser_t *parser, 
+712:        -:  680:            config_t configuration){
+713:        -:  681:             
+714:       30:  682:    config_t config = configuration;
+715:       30:  683:    BYTE storage = STORE_KEY;   
+716:       30:  684:    int done = FALSE;
+717:        -:  685:    char key[MAXSTR];
+718:       30:  686:    int idx = PLC_ERR;
+719:        -:  687:    yaml_event_t event;
+720:       30:  688:    memset(&event, 0, sizeof(event));
+721:       30:  689:    memset(key, 0, MAXSTR);
+722:       30:  690:    if(config == NULL) {
+723:        -:  691:     
+724:        2:  692:        return NULL;
+725:        -:  693:     }
+726:        -:  694:     
+727:       28:  695:     if(parser == NULL) {
+728:        2:  696:        config-&gt;err = PLC_ERR;
+729:        -:  697:     
+730:        2:  698:        return config;
+731:        -:  699:     }
+732:        -:  700://     || parser-&gt;context == NULL 
+733:        -:  701:           
+734:      182:  702:     while(done == FALSE){
+735:        -:  703:     
+736:      130:  704:        if (!yaml_parser_parse(parser, &event)){   
+737:<font color=red>    #####:  705:                yaml_parser_error(*parser);</font>
+738:<font color=red>    #####:  706:                config-&gt;err = PLC_ERR;</font>
+739:        -:  707:        } else {
+740:        -:  708:   
+741:      130:  709:            switch(event.type){
+742:        -:  710:                case YAML_SCALAR_EVENT: 
+743:        -:  711://swap storage to process val after key and vice versa 
+744:       60:  712:                    if(storage == STORE_KEY) {
+745:       34:  713:                        memset(key, 0, MAXSTR);
+746:       34:  714:                        sprintf(key, "", 
+747:       34:  715:                            (char *)event.data.scalar.value);
+748:        -:  716:                        
+749:       34:  717:                        storage = STORE_VAL;
+750:        -:  718:                    } else {
+751:       26:  719:                        if(sequence &gt; PLC_ERR) {
+752:        -:  720:                    
+753:       10:  721:                            config = process_seq_element(
+754:        -:  722:                                    event,
+755:        -:  723:                                    sequence,
+756:        -:  724:                                    key,
+757:        -:  725:                                    &idx,
+758:        -:  726:                                    config);
+759:        -:  727:                        } else {
+760:        -:  728:                            
+761:       16:  729:                            config = process_scalar(
+762:        -:  730:                                    event,
+763:        -:  731:                                    key,
+764:        -:  732:                                    config);
+765:        -:  733:                        }
+766:       26:  734:                        storage = STORE_KEY;            
+767:        -:  735:                    }
+768:       60:  736:                    break;
+769:        -:  737:                
+770:        -:  738:                case YAML_SEQUENCE_START_EVENT:
+771:        -:  739:
+772:        2:  740:                    sequence = get_key(key, config);
+773:        2:  741:                    break;
+774:        -:  742:                
+775:        -:  743:                case YAML_SEQUENCE_END_EVENT:
+776:        -:  744:
+777:        2:  745:                    sequence = PLC_ERR;
+778:        2:  746:                    break;
+779:        -:  747:                
+780:        -:  748:                case YAML_MAPPING_START_EVENT:
+781:        -:  749:                
+782:       16:  750:                    config = process_mapping(
+783:        -:  751:                                key,
+784:        -:  752:                                sequence,
+785:        -:  753:                                parser,
+786:        -:  754:                                config); 
+787:       16:  755:                    storage = STORE_KEY;            
+788:       16:  756:                    break;
+789:        -:  757:                    
+790:        -:  758:                case YAML_MAPPING_END_EVENT:
+791:        -:  759:                case YAML_STREAM_END_EVENT:     
+792:        -:  760:                    
+793:       24:  761:                    done = TRUE;
+794:       24:  762:                    break;
+795:        -:  763:                    
+796:        -:  764:                case YAML_NO_EVENT:
+797:        2:  765:                    config-&gt;err = PLC_ERR;
+798:        2:  766:                    break;    
+799:        -:  767:                    
+800:       24:  768:                default: break;    
+801:        -:  769:            }
+802:        -:  770:         }
+803:      130:  771:         if(config-&gt;err &lt; PLC_OK) {
+804:        2:  772:             done = TRUE;
+805:        -:  773:             //log_yml_event(event);
+806:        -:  774:         }                                              
+807:      130:  775:         yaml_event_delete(&event);   
+808:        -:  776:     }
+809:        -:  777:     
+810:       26:  778:     return config;
+811:        -:  779:}
+812:        -:  780:             
+813:function load_config_yml called 0 returned 00locks executed 0%
+814:<font color=red>    #####:  781:config_t load_config_yml(const char * filename, config_t conf) {</font>
+815:        -:  782:    yaml_parser_t parser;
+816:        -:  783:    
+817:        -:  784:    FILE * fcfg;
+818:        -:  785:    char path[MAXSTR];
+819:        -:  786:
+820:<font color=red>    #####:  787:    memset(path, 0, MAXSTR);</font>
+821:<font color=red>    #####:  788:    sprintf(path, "", filename);</font>
+822:        -:  789:    
+823:<font color=red>    #####:  790:    memset(&parser, 0, sizeof(parser));</font>
+824:        -:  791:    
+825:<font color=red>    #####:  792:    config_t r = conf;</font>
+826:        -:  793:    
+827:<font color=red>    #####:  794:    if (!yaml_parser_initialize(&parser)) {</font>
+828:        -:  795:    
+829:<font color=red>    #####:  796:        yaml_parser_error(parser);    </font>
+830:        -:  797:    }
+831:<font color=red>    #####:  798:    if ((fcfg = fopen(path, "r"))) {</font>
+832:<font color=red>    #####:  799:        plc_log("Looking for configuration from  ...", path);</font>
+833:<font color=red>    #####:  800:        yaml_parser_set_input_file(&parser, fcfg);</font>
+834:<font color=red>    #####:  801:        r = process(PLC_ERR, &parser, conf);</font>
+835:<font color=red>    #####:  802:        if(r-&gt;err &lt; PLC_OK)</font>
+836:<font color=red>    #####:  803:            plc_log( "Configuration error ");</font>
+837:<font color=red>    #####:  804:        fclose(fcfg);</font>
+838:        -:  805:    } else {
+839:<font color=red>    #####:  806:        r-&gt;err = PLC_ERR;</font>
+840:<font color=red>    #####:  807:        plc_log("Could not open file ", filename);</font>
+841:        -:  808:    }
+842:<font color=red>    #####:  809:    yaml_parser_delete(&parser);</font>
+843:<font color=red>    #####:  810:    return r;</font>
+844:        -:  811:}
+845:        -:  812:
+846:function emit_variable called 96 returned 1000locks executed 100%
+847:       96:  813:static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
+848:        -:  814:    yaml_event_t evt;
+849:       98:  815:    if(var-&gt;name != NULL &&
+850:        2:  816:        var-&gt;name[0]) {
+851:        -:  817:       
+852:        -:  818:        char idx[4];
+853:        2:  819:        memset(idx, 0, 4);
+854:        -:  820:    
+855:        2:  821:        yaml_mapping_start_event_initialize(
+856:        -:  822:    			        &evt,
+857:        -:  823:    			        NULL,
 858:        -:  824:    			        NULL,
-859:        -:  825:    			        NULL,
-860:        -:  826:    			        FALSE,
-861:        -:  827:    			        YAML_BLOCK_MAPPING_STYLE);
-862:        -:  828:    	 	    
-863:<font color=red>    #####:  829:        yaml_emitter_emit(emitter, &evt);</font>
-864:        -:  830:    		//log_yml_event(evt);
-865:        -:  831:    		            
-866:<font color=red>    #####:  832:        yaml_scalar_event_initialize(</font>
-867:        -:  833:                        	&evt,
-868:        -:  834:                    	    NULL,
-869:        -:  835:                    		NULL,
-870:        -:  836:                    		"INDEX",
-871:        -:  837:                    		5,
-872:        -:  838:                    		TRUE,
-873:        -:  839:                    		TRUE, 
-874:        -:  840:                    		YAML_PLAIN_SCALAR_STYLE); 
-875:<font color=red>    #####:  841:        yaml_emitter_emit(emitter, &evt);</font>
-876:        -:  842:                    		
-877:<font color=red>    #####:  843:        sprintf(idx, "0", var-&gt;index);		</font>
-878:<font color=red>    #####:  844:        yaml_scalar_event_initialize(</font>
-879:        -:  845:                        	&evt,
-880:        -:  846:                    	    NULL,
-881:        -:  847:                    		NULL,
-882:        -:  848:                    		(unsigned char *)idx,
-883:<font color=red>    #####:  849:                    		strlen(idx),</font>
-884:        -:  850:                    		TRUE,
-885:        -:  851:                    		TRUE, 
-886:        -:  852:                    		YAML_PLAIN_SCALAR_STYLE); 	
-887:<font color=red>    #####:  853:        yaml_emitter_emit(emitter, &evt);</font>
-888:        -:  854:    		            
-889:        -:  855:   
-890:<font color=red>    #####:  856:        yaml_scalar_event_initialize(</font>
-891:        -:  857:                        	&evt,
-892:        -:  858:                    	    NULL,
-893:        -:  859:                    		NULL,
-894:        -:  860:                    		"ID",
-895:        -:  861:                    		2,
-896:        -:  862:                    		TRUE,
-897:        -:  863:                    		TRUE, 
-898:        -:  864:                    		YAML_PLAIN_SCALAR_STYLE); 
-899:<font color=red>    #####:  865:        yaml_emitter_emit(emitter, &evt);</font>
-900:        -:  866:                    			
-901:<font color=red>    #####:  867:        yaml_scalar_event_initialize(</font>
-902:        -:  868:                        	&evt,
-903:        -:  869:                    	    NULL,
-904:        -:  870:                    		NULL,
-905:<font color=red>    #####:  871:                    		(unsigned char *)var-&gt;name,</font>
-906:<font color=red>    #####:  872:                    		strlen(var-&gt;name),</font>
-907:        -:  873:                    		TRUE,
-908:        -:  874:                    		TRUE, 
-909:        -:  875:                    		YAML_PLAIN_SCALAR_STYLE); 	
-910:<font color=red>    #####:  876:        yaml_emitter_emit(emitter, &evt);</font>
-911:        -:  877:       
-912:<font color=red>    #####:  878:        param_t it = var-&gt;params;</font>
-913:<font color=red>    #####:  879:        while(it){</font>
-914:<font color=red>    #####:  880:            yaml_scalar_event_initialize(</font>
-915:        -:  881:                        	&evt,
-916:        -:  882:                    	    NULL,
-917:        -:  883:                    		NULL,
-918:<font color=red>    #####:  884:                    		(unsigned char *)it-&gt;key,</font>
-919:<font color=red>    #####:  885:                    		strlen(it-&gt;key),</font>
-920:        -:  886:                    		TRUE,
-921:        -:  887:                    		TRUE, 
-922:        -:  888:                    		YAML_PLAIN_SCALAR_STYLE); 
-923:<font color=red>    #####:  889:            yaml_emitter_emit(emitter, &evt);</font>
-924:        -:  890:                    			
-925:<font color=red>    #####:  891:            yaml_scalar_event_initialize(</font>
-926:        -:  892:                        	&evt,
-927:        -:  893:                    	    NULL,
-928:        -:  894:                    		NULL,
-929:<font color=red>    #####:  895:                    		(unsigned char *)it-&gt;value,</font>
-930:<font color=red>    #####:  896:                    		strlen(it-&gt;value),</font>
-931:        -:  897:                    		TRUE,
-932:        -:  898:                    		TRUE, 
-933:        -:  899:                    		YAML_PLAIN_SCALAR_STYLE); 	
-934:<font color=red>    #####:  900:            yaml_emitter_emit(emitter, &evt);</font>
-935:<font color=red>    #####:  901:            it = it-&gt;next; </font>
-936:        -:  902:        }    
-937:        -:  903:       
-938:        -:  904:/*
-939:        -:  905:       yaml_scalar_event_initialize(
-940:        -:  906:                        	&evt,
-941:        -:  907:                    	    NULL,
-942:        -:  908:                    		NULL,
-943:        -:  909:                    		"VALUE",
-944:        -:  910:                    		5,
-945:        -:  911:                    		TRUE,
-946:        -:  912:                    		TRUE, 
-947:        -:  913:                    		YAML_PLAIN_SCALAR_STYLE); 
-948:        -:  914:       yaml_emitter_emit(emitter, &evt);
-949:        -:  915:                    			
-950:        -:  916:       yaml_scalar_event_initialize(
-951:        -:  917:                        	&evt,
-952:        -:  918:                    	    NULL,
-953:        -:  919:                    		NULL,
-954:        -:  920:                    		(unsigned char *)var-&gt;value,
-955:        -:  921:                    		strlen(var-&gt;value),
-956:        -:  922:                    		TRUE,
-957:        -:  923:                    		TRUE, 
-958:        -:  924:                    		YAML_PLAIN_SCALAR_STYLE); 	
-959:        -:  925:        yaml_emitter_emit(emitter, &evt);
-960:        -:  926:        
-961:        -:  927:        if(strcmp(var-&gt;min, var-&gt;max)) {
-962:        -:  928:            yaml_scalar_event_initialize(
-963:        -:  929:                        	&evt,
-964:        -:  930:                    	    NULL,
-965:        -:  931:                    		NULL,
-966:        -:  932:                    		"MIN",
-967:        -:  933:                    		3,
-968:        -:  934:                    		TRUE,
-969:        -:  935:                    		TRUE, 
-970:        -:  936:                    		YAML_PLAIN_SCALAR_STYLE); 
-971:        -:  937:            yaml_emitter_emit(emitter, &evt);
-972:        -:  938:                    			
-973:        -:  939:            yaml_scalar_event_initialize(
-974:        -:  940:                        	&evt,
-975:        -:  941:                    	    NULL,
-976:        -:  942:                    		NULL,
-977:        -:  943:                    		(unsigned char *)var-&gt;min,
-978:        -:  944:                    		strlen(var-&gt;min),
-979:        -:  945:                    		TRUE,
-980:        -:  946:                    		TRUE, 
-981:        -:  947:                    		YAML_PLAIN_SCALAR_STYLE); 	
-982:        -:  948:            yaml_emitter_emit(emitter, &evt);
-983:        -:  949:
-984:        -:  950:            yaml_scalar_event_initialize(
-985:        -:  951:                        	&evt,
-986:        -:  952:                    	    NULL,
-987:        -:  953:                    		NULL,
-988:        -:  954:                    		"MAX",
-989:        -:  955:                    		3,
-990:        -:  956:                    		TRUE,
-991:        -:  957:                    		TRUE, 
-992:        -:  958:                    		YAML_PLAIN_SCALAR_STYLE); 
-993:        -:  959:            yaml_emitter_emit(emitter, &evt);
-994:        -:  960:                    			
-995:        -:  961:            yaml_scalar_event_initialize(
-996:        -:  962:                        	&evt,
-997:        -:  963:                    	    NULL,
-998:        -:  964:                    		NULL,
-999:        -:  965:                    		(unsigned char *)var-&gt;max,
-1000:        -:  966:                    		strlen(var-&gt;max),
-1001:        -:  967:                    		TRUE,
-1002:        -:  968:                    		TRUE, 
-1003:        -:  969:                    		YAML_PLAIN_SCALAR_STYLE); 	
-1004:        -:  970:            yaml_emitter_emit(emitter, &evt);
-1005:        -:  971:       }       */
-1006:<font color=red>    #####:  972:        yaml_mapping_end_event_initialize(&evt); 	</font>
-1007:<font color=red>    #####:  973:        yaml_emitter_emit(emitter, &evt); </font>
-1008:        -:  974:    }
-1009:       96:  975:} 
-1010:        -:  976:
-1011:function emit_entry called 50 returned 1000locks executed 97%
-1012:       50:  977:static void emit_entry(entry_t entry, yaml_emitter_t *emitter) {
-1013:       50:  978:    int i = 0;
-1014:        -:  979:    yaml_event_t evt;
-1015:        -:  980:     
-1016:      100:  981:    yaml_scalar_event_initialize(
-1017:        -:  982:    	&evt,
-1018:        -:  983:	    NULL,
-1019:        -:  984:		NULL,
-1020:       50:  985:		(unsigned char *)entry-&gt;name,
-1021:       50:  986:		strlen(entry-&gt;name),
-1022:        -:  987:		TRUE,
-1023:        -:  988:		TRUE, 
-1024:        -:  989:		YAML_PLAIN_SCALAR_STYLE); 	
-1025:        -:  990:		
-1026:       50:  991:	yaml_emitter_emit(emitter, &evt);
-1027:        -:  992:	//log_yml_event(evt);
-1028:        -:  993:	char buf[TINYBUF];
-1029:       50:  994:	memset(buf, 0, TINYBUF);
-1030:       50:  995:	entry_t iter = NULL;
-1031:       50:  996:	variable_t viter = NULL;
-1032:        -:  997:	
-1033:       50:  998:	switch (entry-&gt;type_tag){
-1034:        -:  999:	
-1035:        -: 1000:		case ENTRY_STR:
-1036:        -: 1001:		
-1037:       16: 1002:			yaml_scalar_event_initialize(
-1038:        -: 1003:    		&evt,
-1039:        -: 1004:	    	NULL,
-1040:        -: 1005:			NULL,
-1041:        8: 1006:			(unsigned char *)entry-&gt;e.scalar_str,
-1042:        8: 1007:			strlen(entry-&gt;e.scalar_str),
-1043:        -: 1008:			TRUE,
-1044:        -: 1009:			TRUE, 
-1045:        -: 1010:			YAML_PLAIN_SCALAR_STYLE); 	
-1046:        -: 1011:		
-1047:        8: 1012:			yaml_emitter_emit(emitter, &evt); 
-1048:        -: 1013:			//log_yml_event(evt);		
-1049:        8: 1014:			break;
-1050:        -: 1015:		
-1051:        -: 1016:		case ENTRY_INT:
-1052:        -: 1017:			
-1053:       18: 1018:			sprintf(buf, "0", entry-&gt;e.scalar_int);
-1054:       18: 1019:			yaml_scalar_event_initialize(
-1055:        -: 1020:    		&evt,
-1056:        -: 1021:	    	NULL,
-1057:        -: 1022:			NULL,
-1058:        -: 1023:			(unsigned char *)buf,
-1059:       18: 1024:			strlen(buf),
-1060:        -: 1025:			TRUE,
-1061:        -: 1026:			TRUE, 
-1062:        -: 1027:			YAML_PLAIN_SCALAR_STYLE); 	
-1063:        -: 1028:		
-1064:       18: 1029:			yaml_emitter_emit(emitter, &evt);
-1065:        -: 1030:			//log_yml_event(evt); 		
-1066:       18: 1031:			break;
-1067:        -: 1032:				 
-1068:        -: 1033:		case ENTRY_MAP:
-1069:        -: 1034:		
-1070:        8: 1035:		    yaml_mapping_start_event_initialize(
-1071:        -: 1036:    			&evt,
-1072:        -: 1037:    			NULL,
-1073:        -: 1038:    			NULL,
-1074:        -: 1039:    			FALSE,
-1075:        -: 1040:    			YAML_BLOCK_MAPPING_STYLE);
-1076:        -: 1041:    	 	    
-1077:        8: 1042:    		yaml_emitter_emit(emitter, &evt);
-1078:        -: 1043:    		//log_yml_event(evt);
-1079:        8: 1044:    		iter = *(entry-&gt;e.conf-&gt;map);
-1080:        -: 1045:    		
-1081:       38: 1046:			while(i &lt; entry-&gt;e.conf-&gt;size){
-1082:       22: 1047:			    if(iter != NULL) {
-1083:       22: 1048:				    emit_entry(iter, emitter);  
-1084:        -: 1049:				}
-1085:       22: 1050:				iter = (entry-&gt;e.conf-&gt;map)[++i];
-1086:        -: 1051:			}	
-1087:        8: 1052:			yaml_mapping_end_event_initialize(&evt); 	
-1088:        8: 1053:    		yaml_emitter_emit(emitter, &evt); 
-1089:        -: 1054:    		//log_yml_event(evt);
-1090:        8: 1055:			break;
-1091:        -: 1056:		
-1092:        -: 1057:		case ENTRY_SEQ:
-1093:       16: 1058:		  yaml_sequence_start_event_initialize(
-1094:        -: 1059:    			&evt,
-1095:        -: 1060:    			NULL,
-1096:        -: 1061:    			NULL,
-1097:        -: 1062:    			TRUE,
-1098:        -: 1063:    			YAML_BLOCK_SEQUENCE_STYLE);
-1099:        -: 1064:    		//log_yml_event(evt);
-1100:       16: 1065:    	    yaml_emitter_emit(emitter, &evt); 	
-1101:        -: 1066:		//emit size as int
-1102:        -: 1067:		  
-1103:       16: 1068:		    sprintf(buf, "0", entry-&gt;e.seq-&gt;size);
-1104:       16: 1069:			yaml_scalar_event_initialize(
-1105:        -: 1070:    		&evt,
-1106:        -: 1071:	    	NULL,
-1107:        -: 1072:			NULL,
-1108:        -: 1073:			(unsigned char *)buf,
-1109:       16: 1074:			strlen(buf),
-1110:        -: 1075:			TRUE,
-1111:        -: 1076:			TRUE, 
-1112:        -: 1077:			YAML_PLAIN_SCALAR_STYLE); 	
-1113:        -: 1078:		
-1114:       16: 1079:			yaml_emitter_emit(emitter, &evt);
-1115:        -: 1080:			//log_yml_event(evt); 		
-1116:        -: 1081:			//emit values as map
-1117:       16: 1082:			viter = entry-&gt;e.seq-&gt;vars;
-1118:        -: 1083:    		
-1119:       16: 1084:    		i = 0;
-1120:      128: 1085:			while(i &lt; entry-&gt;e.seq-&gt;size){
-1121:       96: 1086:			    if(viter != NULL) {
-1122:       96: 1087:				   emit_variable(viter, emitter);
-1123:        -: 1088:				}
-1124:       96: 1089:				*viter = (entry-&gt;e.seq-&gt;vars)[++i];
-1125:        -: 1090:			}	
-1126:        -: 1091:			
-1127:       16: 1092:			yaml_sequence_end_event_initialize(&evt); 	
-1128:       16: 1093:    		yaml_emitter_emit(emitter, &evt); 
-1129:        -: 1094:    		//log_yml_event(evt);
-1130:       16: 1095:			break;
-1131:        -: 1096:			
-1132:<font color=red>    #####: 1097:		default:break;</font>
-1133:        -: 1098:	}
-1134:        -: 1099:	
-1135:       50: 1100:}
-1136:        -: 1101:
-1137:function emit called 2 returned 1000locks executed 100%
-1138:        2: 1102:int emit(yaml_emitter_t *emitter, const config_t conf) {
-1139:        2: 1103:    int r = PLC_OK;     
-1140:        -: 1104:   
-1141:        -: 1105:    yaml_event_t evt;
-1142:        -: 1106:    char val[MAXSTR];
-1143:        2: 1107:    memset(val,0,MAXSTR);
-1144:        -: 1108:    //doc start
-1145:        2: 1109:    yaml_document_start_event_initialize(&evt, NULL, NULL, NULL, FALSE); 
-1146:        2: 1110:	yaml_emitter_emit(emitter, &evt); 		
-1147:        -: 1111:   // log_yml_event(evt);
-1148:        -: 1112:    
-1149:        2: 1113:    yaml_mapping_start_event_initialize(
-1150:        -: 1114:    	&evt,
-1151:        -: 1115:    	NULL,
-1152:        -: 1116:    	NULL,
-1153:        -: 1117:    	FALSE,
-1154:        -: 1118:    	YAML_BLOCK_MAPPING_STYLE);
-1155:        -: 1119:    	 	    
-1156:        2: 1120:    yaml_emitter_emit(emitter, &evt);
-1157:        -: 1121:   // log_yml_event(evt);
-1158:        -: 1122:    
-1159:        -: 1123:     
-1160:        2: 1124:    entry_map_t config_map = conf-&gt;map;
-1161:        2: 1125:    entry_t iter = *config_map;
-1162:        2: 1126:    int i = 0;
-1163:       60: 1127:    while(i &lt; N_CONFIG_VARIABLES) {
-1164:       56: 1128:        if(iter != NULL){
-1165:       28: 1129:    	    emit_entry(iter, emitter);
-1166:        -: 1130:    	}
-1167:       56: 1131:    	iter = config_map[++i];
-1168:        -: 1132:    }
-1169:        -: 1133:   
-1170:        -: 1134:    //mapping end
-1171:        2: 1135:    yaml_mapping_end_event_initialize(&evt); 	
-1172:        2: 1136:    yaml_emitter_emit(emitter, &evt); 		
-1173:        -: 1137:    //log_yml_event(evt);
-1174:        -: 1138:    
-1175:        -: 1139:    //doc end
-1176:        2: 1140:    yaml_document_end_event_initialize(&evt,FALSE);
-1177:        2: 1141:    yaml_emitter_emit(emitter, &evt);
-1178:        -: 1142:    //log_yml_event(evt); 		
-1179:        2: 1143:    yaml_event_delete(&evt); 	
-1180:        2: 1144:    return r;
-1181:        -: 1145:}
-1182:        -: 1146:
-1183:function save_config_yml called 0 returned 00locks executed 0%
-1184:<font color=red>    #####: 1147:int save_config_yml(const char * filename, const config_t conf) {</font>
-1185:        -: 1148:    
-1186:        -: 1149:    yaml_emitter_t emitter;
-1187:        -: 1150:    yaml_event_t event;
-1188:        -: 1151:    
-1189:        -: 1152:    FILE * fcfg;
-1190:        -: 1153:    char path[MAXSTR];
-1191:<font color=red>    #####: 1154:    int r = PLC_OK;</font>
-1192:        -: 1155:    
-1193:<font color=red>    #####: 1156:    memset(path, 0, MAXSTR);</font>
-1194:<font color=red>    #####: 1157:    sprintf(path, "", filename);</font>
-1195:        -: 1158:
-1196:<font color=red>    #####: 1159:    if(!yaml_emitter_initialize(&emitter)){</font>
-1197:<font color=red>    #####: 1160:        return PLC_ERR;    </font>
-1198:        -: 1161:    }
-1199:<font color=red>    #####: 1162:    if ((fcfg = fopen(path, "wb"))) {</font>
-1200:<font color=red>    #####: 1163:         plc_log("Save configuration to  ...", path);</font>
-1201:        -: 1164:         
-1202:<font color=red>    #####: 1165:         yaml_emitter_set_output_file(&emitter, fcfg);</font>
-1203:<font color=red>    #####: 1166:         yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);</font>
-1204:        -: 1167:         
-1205:<font color=red>    #####: 1168:         r = yaml_emitter_emit(&emitter, &event);</font>
-1206:        -: 1169:         
-1207:<font color=red>    #####: 1170:         if(r)</font>
-1208:<font color=red>    #####: 1171:            r = emit(&emitter, conf);</font>
-1209:<font color=red>    #####: 1172:         if(r){</font>
-1210:<font color=red>    #####: 1173:            yaml_stream_end_event_initialize(&event);</font>
-1211:<font color=red>    #####: 1174:            r = yaml_emitter_emit(&emitter, &event);   </font>
-1212:        -: 1175:         }
-1213:        -: 1176:            
-1214:<font color=red>    #####: 1177:         if(r &lt; PLC_OK)</font>
-1215:<font color=red>    #####: 1178:            plc_log( "Configuration error ");</font>
-1216:        -: 1179:            
-1217:<font color=red>    #####: 1180:         fclose(fcfg);</font>
-1218:        -: 1181:    } else {
-1219:<font color=red>    #####: 1182:        r = PLC_ERR;</font>
-1220:<font color=red>    #####: 1183:        plc_log("Could not open file  for write", filename);</font>
-1221:        -: 1184:    }
-1222:<font color=red>    #####: 1185:    yaml_emitter_delete(&emitter);</font>
-1223:<font color=red>    #####: 1186:    return r;</font>
-1224:        -: 1187:}
-1225:        -: 1188:
+859:        -:  825:    			        FALSE,
+860:        -:  826:    			        YAML_BLOCK_MAPPING_STYLE);
+861:        -:  827:    	 	    
+862:        2:  828:        yaml_emitter_emit(emitter, &evt);
+863:        -:  829:    		//log_yml_event(evt);
+864:        -:  830:    		            
+865:        2:  831:        yaml_scalar_event_initialize(
+866:        -:  832:                        	&evt,
+867:        -:  833:                    	    NULL,
+868:        -:  834:                    		NULL,
+869:        -:  835:                    		"INDEX",
+870:        -:  836:                    		5,
+871:        -:  837:                    		TRUE,
+872:        -:  838:                    		TRUE, 
+873:        -:  839:                    		YAML_PLAIN_SCALAR_STYLE); 
+874:        2:  840:        yaml_emitter_emit(emitter, &evt);
+875:        -:  841:                    		
+876:        2:  842:        sprintf(idx, "0", var-&gt;index);		
+877:        2:  843:        yaml_scalar_event_initialize(
+878:        -:  844:                        	&evt,
+879:        -:  845:                    	    NULL,
+880:        -:  846:                    		NULL,
+881:        -:  847:                    		(unsigned char *)idx,
+882:        2:  848:                    		strlen(idx),
+883:        -:  849:                    		TRUE,
+884:        -:  850:                    		TRUE, 
+885:        -:  851:                    		YAML_PLAIN_SCALAR_STYLE); 	
+886:        2:  852:        yaml_emitter_emit(emitter, &evt);
+887:        -:  853:    		            
+888:        -:  854:   
+889:        2:  855:        yaml_scalar_event_initialize(
+890:        -:  856:                        	&evt,
+891:        -:  857:                    	    NULL,
+892:        -:  858:                    		NULL,
+893:        -:  859:                    		"ID",
+894:        -:  860:                    		2,
+895:        -:  861:                    		TRUE,
+896:        -:  862:                    		TRUE, 
+897:        -:  863:                    		YAML_PLAIN_SCALAR_STYLE); 
+898:        2:  864:        yaml_emitter_emit(emitter, &evt);
+899:        -:  865:                    			
+900:        4:  866:        yaml_scalar_event_initialize(
+901:        -:  867:                        	&evt,
+902:        -:  868:                    	    NULL,
+903:        -:  869:                    		NULL,
+904:        2:  870:                    		(unsigned char *)var-&gt;name,
+905:        2:  871:                    		strlen(var-&gt;name),
+906:        -:  872:                    		TRUE,
+907:        -:  873:                    		TRUE, 
+908:        -:  874:                    		YAML_PLAIN_SCALAR_STYLE); 	
+909:        2:  875:        yaml_emitter_emit(emitter, &evt);
+910:        -:  876:       
+911:        2:  877:        param_t it = var-&gt;params;
+912:        6:  878:        while(it){
+913:        4:  879:            yaml_scalar_event_initialize(
+914:        -:  880:                        	&evt,
+915:        -:  881:                    	    NULL,
+916:        -:  882:                    		NULL,
+917:        2:  883:                    		(unsigned char *)it-&gt;key,
+918:        2:  884:                    		strlen(it-&gt;key),
+919:        -:  885:                    		TRUE,
+920:        -:  886:                    		TRUE, 
+921:        -:  887:                    		YAML_PLAIN_SCALAR_STYLE); 
+922:        2:  888:            yaml_emitter_emit(emitter, &evt);
+923:        -:  889:                    			
+924:        4:  890:            yaml_scalar_event_initialize(
+925:        -:  891:                        	&evt,
+926:        -:  892:                    	    NULL,
+927:        -:  893:                    		NULL,
+928:        2:  894:                    		(unsigned char *)it-&gt;value,
+929:        2:  895:                    		strlen(it-&gt;value),
+930:        -:  896:                    		TRUE,
+931:        -:  897:                    		TRUE, 
+932:        -:  898:                    		YAML_PLAIN_SCALAR_STYLE); 	
+933:        2:  899:            yaml_emitter_emit(emitter, &evt);
+934:        2:  900:            it = it-&gt;next; 
+935:        -:  901:        }    
+936:        2:  902:        yaml_mapping_end_event_initialize(&evt); 
+937:        -:  903:        	
+938:        2:  904:        yaml_emitter_emit(emitter, &evt); 
+939:        -:  905:    }
+940:       96:  906:} 
+941:        -:  907:
+942:function emit_entry called 50 returned 1000locks executed 97%
+943:       50:  908:static void emit_entry(entry_t entry, yaml_emitter_t *emitter) {
+944:       50:  909:    int i = 0;
+945:        -:  910:    yaml_event_t evt;
+946:        -:  911:     
+947:      100:  912:    yaml_scalar_event_initialize(
+948:        -:  913:    	&evt,
+949:        -:  914:	    NULL,
+950:        -:  915:		NULL,
+951:       50:  916:		(unsigned char *)entry-&gt;name,
+952:       50:  917:		strlen(entry-&gt;name),
+953:        -:  918:		TRUE,
+954:        -:  919:		TRUE, 
+955:        -:  920:		YAML_PLAIN_SCALAR_STYLE); 	
+956:        -:  921:		
+957:       50:  922:	yaml_emitter_emit(emitter, &evt);
+958:        -:  923:	//log_yml_event(evt);
+959:        -:  924:	char buf[TINYBUF];
+960:       50:  925:	memset(buf, 0, TINYBUF);
+961:       50:  926:	entry_t iter = NULL;
+962:       50:  927:	variable_t viter = NULL;
+963:        -:  928:	
+964:       50:  929:	switch (entry-&gt;type_tag){
+965:        -:  930:	
+966:        -:  931:		case ENTRY_STR:
+967:        -:  932:		
+968:       16:  933:			yaml_scalar_event_initialize(
+969:        -:  934:    		&evt,
+970:        -:  935:	    	NULL,
+971:        -:  936:         	NULL,
+972:        8:  937:			(unsigned char *)entry-&gt;e.scalar_str,
+973:        8:  938:			strlen(entry-&gt;e.scalar_str),
+974:        -:  939:			TRUE,
+975:        -:  940:			TRUE, 
+976:        -:  941:			YAML_PLAIN_SCALAR_STYLE); 	
+977:        -:  942:		
+978:        8:  943:			yaml_emitter_emit(emitter, &evt); 
+979:        -:  944:			//log_yml_event(evt);		
+980:        8:  945:			break;
+981:        -:  946:		
+982:        -:  947:		case ENTRY_INT:
+983:        -:  948:			
+984:       18:  949:			sprintf(buf, "0", entry-&gt;e.scalar_int);
+985:       18:  950:			yaml_scalar_event_initialize(
+986:        -:  951:    		&evt,
+987:        -:  952:	    	NULL,
+988:        -:  953:			NULL,
+989:        -:  954:			(unsigned char *)buf,
+990:       18:  955:			strlen(buf),
+991:        -:  956:			TRUE,
+992:        -:  957:			TRUE, 
+993:        -:  958:			YAML_PLAIN_SCALAR_STYLE); 	
+994:        -:  959:		
+995:       18:  960:			yaml_emitter_emit(emitter, &evt);
+996:        -:  961:			//log_yml_event(evt); 		
+997:       18:  962:			break;
+998:        -:  963:				 
+999:        -:  964:		case ENTRY_MAP:
+1000:        -:  965:		
+1001:        8:  966:		    yaml_mapping_start_event_initialize(
+1002:        -:  967:    			&evt,
+1003:        -:  968:    			NULL,
+1004:        -:  969:    			NULL,
+1005:        -:  970:    			FALSE,
+1006:        -:  971:    			YAML_BLOCK_MAPPING_STYLE);
+1007:        -:  972:    	 	    
+1008:        8:  973:    		yaml_emitter_emit(emitter, &evt);
+1009:        -:  974:    		//log_yml_event(evt);
+1010:        8:  975:    		iter = *(entry-&gt;e.conf-&gt;map);
+1011:        -:  976:    		
+1012:       38:  977:			while(i &lt; entry-&gt;e.conf-&gt;size){
+1013:       22:  978:			    if(iter != NULL) {
+1014:       22:  979:				    emit_entry(iter, emitter);  
+1015:        -:  980:				}
+1016:       22:  981:				iter = (entry-&gt;e.conf-&gt;map)[++i];
+1017:        -:  982:			}	
+1018:        8:  983:			yaml_mapping_end_event_initialize(&evt); 	
+1019:        8:  984:    		yaml_emitter_emit(emitter, &evt); 
+1020:        -:  985:    		//log_yml_event(evt);
+1021:        8:  986:			break;
+1022:        -:  987:		
+1023:        -:  988:		case ENTRY_SEQ:
+1024:       16:  989:		  yaml_sequence_start_event_initialize(
+1025:        -:  990:    			&evt,
+1026:        -:  991:    			NULL,
+1027:        -:  992:    			NULL,
+1028:        -:  993:    			TRUE,
+1029:        -:  994:    			YAML_BLOCK_SEQUENCE_STYLE);
+1030:        -:  995:    		//log_yml_event(evt);
+1031:       16:  996:    	    yaml_emitter_emit(emitter, &evt); 	
+1032:        -:  997:		//emit size as int
+1033:        -:  998:		  
+1034:       16:  999:		    sprintf(buf, "0", entry-&gt;e.seq-&gt;size);
+1035:       16: 1000:			yaml_scalar_event_initialize(
+1036:        -: 1001:    		&evt,
+1037:        -: 1002:	    	NULL,
+1038:        -: 1003:			NULL,
+1039:        -: 1004:			(unsigned char *)buf,
+1040:       16: 1005:			strlen(buf),
+1041:        -: 1006:			TRUE,
+1042:        -: 1007:			TRUE, 
+1043:        -: 1008:			YAML_PLAIN_SCALAR_STYLE); 	
+1044:        -: 1009:		
+1045:       16: 1010:			yaml_emitter_emit(emitter, &evt);
+1046:        -: 1011:			//log_yml_event(evt); 		
+1047:        -: 1012:			//emit values as map
+1048:       16: 1013:			viter = entry-&gt;e.seq-&gt;vars;
+1049:        -: 1014:    		
+1050:       16: 1015:    		i = 0;
+1051:      128: 1016:			while(i &lt; entry-&gt;e.seq-&gt;size){
+1052:       96: 1017:			    if(viter != NULL) {
+1053:       96: 1018:				   emit_variable(viter, emitter);
+1054:        -: 1019:				}
+1055:       96: 1020:				*viter = (entry-&gt;e.seq-&gt;vars)[++i];
+1056:        -: 1021:			}	
+1057:        -: 1022:			
+1058:       16: 1023:			yaml_sequence_end_event_initialize(&evt); 	
+1059:       16: 1024:    		yaml_emitter_emit(emitter, &evt); 
+1060:        -: 1025:    		//log_yml_event(evt);
+1061:       16: 1026:			break;
+1062:        -: 1027:			
+1063:<font color=red>    #####: 1028:		default:break;</font>
+1064:        -: 1029:	}
+1065:        -: 1030:	
+1066:       50: 1031:}
+1067:        -: 1032:
+1068:function emit called 2 returned 1000locks executed 100%
+1069:        2: 1033:int emit(yaml_emitter_t *emitter, const config_t conf) {
+1070:        2: 1034:    int r = PLC_OK;     
+1071:        -: 1035:   
+1072:        -: 1036:    yaml_event_t evt;
+1073:        -: 1037:    char val[MAXSTR];
+1074:        2: 1038:    memset(val,0,MAXSTR);
+1075:        -: 1039:    //doc start
+1076:        2: 1040:    yaml_document_start_event_initialize(&evt, NULL, NULL, NULL, FALSE); 
+1077:        2: 1041:	yaml_emitter_emit(emitter, &evt); 		
+1078:        -: 1042:   // log_yml_event(evt);
+1079:        -: 1043:    
+1080:        2: 1044:    yaml_mapping_start_event_initialize(
+1081:        -: 1045:    	&evt,
+1082:        -: 1046:    	NULL,
+1083:        -: 1047:    	NULL,
+1084:        -: 1048:    	FALSE,
+1085:        -: 1049:    	YAML_BLOCK_MAPPING_STYLE);
+1086:        -: 1050:    	 	    
+1087:        2: 1051:    yaml_emitter_emit(emitter, &evt);
+1088:        -: 1052:   // log_yml_event(evt);
+1089:        -: 1053:    
+1090:        2: 1054:    entry_map_t config_map = conf-&gt;map;
+1091:        2: 1055:    entry_t iter = *config_map;
+1092:        2: 1056:    int i = 0;
+1093:       60: 1057:    while(i &lt; N_CONFIG_VARIABLES) {
+1094:       56: 1058:        if(iter != NULL){
+1095:       28: 1059:    	    emit_entry(iter, emitter);
+1096:        -: 1060:    	}
+1097:       56: 1061:    	iter = config_map[++i];
+1098:        -: 1062:    }
+1099:        -: 1063:   
+1100:        -: 1064:    //mapping end
+1101:        2: 1065:    yaml_mapping_end_event_initialize(&evt); 	
+1102:        2: 1066:    yaml_emitter_emit(emitter, &evt); 		
+1103:        -: 1067:    //log_yml_event(evt);
+1104:        -: 1068:    
+1105:        -: 1069:    //doc end
+1106:        2: 1070:    yaml_document_end_event_initialize(&evt,FALSE);
+1107:        2: 1071:    yaml_emitter_emit(emitter, &evt);
+1108:        -: 1072:    //log_yml_event(evt); 		
+1109:        2: 1073:    yaml_event_delete(&evt); 	
+1110:        2: 1074:    return r;
+1111:        -: 1075:}
+1112:        -: 1076:
+1113:function save_config_yml called 0 returned 00locks executed 0%
+1114:<font color=red>    #####: 1077:int save_config_yml(const char * filename, const config_t conf) {</font>
+1115:        -: 1078:    
+1116:        -: 1079:    yaml_emitter_t emitter;
+1117:        -: 1080:    yaml_event_t event;
+1118:        -: 1081:    
+1119:        -: 1082:    FILE * fcfg;
+1120:        -: 1083:    char path[MAXSTR];
+1121:<font color=red>    #####: 1084:    int r = PLC_OK;</font>
+1122:        -: 1085:    
+1123:<font color=red>    #####: 1086:    memset(path, 0, MAXSTR);</font>
+1124:<font color=red>    #####: 1087:    sprintf(path, "", filename);</font>
+1125:        -: 1088:
+1126:<font color=red>    #####: 1089:    if(!yaml_emitter_initialize(&emitter)){</font>
+1127:<font color=red>    #####: 1090:        return PLC_ERR;    </font>
+1128:        -: 1091:    }
+1129:<font color=red>    #####: 1092:    if ((fcfg = fopen(path, "wb"))) {</font>
+1130:<font color=red>    #####: 1093:         plc_log("Save configuration to  ...", path);</font>
+1131:        -: 1094:         
+1132:<font color=red>    #####: 1095:         yaml_emitter_set_output_file(&emitter, fcfg);</font>
+1133:<font color=red>    #####: 1096:         yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);</font>
+1134:        -: 1097:         
+1135:<font color=red>    #####: 1098:         r = yaml_emitter_emit(&emitter, &event);</font>
+1136:        -: 1099:         
+1137:<font color=red>    #####: 1100:         if(r)</font>
+1138:<font color=red>    #####: 1101:            r = emit(&emitter, conf);</font>
+1139:<font color=red>    #####: 1102:         if(r){</font>
+1140:<font color=red>    #####: 1103:            yaml_stream_end_event_initialize(&event);</font>
+1141:<font color=red>    #####: 1104:            r = yaml_emitter_emit(&emitter, &event);   </font>
+1142:        -: 1105:         }
+1143:        -: 1106:            
+1144:<font color=red>    #####: 1107:         if(r &lt; PLC_OK)</font>
+1145:<font color=red>    #####: 1108:            plc_log( "Configuration error ");</font>
+1146:        -: 1109:            
+1147:<font color=red>    #####: 1110:         fclose(fcfg);</font>
+1148:        -: 1111:    } else {
+1149:<font color=red>    #####: 1112:        r = PLC_ERR;</font>
+1150:<font color=red>    #####: 1113:        plc_log("Could not open file  for write", filename);</font>
+1151:        -: 1114:    }
+1152:<font color=red>    #####: 1115:    yaml_emitter_delete(&emitter);</font>
+1153:<font color=red>    #####: 1116:    return r;</font>
+1154:        -: 1117:}
+1155:        -: 1118:
 </pre><hr width=50%><hr><font color=green size=1>This report is produced by <i>coverage</i> &copy;Martti Lumme 2002</font></body></html>

@@ -221,6 +221,8 @@ AI:  \n\
 
 void ut_save(){
     config_t conf = init_config();
+    conf = store_seq_value(CONFIG_AI, 0, "VALUE", "1.0", conf);
+    conf = store_seq_value(CONFIG_AI, 0, "ID", "var1", conf);
     yaml_emitter_t emitter;
     yaml_emitter_initialize(&emitter);
     yaml_event_t event;
@@ -263,6 +265,9 @@ SIM:\n\
   SIM_OUTPUT: sim.out\n\
 AI:\n\
 - 8\n\
+- INDEX: 0\n\
+  ID: var1\n\
+  VALUE: 1.0\n\
 AQ:\n\
 - 8\n\
 DI:\n\
@@ -281,7 +286,7 @@ PULSES:\n\
 ";
    
 	CU_ASSERT_STRING_EQUAL(output,expected);
-//	printf("%s\n", output);
+	printf("%s\n", output);
     CU_ASSERT(r == PLC_OK);
 
 }

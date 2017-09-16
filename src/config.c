@@ -551,7 +551,7 @@ config_t store_value(BYTE key, const char * value, config_t config){
             e->e.scalar_str = strdup_r(e->e.scalar_str, value);
             break;
             
-         default: return PLC_ERR;
+         default: return conf;
     }        
     conf->map[key] = e;
        
@@ -615,7 +615,6 @@ static config_t process_seq_element(
     config_t conf = config;
     char * val = (char *)event.data.scalar.value;
                     
-          
     if(!strcmp(key, "INDEX")){
                              
             *idx = atoi(val);
@@ -900,76 +899,8 @@ static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
             yaml_emitter_emit(emitter, &evt);
             it = it->next; 
         }    
-       
-/*
-       yaml_scalar_event_initialize(
-                        	&evt,
-                    	    NULL,
-                    		NULL,
-                    		"VALUE",
-                    		5,
-                    		TRUE,
-                    		TRUE, 
-                    		YAML_PLAIN_SCALAR_STYLE); 
-       yaml_emitter_emit(emitter, &evt);
-                    			
-       yaml_scalar_event_initialize(
-                        	&evt,
-                    	    NULL,
-                    		NULL,
-                    		(unsigned char *)var->value,
-                    		strlen(var->value),
-                    		TRUE,
-                    		TRUE, 
-                    		YAML_PLAIN_SCALAR_STYLE); 	
-        yaml_emitter_emit(emitter, &evt);
-        
-        if(strcmp(var->min, var->max)) {
-            yaml_scalar_event_initialize(
-                        	&evt,
-                    	    NULL,
-                    		NULL,
-                    		"MIN",
-                    		3,
-                    		TRUE,
-                    		TRUE, 
-                    		YAML_PLAIN_SCALAR_STYLE); 
-            yaml_emitter_emit(emitter, &evt);
-                    			
-            yaml_scalar_event_initialize(
-                        	&evt,
-                    	    NULL,
-                    		NULL,
-                    		(unsigned char *)var->min,
-                    		strlen(var->min),
-                    		TRUE,
-                    		TRUE, 
-                    		YAML_PLAIN_SCALAR_STYLE); 	
-            yaml_emitter_emit(emitter, &evt);
-
-            yaml_scalar_event_initialize(
-                        	&evt,
-                    	    NULL,
-                    		NULL,
-                    		"MAX",
-                    		3,
-                    		TRUE,
-                    		TRUE, 
-                    		YAML_PLAIN_SCALAR_STYLE); 
-            yaml_emitter_emit(emitter, &evt);
-                    			
-            yaml_scalar_event_initialize(
-                        	&evt,
-                    	    NULL,
-                    		NULL,
-                    		(unsigned char *)var->max,
-                    		strlen(var->max),
-                    		TRUE,
-                    		TRUE, 
-                    		YAML_PLAIN_SCALAR_STYLE); 	
-            yaml_emitter_emit(emitter, &evt);
-       }       */
-        yaml_mapping_end_event_initialize(&evt); 	
+        yaml_mapping_end_event_initialize(&evt); 
+        	
         yaml_emitter_emit(emitter, &evt); 
     }
 } 
@@ -1002,7 +933,7 @@ static void emit_entry(entry_t entry, yaml_emitter_t *emitter) {
 			yaml_scalar_event_initialize(
     		&evt,
 	    	NULL,
-			NULL,
+         	NULL,
 			(unsigned char *)entry->e.scalar_str,
 			strlen(entry->e.scalar_str),
 			TRUE,
@@ -1120,7 +1051,6 @@ int emit(yaml_emitter_t *emitter, const config_t conf) {
     yaml_emitter_emit(emitter, &evt);
    // log_yml_event(evt);
     
-     
     entry_map_t config_map = conf->map;
     entry_t iter = *config_map;
     int i = 0;
