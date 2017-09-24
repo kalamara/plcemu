@@ -3,6 +3,12 @@
 #include <yaml.h>
 
 #define ADVANTECH_HISTORICAL_BASE 50176
+#define CONF_OK 0
+#define CONF_ERR -1
+#define CONF_STR 1024 //string length
+#define CONF_NUM 24 //number digits 
+#define CONF_F 0
+#define CONF_T 1
 
 typedef enum{
     MAP_ROOT,

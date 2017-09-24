@@ -3,6 +3,9 @@ UTEST = ut-vm
 
 SRCS = vm-stubs.c\
  ut-vm.c\
+ data.c\
+ instruction.c\
+ rung.c\
  plclib.c\
  parser-il.c\
  parser-ld.c\

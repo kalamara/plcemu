@@ -1,6 +1,9 @@
 #include <ctype.h>
 
 #include "plcemu.h"
+#include "data.h"
+#include "instruction.h"
+#include "rung.h"
 #include "plclib.h"
 #include "parser-tree.h"
 #include "parser-il.h"

@@ -3,6 +3,9 @@
 #include <string.h>
 #include <stdarg.h>
 #include "config.h"
+#include "data.h"
+#include "instruction.h"
+#include "rung.h"
 #include "plclib.h"
 
 void plc_log(const char * msg, ...)
@@ -84,4 +87,7 @@ void data_read(unsigned int index, uint64_t* value)
 void data_write(unsigned int index, uint64_t value)
 {
 }
+
+void compute_variance( double x){}
+
 

@@ -1,6 +1,9 @@
 #include <ctype.h>
 
 #include "init.h"
+#include "data.h"
+#include "instruction.h"
+#include "rung.h"
 #include "plclib.h"
 #include "util.h"
 

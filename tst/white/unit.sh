@@ -4,6 +4,15 @@ echo    "- Starting UT for PLCEMU"
 echo    ""
 echo    "- Checkout if needed-"
 
+unlink ./vm/data.c
+link ../../src/vm/data.c ./vm/data.c
+
+unlink ./vm/instruction.c
+link ../../src/vm/instruction.c ./vm/instruction.c
+
+unlink ./vm/rung.c
+link ../../src/vm/rung.c ./vm/rung.c
+
 unlink ./vm/plclib.c
 link ../../src/vm/plclib.c ./vm/plclib.c
 

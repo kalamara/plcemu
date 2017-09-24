@@ -173,13 +173,13 @@ No branches
 No calls
 
 Function 'strdup_r'
-Lines executed:100.00% of 6
+Lines executed:100.00% of 5
 Branches executed:100.00% of 2
 Taken at least once:100.00% of 2
 No calls
 
 File 'config.c'
-Lines executed:74.55% of 448
+Lines executed:74.50% of 447
 Branches executed:72.92% of 144
 Taken at least once:59.72% of 144
 Calls executed:74.01% of 177

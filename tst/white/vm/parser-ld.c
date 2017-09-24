@@ -1,6 +1,9 @@
 #include <ctype.h>
 
 #include "plcemu.h"
+#include "data.h"
+#include "instruction.h"
+#include "rung.h"
 #include "plclib.h"
 #include "parser-tree.h"
 #include "parser-il.h"
@@ -48,6 +51,7 @@
 
  
 */
+
 int minmin(const int * arr, int min, int max) {
 //for an array arr of integers ,return the smallest of indices i so that 
 //arr[i] =  min(arr) >= min 

@@ -1,60 +1,20 @@
 #include <yaml.h>
 #include "util.h"
 #include "config.h"
-#include "plclib.h"
+//#include "data.h"
+//#include "instruction.h"
+//#include "plclib.h"
 
-const char * Config_vars[N_CONFIG_VARIABLES] = {
-    "STEP",
-    "PIPE",
-    "SIGENABLE",
-    "PAGELEN",
-    "PAGEWIDTH",
-    "HW",
-    "NT",
-    "NS",
-    "NR",
-    "NM",
-    "NDI",
-    "NDQ",
-    "NAI",
-    "NAQ",
-    "RESPONSE",
-    "USPACE",
-    "COMEDI",
-    "SIM",
-    "IL",
-    "LD",
-    //sequences
-    "AI",
-    "AQ",
-    "DI",
-    "DQ",
-    "MVAR",
-    "MREG",
-    "TIMER",
-    "PULSE"
-};
-
-/*
-const char * Variable_params[N_VARIABLE_PARAMS] = {
-    "INDEX",
-    "ID",
-    "VALUE",
-    "MIN",
-    "MAX"
-};
-*/
 char * strdup_r(const char * dest, const char * src) {
 //strdup with realloc
-    char * r = (dest == NULL)?(char *)malloc(sizeof(src)):dest;
+
+    char * r = (!dest)?(char *)malloc(sizeof(src)):realloc(dest, sizeof(src));
         
-    r = realloc(r, sizeof(src));
     memset(r, 0, sizeof(src));
     sprintf(r, "%s", src);
     
     return r;
 }
-
 
 static void yaml_config_error(yaml_parser_t parser){
 
@@ -214,18 +174,6 @@ entry_t get_entry(int key, const config_t conf){
     return conf->map[key];
 }
 
-/*
-int get_var_key(const char * name){
-    for(int i = 0; i < N_VARIABLE_PARAMS; i++) {
-        if(!strcmp(name, Variable_params[i])) {
-            
-            return i;
-        }
-    }
-    
-    return PLC_ERR;
-}
-*/
 //TODO: in a c++ impl. this would be a hashmap
 param_t new_param(const char * key, 
                      const char * val){
@@ -308,7 +256,7 @@ int get_key(const char * name, const config_t where) {
         }
     }
     
-    return PLC_ERR;  
+    return CONF_ERR;  
 }
 
 config_t new_config(int size) {
@@ -521,10 +469,13 @@ static int log_yml_event(yaml_event_t event){
         default:
             plc_log("default?");
     }
-    return PLC_OK;
+    return CONF_OK;
 }
 
-config_t store_value(BYTE key, const char * value, config_t config){
+config_t store_value(
+            unsigned char key, 
+            const char * value, 
+            config_t config){
 
     entry_t e; 
     if( config == NULL) {
@@ -536,7 +487,7 @@ config_t store_value(BYTE key, const char * value, config_t config){
     e = get_entry(key, conf);
     
     if(e == NULL) {
-        conf->err = PLC_ERR;
+        conf->err = CONF_ERR;
         
         return conf;
     }
@@ -558,8 +509,9 @@ config_t store_value(BYTE key, const char * value, config_t config){
     return conf;
 }
 
-config_t store_seq_value(BYTE seq,
-                    BYTE idx,  
+config_t store_seq_value(
+                    unsigned char seq,
+                    unsigned char idx,  
                     const char * key,
                     const char * value, 
                     config_t config){
@@ -573,7 +525,7 @@ config_t store_seq_value(BYTE seq,
         s->type_tag != ENTRY_SEQ ||
         idx >= s->e.seq->size) {
         
-        conf->err = PLC_ERR;
+        conf->err = CONF_ERR;
         
         return conf;
     }            
@@ -680,43 +632,43 @@ config_t process(int sequence,
             config_t configuration){
              
     config_t config = configuration;
-    BYTE storage = STORE_KEY;   
-    int done = FALSE;
-    char key[MAXSTR];
-    int idx = PLC_ERR;
+    unsigned char storage = STORE_KEY;   
+    int done = CONF_F;
+    char key[CONF_STR];
+    int idx = CONF_ERR;
     yaml_event_t event;
     memset(&event, 0, sizeof(event));
-    memset(key, 0, MAXSTR);
+    memset(key, 0, CONF_STR);
     if(config == NULL) {
      
         return NULL;
      }
      
      if(parser == NULL) {
-        config->err = PLC_ERR;
+        config->err = CONF_ERR;
      
         return config;
      }
 //     || parser->context == NULL 
            
-     while(done == FALSE){
+     while(done == CONF_F){
      
         if (!yaml_parser_parse(parser, &event)){   
                 yaml_parser_error(*parser);
-                config->err = PLC_ERR;
+                config->err = CONF_ERR;
         } else {
    
             switch(event.type){
                 case YAML_SCALAR_EVENT: 
 //swap storage to process val after key and vice versa 
                     if(storage == STORE_KEY) {
-                        memset(key, 0, MAXSTR);
+                        memset(key, 0, CONF_STR);
                         sprintf(key, "%s", 
                             (char *)event.data.scalar.value);
                         
                         storage = STORE_VAL;
                     } else {
-                        if(sequence > PLC_ERR) {
+                        if(sequence > CONF_ERR) {
                     
                             config = process_seq_element(
                                     event,
@@ -742,7 +694,7 @@ config_t process(int sequence,
                 
                 case YAML_SEQUENCE_END_EVENT:
 
-                    sequence = PLC_ERR;
+                    sequence = CONF_ERR;
                     break;
                 
                 case YAML_MAPPING_START_EVENT:
@@ -758,18 +710,18 @@ config_t process(int sequence,
                 case YAML_MAPPING_END_EVENT:
                 case YAML_STREAM_END_EVENT:     
                     
-                    done = TRUE;
+                    done = CONF_T;
                     break;
                     
                 case YAML_NO_EVENT:
-                    config->err = PLC_ERR;
+                    config->err = CONF_ERR;
                     break;    
                     
                 default: break;    
             }
          }
-         if(config->err < PLC_OK) {
-             done = TRUE;
+         if(config->err < CONF_OK) {
+             done = CONF_T;
              //log_yml_event(event);
          }                                              
          yaml_event_delete(&event);   
@@ -782,9 +734,9 @@ config_t load_config_yml(const char * filename, config_t conf) {
     yaml_parser_t parser;
     
     FILE * fcfg;
-    char path[MAXSTR];
+    char path[CONF_STR];
 
-    memset(path, 0, MAXSTR);
+    memset(path, 0, CONF_STR);
     sprintf(path, "%s", filename);
     
     memset(&parser, 0, sizeof(parser));
@@ -798,12 +750,12 @@ config_t load_config_yml(const char * filename, config_t conf) {
     if ((fcfg = fopen(path, "r"))) {
         plc_log("Looking for configuration from %s ...", path);
         yaml_parser_set_input_file(&parser, fcfg);
-        r = process(PLC_ERR, &parser, conf);
-        if(r->err < PLC_OK)
+        r = process(CONF_ERR, &parser, conf);
+        if(r->err < CONF_OK)
             plc_log( "Configuration error ");
         fclose(fcfg);
     } else {
-        r->err = PLC_ERR;
+        r->err = CONF_ERR;
         plc_log("Could not open file %s", filename);
     }
     yaml_parser_delete(&parser);
@@ -822,7 +774,7 @@ static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
     			        &evt,
     			        NULL,
     			        NULL,
-    			        FALSE,
+    			        CONF_F,
     			        YAML_BLOCK_MAPPING_STYLE);
     	 	    
         yaml_emitter_emit(emitter, &evt);
@@ -834,8 +786,8 @@ static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
                     		NULL,
                     		"INDEX",
                     		5,
-                    		TRUE,
-                    		TRUE, 
+                    		CONF_T,
+                    		CONF_T, 
                     		YAML_PLAIN_SCALAR_STYLE); 
         yaml_emitter_emit(emitter, &evt);
                     		
@@ -846,8 +798,8 @@ static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
                     		NULL,
                     		(unsigned char *)idx,
                     		strlen(idx),
-                    		TRUE,
-                    		TRUE, 
+                    		CONF_T,
+                    		CONF_T, 
                     		YAML_PLAIN_SCALAR_STYLE); 	
         yaml_emitter_emit(emitter, &evt);
     		            
@@ -858,8 +810,8 @@ static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
                     		NULL,
                     		"ID",
                     		2,
-                    		TRUE,
-                    		TRUE, 
+                    		CONF_T,
+                    		CONF_T, 
                     		YAML_PLAIN_SCALAR_STYLE); 
         yaml_emitter_emit(emitter, &evt);
                     			
@@ -869,8 +821,8 @@ static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
                     		NULL,
                     		(unsigned char *)var->name,
                     		strlen(var->name),
-                    		TRUE,
-                    		TRUE, 
+                    		CONF_T,
+                    		CONF_T, 
                     		YAML_PLAIN_SCALAR_STYLE); 	
         yaml_emitter_emit(emitter, &evt);
        
@@ -882,8 +834,8 @@ static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
                     		NULL,
                     		(unsigned char *)it->key,
                     		strlen(it->key),
-                    		TRUE,
-                    		TRUE, 
+                    		CONF_T,
+                    		CONF_T, 
                     		YAML_PLAIN_SCALAR_STYLE); 
             yaml_emitter_emit(emitter, &evt);
                     			
@@ -893,8 +845,8 @@ static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
                     		NULL,
                     		(unsigned char *)it->value,
                     		strlen(it->value),
-                    		TRUE,
-                    		TRUE, 
+                    		CONF_T,
+                    		CONF_T, 
                     		YAML_PLAIN_SCALAR_STYLE); 	
             yaml_emitter_emit(emitter, &evt);
             it = it->next; 
@@ -915,14 +867,14 @@ static void emit_entry(entry_t entry, yaml_emitter_t *emitter) {
 		NULL,
 		(unsigned char *)entry->name,
 		strlen(entry->name),
-		TRUE,
-		TRUE, 
+		CONF_T,
+		CONF_T, 
 		YAML_PLAIN_SCALAR_STYLE); 	
 		
 	yaml_emitter_emit(emitter, &evt);
 	//log_yml_event(evt);
-	char buf[TINYBUF];
-	memset(buf, 0, TINYBUF);
+	char buf[CONF_NUM];
+	memset(buf, 0, CONF_NUM);
 	entry_t iter = NULL;
 	variable_t viter = NULL;
 	
@@ -936,8 +888,8 @@ static void emit_entry(entry_t entry, yaml_emitter_t *emitter) {
          	NULL,
 			(unsigned char *)entry->e.scalar_str,
 			strlen(entry->e.scalar_str),
-			TRUE,
-			TRUE, 
+			CONF_T,
+			CONF_T, 
 			YAML_PLAIN_SCALAR_STYLE); 	
 		
 			yaml_emitter_emit(emitter, &evt); 
@@ -953,8 +905,8 @@ static void emit_entry(entry_t entry, yaml_emitter_t *emitter) {
 			NULL,
 			(unsigned char *)buf,
 			strlen(buf),
-			TRUE,
-			TRUE, 
+			CONF_T,
+			CONF_T, 
 			YAML_PLAIN_SCALAR_STYLE); 	
 		
 			yaml_emitter_emit(emitter, &evt);
@@ -967,7 +919,7 @@ static void emit_entry(entry_t entry, yaml_emitter_t *emitter) {
     			&evt,
     			NULL,
     			NULL,
-    			FALSE,
+    			CONF_F,
     			YAML_BLOCK_MAPPING_STYLE);
     	 	    
     		yaml_emitter_emit(emitter, &evt);
@@ -990,7 +942,7 @@ static void emit_entry(entry_t entry, yaml_emitter_t *emitter) {
     			&evt,
     			NULL,
     			NULL,
-    			TRUE,
+    			CONF_T,
     			YAML_BLOCK_SEQUENCE_STYLE);
     		//log_yml_event(evt);
     	    yaml_emitter_emit(emitter, &evt); 	
@@ -1003,8 +955,8 @@ static void emit_entry(entry_t entry, yaml_emitter_t *emitter) {
 			NULL,
 			(unsigned char *)buf,
 			strlen(buf),
-			TRUE,
-			TRUE, 
+			CONF_T,
+			CONF_T, 
 			YAML_PLAIN_SCALAR_STYLE); 	
 		
 			yaml_emitter_emit(emitter, &evt);
@@ -1031,13 +983,13 @@ static void emit_entry(entry_t entry, yaml_emitter_t *emitter) {
 }
 
 int emit(yaml_emitter_t *emitter, const config_t conf) {
-    int r = PLC_OK;     
+    int r = CONF_OK;     
    
     yaml_event_t evt;
-    char val[MAXSTR];
-    memset(val,0,MAXSTR);
+    char val[CONF_STR];
+    memset(val,0,CONF_STR);
     //doc start
-    yaml_document_start_event_initialize(&evt, NULL, NULL, NULL, FALSE); 
+    yaml_document_start_event_initialize(&evt, NULL, NULL, NULL, CONF_F); 
 	yaml_emitter_emit(emitter, &evt); 		
    // log_yml_event(evt);
     
@@ -1045,7 +997,7 @@ int emit(yaml_emitter_t *emitter, const config_t conf) {
     	&evt,
     	NULL,
     	NULL,
-    	FALSE,
+    	CONF_F,
     	YAML_BLOCK_MAPPING_STYLE);
     	 	    
     yaml_emitter_emit(emitter, &evt);
@@ -1067,7 +1019,7 @@ int emit(yaml_emitter_t *emitter, const config_t conf) {
     //log_yml_event(evt);
     
     //doc end
-    yaml_document_end_event_initialize(&evt,FALSE);
+    yaml_document_end_event_initialize(&evt,CONF_F);
     yaml_emitter_emit(emitter, &evt);
     //log_yml_event(evt); 		
     yaml_event_delete(&evt); 	
@@ -1080,14 +1032,14 @@ int save_config_yml(const char * filename, const config_t conf) {
     yaml_event_t event;
     
     FILE * fcfg;
-    char path[MAXSTR];
-    int r = PLC_OK;
+    char path[CONF_STR];
+    int r = CONF_OK;
     
-    memset(path, 0, MAXSTR);
+    memset(path, 0, CONF_STR);
     sprintf(path, "%s", filename);
 
     if(!yaml_emitter_initialize(&emitter)){
-        return PLC_ERR;    
+        return CONF_ERR;    
     }
     if ((fcfg = fopen(path, "wb"))) {
          plc_log("Save configuration to %s ...", path);
@@ -1104,12 +1056,12 @@ int save_config_yml(const char * filename, const config_t conf) {
             r = yaml_emitter_emit(&emitter, &event);   
          }
             
-         if(r < PLC_OK)
+         if(r < CONF_OK)
             plc_log( "Configuration error ");
             
          fclose(fcfg);
     } else {
-        r = PLC_ERR;
+        r = CONF_ERR;
         plc_log("Could not open file %s for write", filename);
     }
     yaml_emitter_delete(&emitter);

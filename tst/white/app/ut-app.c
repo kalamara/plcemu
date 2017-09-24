@@ -10,7 +10,11 @@
 
 #include "plcemu.h"
 #include "config.h"
+#include "data.h"
+#include "instruction.h"
+#include "rung.h"
 #include "plclib.h"
+
 #include "ut-conf.h"
 
 #define TRUE 1

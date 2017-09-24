@@ -3,14 +3,16 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#include "config.h"
+//#include "config.h"
+#include "data.h"
+#include "instruction.h"
+#include "rung.h"
 #include "plclib.h"
 #include "plcemu.h"
 #include "util.h"
 
 #include "../hw/hardware.h"
 #include "project.h"
-
 
 const char * LibErrors[N_IE] = {
     "Unknown error",
@@ -21,60 +23,6 @@ const char * LibErrors[N_IE] = {
     "File does not exist",
     "Unreadable character"
 };
-
-const char IlCommands[N_IL_INSN][LABELLEN] = {
- 		"",
-		")",
-		"RET",
-		"JMP",
-		"CAL",
-		"S",
-		"R",
-		"LD",
-		"ST",
-		"AND",
-		"OR",
-		"XOR",
-		"ADD",
-		"SUB",
-		"MUL",
-		"DIV",
-		"GT",
-		"GE",
-		"EQ",
-		"NE",
-		"LT",
-		"LE"
-};
-
-const char IlOperands[N_OPERANDS][3] = {
- 		"i",
-        "if",
-		"f",
-		"r",
-		"m",
-		"mf",
-		"c",
-		"b",
-		"t",
-		"q",
-		"qf",
-		"Q",
-		"QF",
-		"T",
-		"M",
-		"MF",
-		"W",
-		"",
-};
-
-const char IlModifiers[N_IL_MODIFIERS][2] = {
-    "!",
-    "(",
-    " ",
-    "?",
-};
-
 
 struct timeval Curtime;
 
@@ -316,222 +264,6 @@ int all_tasks(long timeout, plc_t p) {
         rv = task(timeout, p, p->rungs[i]);
     
     return rv;
-}
-
-/*************************STACK****************************************/
-data_t negate(BYTE *op, data_t b) {
-      data_t r = b;
-      if (*op & NEGATE){	    //negate b
-		*op -= NEGATE;
-		r.u = -1 - (b.u);
-		//magic?
-	}
-	return r;
-}
-
-
-uint64_t operate_u(BYTE op, uint64_t a, uint64_t b) {
-    uint64_t r=0;
-	
-    switch (op){
-	//boolean or bitwise, all modifiers,
-	case IL_AND:	//AND
-		r = a & b;
-		break;
-
-	case IL_OR:	//OR
-		r = a | b;
-		break;
-
-	case IL_XOR:	//XOR
-		r = a ^ b;
-		break;
-	//arithmetic	
-	case IL_ADD:
-			r = a + b;
-		break;
-		
-	case IL_SUB:
-			r = a - b;
-	    break;
-	    
-	case IL_MUL:
-		r = (a * b) ;
-		break;
-		
-	case IL_DIV:
-		r = b != 0 ? a / b : - 1;
-		break;
-		
-	//comparison
-	case IL_GT:
-		r = (a > b);
-		break;
-		
-	case IL_GE:
-		r = (a >= b);
-		break;
-		
-	case IL_EQ:
-		r = (a == b);
-		break;
-		
-	case IL_NE:
-		r = (a != b);
-		break;
-		
-	case IL_LT:
-		r = (a < b);
-		break;
-		
-	case IL_LE:
-		r = (a <= b);
-		break;
-		
-	default:
-		break;
-	}
-    return r;
-}
-
-double operate_d(BYTE op, double a, double b) {
-    double r=0;
-    switch (op) {
-    //arithmetic	
-	case IL_ADD:
-			r = a + b;
-		break;
-		
-	case IL_SUB:
-			r = a - b;
-	    break;
-	    
-	case IL_MUL:
-		r = (a * b) ;
-		break;
-		
-	case IL_DIV:
-		r = b != 0 ? a / b : - 1;
-		break;
-		
-	//comparison
-	case IL_GT:
-		r = (a > b);
-		break;
-		
-	case IL_GE:
-		r = (a >= b);
-		break;
-		
-	case IL_EQ:
-		r = (a == b);
-		break;
-		
-	case IL_NE:
-		r = (a != b);
-		break;
-		
-	case IL_LT:
-		r = (a < b);
-		break;
-		
-	case IL_LE:
-		r = (a <= b);
-		break;
-		
-	default:
-		break;
-	}
-    return r;
-}
-
-data_t operate( BYTE op, 
-                BYTE type, 
-                const data_t a, 
-                const data_t b ) {
-    data_t r;	    //return value
-    data_t n = negate(&op, b);
-    uint64_t modulo = 1;
-	switch(type)
-	{
-	    case T_REAL:
-	        r.r = operate_d(op, a.r, n.r ) ;
-	        break;
-	    
-	    case T_BOOL: 
-	        r.u = BOOL(operate_u(op, BOOL(a.u), BOOL(n.u)));
-	        break;
-	    
-	    case T_BYTE:
-	        modulo = 1 << BYTESIZE;
-	        //r.u = operate_u(op, a.u % 0x100, bu % 0x100) % 0x100;
-	        r.u = operate_u(op, a.u % modulo, n.u % modulo) % modulo;
-	        break;
-	    
-	    case T_WORD:
-	        modulo = 1 << (2*BYTESIZE);
-	        r.u = operate_u(op, a.u % modulo, n.u % modulo) % modulo;
-	        break;
-	    
-	    case T_DWORD:
-	        modulo = 0x100000000;
-	        r.u = operate_u(op, a.u % modulo, n.u % modulo) % modulo;
-	        break;
-	   
-	    default://64bit uint
-	        r.u = operate_u(op, a.u , n.u ) ;
-	    break;
-	}
-	return r;
-}
-
-opcode_t take( rung_t r ) {
-    if(r->stack == NULL)
-        return &(r->prealloc[0]);
-    else if(r->stack->depth < MAXBUF - 1)
-        return &(r->prealloc[r->stack->depth]);
-    else return NULL; 
-}
-
-void give( opcode_t head ) {
-    memset(head, 0, sizeof(struct opcode));
-}
-
-int push( BYTE op,  
-          BYTE t,  
-          const data_t val, 
-          rung_t r ) {
-//push an opcode and a value into stack.
-	struct opcode * p = take(r);
-	if(!p)
-	    return ERR_OVFLOW;
-	//initialize
-	p->operation = op;
-	p->value = val;
-	p->type = t;
-	p->next = r->stack;//*stack;
-	p->depth = (r->stack == NULL)?1:r->stack->depth + 1;
-	//set stack head pointer to point at it
-	r->stack = p;
-	return PLC_OK;
-}
-
-data_t pop( const data_t val, opcode_t *stack ) {
-//retrieve stack heads operation and operand, apply it to val and return result
-	data_t r = val; //return value
-	opcode_t p;
-	if (*stack != NULL) {
-	//safety
-		r = operate((*stack)->operation,
-		            (*stack)->type,
-		            (*stack)->value, 
-		            val );//execute instruction
-		p = *stack;
-		*stack = (*stack)->next;
-		//set stack head to point to next opcode in stack
-		give(p);
-	}
-	return r;
 }
 
 /*************************VM*******************************************/
@@ -833,8 +565,7 @@ int ld_re( const instruction_t op,
             r = ERR_BADOPERAND;
     return r;    
 }
-                   
-            
+                          
 int ld_fe( const instruction_t op, 
            BYTE * val,
            plc_t p) {
@@ -850,7 +581,6 @@ int ld_fe( const instruction_t op,
     return r;    
 }              
 
-
 int ld_in_r( const instruction_t op, 
              double * val,
              plc_t p) {
@@ -861,7 +591,6 @@ int ld_in_r( const instruction_t op,
     return PLC_OK;    
 }
             
-
 int ld_out_r( const instruction_t op, 
             double * val,
             plc_t p) {
@@ -1103,43 +832,6 @@ int handle_stackable(   const instruction_t op,
     return rv;
 }
 
-int get_type(const instruction_t ins)
-{
-    int rv = PLC_ERR;
-    
-    if(ins != NULL 
-    && OP_VALID(ins->operand)){
-        BYTE x = ins->bit;
-        if(OP_REAL(ins->operand))
-             rv = T_REAL;
-        else{
-            switch(x){
-                case BYTESIZE:
-                    rv = T_BYTE;
-                    break;
-                    
-                case WORDSIZE:
-                    rv = T_WORD;
-                    break;
-                    
-                case DWORDSIZE:
-                    rv = T_DWORD;
-                    break;
-                    
-                case LWORDSIZE:
-                    rv = T_LWORD;
-                    break;
-                    
-                default:
-                    if(0 <= x
-                    && x < BYTESIZE)
-                        rv = T_BOOL; 
-            }
-        }
-    }
-    return rv;
-}
-
 int instruct(plc_t p, rung_t r, unsigned int *pc)
 {
     BYTE type = 0;
@@ -1211,104 +903,6 @@ int instruct(plc_t p, rung_t r, unsigned int *pc)
 	if(increment == TRUE)
 	    (*pc)++;
     return error;
-}
-
-/**********************************rung*************************************/
-void deepcopy(const instruction_t from, instruction_t to)
-{
-    //deepcopy        
-        to->operation = from->operation;
-        to->operand = from->operand;
-        to->modifier = from->modifier;
-        to->byte = from->byte;
-        to->bit = from->bit;
-        if(from->label != NULL)
-            strcpy(to->label, from->label);
-         if(from->lookup != NULL)
-            strcpy(to->lookup, from->lookup);
-}
-
-int get(const rung_t r, const unsigned int idx, instruction_t *i)
-{
-    if(r==NULL
-    || idx >= r->insno)
-        return PLC_ERR;
-    *i = r->instructions[idx];       
-    return PLC_OK;
-}
-
-int append(const instruction_t i, rung_t r) {
-    if(r==NULL || r->insno == MAXBUF)
-         return PLC_ERR;
-    if(i!=NULL){
-        if(r->instructions == NULL){//lazy allocation
-            r->instructions = 
-                (instruction_t *)malloc(MAXBUF*sizeof(instruction_t));
-            memset(r->instructions, 0, MAXBUF*sizeof(instruction_t));
-        }
-        if(lookup(i->label, r) >=0)
-            return PLC_ERR; //dont allow duplicate labels
-            
-        instruction_t ins = (instruction_t)malloc(sizeof(struct instruction));
-        memset(ins, 0, sizeof(struct instruction));
-        deepcopy(i, ins);
-            
-        r->instructions[(r->insno)++] = ins;
-    }
-    return PLC_OK;
-}
-
-void clear_rung(rung_t r) { 
-    int i = 0;
-    if( r!=NULL
-    &&  r->instructions != NULL){
-        for(;i<MAXBUF;i++){
-            if(r->instructions[i]!=NULL)
-                free(r->instructions[i]);
-        }
-        free(r->instructions);
-        r->instructions = NULL;
-        r->insno = 0;
-        //TODO: also free rung, return null
-    }      
-}
-
-int lookup(const char * label, rung_t r) {
-    int ret = PLC_ERR;
-    if (label == NULL
-    || r == NULL)
-        return ret;
-    
-    int i = 0;
-    instruction_t ins = NULL;
-    for(; i < r->insno; i++){
-        get(r, i, &ins);
-        if(strlen(ins->label) > 0
-        && strcmp(ins->label, label) == 0){
-            ret = i;
-            break;
-        }
-    }
-    return ret;    
-}
-
-int intern(rung_t r) {
-    if (r == NULL)
-        return PLC_ERR;
-    
-    int i = 0;
-    instruction_t ins = NULL;
-    for(; i < r->insno; i++){
-        get(r, i, &ins);
-        if(strlen(ins->lookup) > 0){
-            int l = lookup(ins->lookup, r);
-            if(l < 0)
-                return PLC_ERR;
-            else
-                ins->operand = l;
-        } 
-    }
-    return PLC_OK;
 }
 
 rung_t mk_rung(plc_t p) {
@@ -1826,76 +1420,4 @@ plc_t copy_plc(const plc_t plc) {
     return p;
 }
 
-
-/*******************debugging tools***************/
-/*TODO: factor out utilities*/
-void dump_label(char * label, char * dump) {
-    char buf[NICKLEN] = "";
-    if(label[0] != 0)
-        sprintf(buf, "%s:", label);
-    strcat(dump, buf);
-}
-
-void dump_instruction(instruction_t ins, char * dump) {
-    if(ins == NULL)
-        return;
-    char buf[8] = "";
-    dump_label(ins->label, dump);
-    strcat(dump, IlCommands[ins->operation]);
-    if(ins->operation >= IL_RET){
-        strcat(dump, IlModifiers[ins->modifier - 1]);
-        if(ins->operation == IL_JMP){
-            sprintf(buf, "%d", ins->operand);
-            strcat(dump, buf);
-        }
-        else {
-            strcat(dump, IlOperands[ins->operand - OP_INPUT]);    
-            sprintf(buf, "%d/%d", ins->byte, ins->bit);
-            strcat(dump, buf);
-        }
-    }
-    strcat(dump, "\n");
-}
-
-void dump_rung(rung_t r, char * dump) {
-    if(r == NULL
-    || dump == NULL)
-        return;
-    instruction_t ins;
-    unsigned int pc = 0;
-    char buf[4] = "";
-    for(;pc<r->insno;pc++){
-        if(get(r, pc, &ins) < PLC_OK)
-            return;
-        sprintf(buf, "%d.",pc);
-        strcat(dump, buf);   
-        dump_instruction(ins, dump);
-    }    
-    //printf("%s", dump);
-}
-
-double Mean = 0;
-double M2 = 0;
-unsigned long Loop = 0;
-
-void compute_variance(double x) {
-    if(Loop == 0){//overflow
-       Mean = 0;
-       M2 = 0; 
-    }    
-    Loop++;    
-    double delta = x - Mean;
-    Mean += delta / (double)Loop;
-    M2 += delta * (x - Mean);    
-}
-
-void get_variance(double * mean, double * var) {
-    *mean = Mean;
-    if(Loop > 1)
-        *var = M2/(double)(Loop - 1);
-}
-
-unsigned long get_loop() {
-    return Loop;
-}
 

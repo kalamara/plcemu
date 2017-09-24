@@ -9,19 +9,12 @@
 #include <string.h>
 #include <poll.h>
 #include <inttypes.h>
- 
-#define NEGATE 128//negate second operand, not return value.
-#define BOOLEAN   64
-#define NOP	0
-
-#define BYTE unsigned char
 
 #define MILLION 1000000
 #define THOUSAND 1000
-#define PLC_OK 0
-#define PLC_ERR -1
+
+#define MAXRUNG 256 
 #define MAXBUF 256 
-#define MAXRUNG 256
 #define MAXSTR	1024
 #define MEDSTR	256
 #define SMALLSTR 128
@@ -30,17 +23,7 @@
 #define TINYSTR 32
 #define COMMLEN 16
 
-#define LWORDSIZE 64
-#define DWORDSIZE 32
-#define WORDSIZE 16
-#define BYTESIZE 8
-
 #define LONG_BYTES 8
-
-#define LABELLEN 4
-#define NICKLEN	16
-#define FALSE 0
-#define TRUE 1
 
 #define FLOAT_PRECISION 0.000001
 #define ASCIISTART 0x30
@@ -80,108 +63,6 @@ typedef enum{
     LANG_ST
 }LANGUAGES;
 
-typedef enum{
-    T_BOOL, //- 1 bit
-    T_BYTE, //- 8 bit (1 byte)
-    T_WORD, //- 16 bit (2 byte)
-    T_DWORD,//- 32 bit (4 byte)
-    T_LWORD,//- 64 bit (8 byte)
-    T_REAL,//- (8 byte) double floating point number   
-    
-    N_TYPES
-}DATATYPES;
-
-#define BOOL(x) x > 0 ? TRUE : FALSE 
- 
-/**
- *IL instructions
- */
-typedef enum{
-    ///IL OPCODES: 
-    IL_NOP,///no operand
-    IL_POP,     ///)
-    IL_RET,         ///RET
-    //arithmetic LABEL
-    IL_JMP,         ///JMP
-    //subroutine call (unimplemented)
-    IL_CAL,         ///CAL
-    //boolean, no modifier
-    IL_SET,         ///S
-    IL_RESET,       ///R
-    //any operand, only negation
-    IL_LD,          ///LD
-    IL_ST,          ///ST
-    //any operand, only push
-    //boolean, all modifiers
-    IL_AND,         ///AND
-    IL_OR,          ///OR
-    IL_XOR,         ///XOR
-    IL_ADD,          ///ADD
-    IL_SUB,          ///SUBTRACT
-    IL_MUL,          ///MULTIPLY
-    IL_DIV,          ///DIVIDE
-    IL_GT,          ///GREATER THAN
-    IL_GE,          ///GREATER OR EQUAL
-    IL_EQ,          ///EQUAL
-    IL_NE,          ///NOT EQUAL
-    IL_LT,          ///LESS THAN
-    IL_LE,          ///LESS OR EQUAL
-    N_IL_INSN
-}IL_INSN;
-
-#define FIRST_BITWISE IL_AND
-#define FIRST_ARITHMETIC IL_ADD
-#define FIRST_COMPARISON IL_GT
-
-#define IS_BITWISE(x) (x >= FIRST_BITWISE && x < FIRST_ARITHMETIC)
-#define IS_ARITHMETIC(x) (x >= FIRST_ARITHMETIC && x < FIRST_COMPARISON)
-#define IS_COMPARISON(x) (x >= FIRST_COMPARISON && x < N_IL_INSN)
-#define IS_OPERATION(x) (x >= FIRST_BITWISE && x < N_IL_INSN) 
- 
-typedef enum{
-///operands
-    OP_INPUT = 20,  ///i
-    OP_REAL_INPUT,  ///if
-    OP_FALLING, 	///f
-    OP_RISING,      ///r
-    OP_MEMORY,  	///m
-    OP_REAL_MEMORY, ///mf
-    OP_COMMAND,     ///c
-    OP_BLINKOUT,    ///b
-    OP_TIMEOUT,     ///t
-    OP_OUTPUT,   	///q
-    OP_REAL_OUTPUT, ///qf
-    ///coils 
-    OP_CONTACT,     ///Q
-    OP_REAL_CONTACT,///QF
-    OP_START,       ///T
-    OP_PULSEIN,     ///M
-    OP_REAL_MEMIN,  ///MF
-    OP_WRITE,       ///W
-    OP_END,         ///0
-    N_OPERANDS
-}IL_OPERANDS;
-
-#define OP_VALID(x) x >= OP_INPUT && x < N_OPERANDS
-#define OP_REAL(x) x == OP_REAL_INPUT \
-                || x == OP_REAL_MEMORY \
-                || x == OP_REAL_OUTPUT \
-                || x == OP_REAL_CONTACT \
-                || x == OP_REAL_MEMIN
-
-/**
- *IL modifiers
- */
-typedef enum{
-    IL_NEG = 1, /// '!'
-    IL_PUSH,    /// '('
-    IL_NORM,    /// ' '
-    IL_COND,    ///'?'
-    N_IL_MODIFIERS
-}IL_MODIFIERS;
-
-#define IS_MODIFIER(x) (x >= IL_NEG && x < N_IL_MODIFIERS) 
-
 typedef enum{///boolean function blocks supported
     BOOL_DI,        ///digital input
     BOOL_DQ,        ///digital output
@@ -203,53 +84,7 @@ typedef enum{
     CHANGED_S = 0x10,
 }CHANGE_DELTA; 
 
-//TODO: add type for checkings and castings
-typedef union accdata{
-  uint64_t u; 
-  double r;
-} data_t; //what can the accumulator be
-
-
-/**
- * @brief The opcode struct
- *AND, OR, XOR, ANDN, ORN, XORN.
- *TODO: byte type operations.
- *if op > 128 then value is negated first.
- */
-typedef struct opcode{
-    BYTE operation;
-    BYTE type;
-    BYTE depth;
-    union accdata value;
-    struct opcode * next;
-} * opcode_t;
-
-/**
- * @brief The instruction struct
- */
-typedef struct instruction{
-    char label[MAXBUF];
-    char lookup[MAXBUF]; //label to lookup (applies to JMP etc.)
-    BYTE operation;
-    BYTE operand;
-    BYTE modifier;
-    BYTE byte;
-    BYTE bit;
-} * instruction_t;
-
-/**
- * @brief The instruction list executable rung
- */
-typedef struct rung{
-  instruction_t * instructions;
-  unsigned int insno;///actual no of active lines
-  struct rung * next; ///linked list of rungs
-  opcode_t stack; ///head of stack
-  struct opcode prealloc[MAXBUF]; ///preallocated stack    
-  union accdata acc;    ///accumulator
-} * rung_t;
-
-
+/***********************plc_t*****************************/
 /**
  * @brief The digital_input struct
  */
@@ -388,41 +223,6 @@ typedef struct PLC_regs{
 	                        //FIXME: throw this feature away
 	struct PLC_regs * old; //pointer to previous state
 } * plc_t;
-
-/**
- * @brief take the next available member in the preallocated stack
- * @param the rung where the stack belongs
- * @return the candidate stack head
- */
-opcode_t take(rung_t r);
-
-/**
- * @brief give the stack head back to the stack
- * @param the head to give
- */
-void give( opcode_t head);
-
-/**
- * @brief push an opcode and a value into rung's stack.
- * @param op the operation
- * @param t the type
- * @param val
- * @param the rung //pointer to head of stack
- * @return OK or error
- */
-int push( BYTE op, 
-          BYTE t, 
-          const data_t val,
-          rung_t r );
-         
-/**
- * @brief retrieve stack heads operation and operand,
- * apply it to val and return result
- * @param val
- * @param pointer to head of stack
- * @return result
- */
-data_t pop( const data_t val, opcode_t *stack);
 
 /**
  * @brief execute JMP instruction
@@ -627,90 +427,12 @@ int handle_stackable(const instruction_t op,
                      plc_t p);
 
 /**
- * @brief get type of instruction
- * @convention type is encoded in the instruction
- * the length is given by the bit part, and the scalar / real is defined by 
- * the operand (analog / digital)
- * @param instruction
- * @return the type, or error
- */
-int get_type(const instruction_t ins);
-
-/**
  * @brief execute IL instruction
  * @param the plc
  * @param the rung
  * @return OK or error
  */
 int instruct(plc_t p, rung_t r, unsigned int *pc);
-
-uint64_t operate_u(BYTE op, uint64_t a, uint64_t b);
-
-double operate_d(BYTE op, double a, double b);
-float operate_f(BYTE op, float a, float b);
-
-/**
- * @brief operate operator op of type t on data a and b
- * @param operator
- * @param type
- * @param a
- * @param b
- * @return result if available
- */
-data_t operate( BYTE op, 
-                       BYTE t, 
-                       const data_t a, 
-                       const data_t b);
-
-/**
-  *@brief deepcopy instructions
-  *@param from
-  *@param to
-  */ 
-void deepcopy(const instruction_t from, instruction_t to);
-    
-
-/**
- * @brief get instruction reference from rung
- * @param r a rung AKA instructions list
- * @param i the instruction reference
- * @param idx the index
- * @return OK or error
- */
-int get( const rung_t r, 
-         unsigned int idx, 
-         instruction_t * i);
-
-/**
- * @brief append instruction to rung
- * @param i a new instruction
- * @param r a rung AKA instructions list
- * @return OK or error
- */
-int append( const instruction_t i, rung_t r);
-
-/**
- * @brief clear rung from instructions and free memory
- * @param r a rung AKA instructions list
- */
-void clear_rung( rung_t r);
-
-/**
- * @brief lookup instruction by label
- * @param label
- * @param r a rung AKA instructions list
- * @return the index (pc) of the instruction, or error if not found
- */
-int lookup( const char * label, rung_t r);
-
-/**
- * @brief intern  labels
- * for each lookup command (JMP etc.) the lookup label is 
- * looked up and if found the resulting index stored to the modifier
- * @param r a rung AKA instructions list
- * @return OK, or error if : a label is not found or found duplicate
- */
-int intern( rung_t r);
 
 /**
  * @brief add a new rung to a plc
@@ -943,12 +665,6 @@ plc_t new_plc(
  */
 plc_t copy_plc(const plc_t plc); 
 
-/*******************debugging tools****************/
-void dump_label( char * label, char * dump);
-void dump_instruction( instruction_t ins, char * dump);
-void dump_rung( rung_t ins, char * dump);
-void compute_variance( double x);
-void get_variance( double * mean, double * var);
-unsigned long get_loop();
+
 
 #endif //_PLCLIB_H_

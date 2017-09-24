@@ -149,6 +149,39 @@ int load_program_file(const char * path, plc_t plc) {
     }
 }
 */
+
+const char * Config_vars[N_CONFIG_VARIABLES] = {
+    "STEP",
+    "PIPE",
+    "SIGENABLE",
+    "PAGELEN",
+    "PAGEWIDTH",
+    "HW",
+    "NT",
+    "NS",
+    "NR",
+    "NM",
+    "NDI",
+    "NDQ",
+    "NAI",
+    "NAQ",
+    "RESPONSE",
+    "USPACE",
+    "COMEDI",
+    "SIM",
+    "IL",
+    "LD",
+    //sequences
+    "AI",
+    "AQ",
+    "DI",
+    "DQ",
+    "MVAR",
+    "MREG",
+    "TIMER",
+    "PULSE"
+};
+
 int plc_load_file(const char * path) { 
     FILE * f;
     char * tab = 0;
