@@ -186,7 +186,7 @@ typedef struct PLC_regs{
 	double *mask_aq;
     BYTE command;   ///serial command from plcpipe
     BYTE response;  ///response to named pipe
-    BYTE status;    ///0 = stopped, 1= running
+    int status;    ///0 = stopped, 1 = running, negative = error
 	
 	BYTE ni; ///number of bytes for digital inputs 
 	di_t di; ///digital inputs
@@ -657,7 +657,6 @@ plc_t new_plc(
     int step,
     const char * hw);
 
-
 /**
  * @brief copy constructor
  * @param source plc
@@ -665,6 +664,54 @@ plc_t new_plc(
  */
 plc_t copy_plc(const plc_t plc); 
 
+/*configurators*/
+//plc_t declare_input(const plc_t p,  BYTE idx, const char* val);
 
+/**
+ * @brief assign name to a plc register variable
+ * @param plc instance   
+ * @param the type of variable (IL_OPERANDS enum value)
+ * @param variable index
+ * @param variable name
+ * @see also data.h
+ * @return plc instance with saved change or updated error status
+ */
+plc_t declare_variable(const plc_t p, 
+                        int var,
+                        BYTE idx,                          
+                        const char* val);
+
+/**
+ * @brief assign upper or lower limit to an analog input or output
+ * @param plc instance   
+ * @param the type of io (IL_OPERANDS enum value)
+ * @param variable index
+ * @param the limit value (serialized float eg. "5.35")
+ * @param upper limit if true, otherwise lower limit
+ * @see also data.h
+ * @return plc instance with saved change or updated error status
+ */
+plc_t configure_io_limit(
+    const plc_t p, 
+    int io, 
+    BYTE idx, 
+    const char* val,
+    BYTE max);
+
+plc_t init_register(const plc_t p, BYTE idx, const char* val);
+
+plc_t init_register_r(const plc_t p, BYTE idx, const char* val);
+
+plc_t define_reg_direction(const plc_t p, BYTE idx, const char* val);
+
+plc_t define_reg_readonly(const plc_t p, BYTE idx, const char* val);
+
+plc_t init_timer_set(const plc_t p, BYTE idx, const char* val);
+
+plc_t init_timer_preset(const plc_t p, BYTE idx, const char* val);
+
+plc_t init_timer_delay(const plc_t p, BYTE idx, const char* val);
+
+plc_t init_blinker_set(const plc_t p, BYTE idx, const char* val);
 
 #endif //_PLCLIB_H_

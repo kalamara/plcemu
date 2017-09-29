@@ -28,9 +28,6 @@ link ../../src/vm/parser-tree.c ./vm/parser-tree.c
 unlink ./vm/codegen.c
 link ../../src/vm/codegen.c ./vm/codegen.c
 
-unlink ./vm/init.c
-link ../../src/vm/init.c ./vm/init.c
-
 unlink ./config.c
 link ../../src/config.c ./app/config.c
 

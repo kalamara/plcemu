@@ -179,7 +179,7 @@ int main ()
   }
   
   //initialization
- if(ADD_TEST(suite_init, ut_extract) 
+ if(ADD_TEST(suite_init, ut_config) 
  || ADD_TEST(suite_init, ut_construct)
      )
   {

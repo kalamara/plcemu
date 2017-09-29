@@ -11,9 +11,7 @@ SRCS = vm-stubs.c\
  parser-ld.c\
  parser-tree.c\
  codegen.c\
- init.c\
-
-
+ 
 IFLAGS+=-I. -I.. -Imock/ -I../../../src/  -I../../../src/vm   
 
 # These are the top-level common vars

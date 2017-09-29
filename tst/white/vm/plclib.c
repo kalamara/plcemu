@@ -1420,4 +1420,127 @@ plc_t copy_plc(const plc_t plc) {
     return p;
 }
 
+/*configurators*/
+plc_t declare_variable(const plc_t p, 
+                        int var, 
+                        BYTE idx, 
+                        const char* val) {
+    plc_t r = p;
+    char * nick = NULL;
+    BYTE max = 0;
+    switch(var){
+        case OP_INPUT:
+            max = p->ni;
+            nick = r->di[idx].nick;
+            break;
+            
+        case OP_OUTPUT:
+            max = p->nq;
+            nick = r->dq[idx].nick;
+            break;
+            
+        case OP_REAL_INPUT:
+            max = p->nai;
+            nick = r->ai[idx].nick;
+            break;
+            
+        case OP_REAL_OUTPUT:
+            max = p->naq;
+            nick = r->aq[idx].nick;
+            break;    
+            
+        case OP_MEMORY:
+            max = p->nm;
+            nick = r->m[idx].nick;
+            break;
+            
+        case OP_REAL_MEMORY:
+            max = p->nmr;
+            nick = r->mr[idx].nick;
+            break;
+            
+        case OP_TIMEOUT:
+            max = p->nt;
+            nick = r->t[idx].nick;
+            break;
+            
+        case OP_BLINKOUT:
+            max = p->ns;
+            nick = r->s[idx].nick;
+            break;        
+            
+        default: break;
+    }
+    
+    if(nick == NULL){
+        
+        r->status = ERR_BADOPERAND;
+    } else if(idx >= max){
+        
+        r->status = ERR_BADINDEX;
+    } else {        
+        
+        snprintf(nick, NICKLEN, "%s", val);
+    }
+    return r;
+}
 
+
+
+plc_t configure_io_limit(const plc_t p, 
+                        int var, 
+                        BYTE idx, 
+                        const char* val,
+                        BYTE upper){
+    plc_t r = p;
+    aio_t io = NULL;
+    BYTE len = 0;
+    switch(var){
+            case OP_REAL_INPUT:
+            io = r->ai;
+            len = r->nai;
+            break;
+            
+        case OP_REAL_OUTPUT:
+            io = r->aq;
+            len = r->naq;
+            break;    
+        
+        default: break;
+    }
+    
+    if(io == NULL){
+        
+        r->status = ERR_BADOPERAND;
+    } else if(idx >= len){
+        
+        r->status = ERR_BADINDEX;
+    } else if(upper) {        
+        
+        io[idx].max = atof(val);
+    } else {
+        
+        io[idx].min = atof(val);
+    }
+    
+    return r;
+}
+
+/*
+
+plc_t init_register(const plc_t p, BYTE idx, const char* val);
+
+plc_t init_register_r(const plc_t p, BYTE idx, const char* val);
+
+plc_t define_reg_direction(const plc_t p, BYTE idx, const char* val);
+
+plc_t define_reg_readonly(const plc_t p, BYTE idx, const char* val);
+
+plc_t init_timer_set(const plc_t p, BYTE idx, const char* val);
+
+plc_t init_timer_preset(const plc_t p, BYTE idx, const char* val);
+
+plc_t init_timer_delay(const plc_t p, BYTE idx, const char* val);
+
+plc_t init_blinker_set(const plc_t p, BYTE idx, const char* val);
+*/

@@ -1,69 +1,6 @@
 #ifndef _UT_INIT_H_ 
 #define _UT_INIT_H_
 
-struct PLC_regs Plc;
-
-void ut_extract() 
-{
-    char * line = "I 1 lol";
-    char name[SMALLSTR];
-    int index = 0;
-    int r = extract_name(NULL, NULL, -1 );
-    CU_ASSERT(r == PLC_ERR);
-    
-    r = extract_name(line, NULL, -1 );
-    CU_ASSERT(r == PLC_ERR);
-    
-    r = extract_name(line, name, 0);
-    CU_ASSERT(r == 1);
-    CU_ASSERT_STRING_EQUAL(name, "I");
-    
-    //
-    
-    line = "  \t\n   I_MAX 1 lol";
-    r = extract_name(line, name, 0);  
-    //ignore trailing spaces
-    CU_ASSERT(r == 12);
-    CU_ASSERT_STRING_EQUAL(name, "I_MAX");
-    
-    //printf("found %s up to %d\n", name, r);
-    
-    r = extract_index(NULL, NULL, -1 );
-    CU_ASSERT(r == PLC_ERR);
-    
-    r = extract_index(line, NULL, -1 );
-    CU_ASSERT(r == PLC_ERR);
-    
-    line = "I 5 lol";
-    r = extract_index(line, &index, 1);
-    CU_ASSERT(r == 3);
-    CU_ASSERT(index == 5);
-    //
-    line = "I\t\t \n\r57 lol";
-    r = extract_index(line, &index, 1);
-    CU_ASSERT(r == 8);
-    CU_ASSERT(index == 57);
-    //printf("found %d up to %d\n", index, r);
-    
-    r = extract_value(NULL, NULL, -1 );
-    CU_ASSERT(r == PLC_ERR);
-    
-    r = extract_value(line, NULL, -1 );
-    CU_ASSERT(r == PLC_ERR);
-    
-    line = "I 5 lol";
-    r = extract_value(line, name, 3 );
-    CU_ASSERT(r == 7);
-    CU_ASSERT_STRING_EQUAL(name, "lol");
-    
-    line = "I 5 lol\n\r\n\n\n";
-    r = extract_value(line, name, 3 );
-    CU_ASSERT(r == 7);
-    CU_ASSERT_STRING_EQUAL(name, "lol");
-    //printf("found %s up to %d\n", name, r);
-   
-}
-
 void ut_construct()
 {
     plc_t plc = new_plc(8,8,4,4,4,4,4,4,100,"simulated_hardware"); 
@@ -141,6 +78,51 @@ void ut_construct()
     CU_ASSERT(plc->command == 0);
 	CU_ASSERT(plc->status = 1);
 	
+}
+
+void ut_config(){
+    plc_t plc = new_plc(8,8,4,4,4,4,4,4,100,"simulated_hardware");
+
+    plc = declare_variable(plc, 0, 99, "input_1");
+    CU_ASSERT(plc->status == ERR_BADOPERAND);
+
+    plc->status = PLC_OK;
+    plc = declare_variable(plc, OP_INPUT, 99, "input_1");
+    CU_ASSERT(plc->status == ERR_BADINDEX);
+
+    plc->status = PLC_OK;
+    plc = declare_variable(plc, OP_INPUT, 1, "input_1");
+    CU_ASSERT_STRING_EQUAL(plc->di[1].nick, "input_1");
+    CU_ASSERT(plc->status == PLC_OK);
+    
+    plc = declare_variable(plc, OP_OUTPUT, 2, "output_1");
+    CU_ASSERT_STRING_EQUAL(plc->dq[2].nick, "output_1");
+    
+    plc = declare_variable(plc, OP_REAL_INPUT, 5, "input_1");
+    CU_ASSERT(plc->status == ERR_BADINDEX);
+
+    plc->status = PLC_OK;
+
+    plc = declare_variable(plc, OP_REAL_OUTPUT, 2, "output_1");
+    CU_ASSERT_STRING_EQUAL(plc->aq[2].nick, "output_1");
+
+
+
+
+    
+    plc = configure_io_limit(plc, 0, 99, "0.0", TRUE);
+    CU_ASSERT(plc->status == ERR_BADOPERAND);
+
+    plc->status = PLC_OK;
+    plc = configure_io_limit(plc, OP_REAL_OUTPUT, 99, "", FALSE);
+    CU_ASSERT(plc->status == ERR_BADINDEX);
+
+    plc->status = PLC_OK;
+    plc = configure_io_limit(plc, OP_REAL_INPUT, 1, "-10.0", FALSE);
+    CU_ASSERT_DOUBLE_EQUAL(plc->ai[1].min, -10.0, FLOAT_PRECISION);
+    CU_ASSERT(plc->status == PLC_OK);
+    
+    
 }
 
 #endif //_UT_INIT_H_
