@@ -106,10 +106,8 @@ void ut_config(){
     plc = declare_variable(plc, OP_REAL_OUTPUT, 2, "output_1");
     CU_ASSERT_STRING_EQUAL(plc->aq[2].nick, "output_1");
 
+/*******************************************************************/
 
-
-
-    
     plc = configure_io_limit(plc, 0, 99, "0.0", TRUE);
     CU_ASSERT(plc->status == ERR_BADOPERAND);
 
@@ -122,7 +120,82 @@ void ut_config(){
     CU_ASSERT_DOUBLE_EQUAL(plc->ai[1].min, -10.0, FLOAT_PRECISION);
     CU_ASSERT(plc->status == PLC_OK);
     
+/*******************************************************************/    
     
+    plc = init_variable(plc, 0, 99, "0.0");
+    CU_ASSERT(plc->status == ERR_BADOPERAND);
+
+    plc->status = PLC_OK;
+    plc = init_variable(plc, OP_MEMORY, 99, "");
+    CU_ASSERT(plc->status == ERR_BADINDEX);
+
+    plc->status = PLC_OK;
+    plc = init_variable(plc, OP_REAL_MEMORY, 1, "-10.0");
+    CU_ASSERT_DOUBLE_EQUAL(plc->mr[1].V, -10.0, FLOAT_PRECISION);
+    CU_ASSERT(plc->status == PLC_OK); 
+    
+/*******************************************************************/    
+    
+    plc = configure_variable_readonly(plc, 0, 99, "FALSE");
+    CU_ASSERT(plc->status == ERR_BADOPERAND);
+
+    plc = configure_variable_readonly(plc, OP_MEMORY, 99, "TRUE");
+    CU_ASSERT(plc->status == ERR_BADINDEX);
+
+    plc->status = PLC_OK;
+    plc = configure_variable_readonly(plc, OP_REAL_MEMORY, 1, "TRUE");
+    CU_ASSERT(plc->mr[1].RO == TRUE);
+    CU_ASSERT(plc->status == PLC_OK);  
+
+/*******************************************************************/
+
+    plc = configure_counter_direction(plc, 99, "UP");
+    CU_ASSERT(plc->status == ERR_BADINDEX);
+
+    plc->status = PLC_OK;
+    plc = configure_counter_direction(plc, 1, "DOWN");
+    CU_ASSERT(plc->m[1].DOWN == TRUE);
+    CU_ASSERT(plc->status == PLC_OK); 
+
+/*******************************************************************/
+
+    plc = configure_timer_scale(plc, 99, "105");
+    CU_ASSERT(plc->status == ERR_BADINDEX);
+
+    plc->status = PLC_OK;
+    plc = configure_timer_scale(plc, 1, "105");
+    CU_ASSERT(plc->t[1].S == 105);
+    CU_ASSERT(plc->status == PLC_OK); 
+
+/*******************************************************************/
+    
+    plc = configure_timer_preset(plc, 99, "105");
+    CU_ASSERT(plc->status == ERR_BADINDEX);
+
+    plc->status = PLC_OK;
+    plc = configure_timer_preset(plc, 1, "105");
+    CU_ASSERT(plc->t[1].P == 105);
+    CU_ASSERT(plc->status == PLC_OK);     
+
+/*******************************************************************/
+
+    plc = configure_timer_delay_mode(plc, 99, "OFF");
+    CU_ASSERT(plc->status == ERR_BADINDEX);
+
+    plc->status = PLC_OK;
+    plc = configure_timer_delay_mode(plc, 1, "ON");
+    CU_ASSERT(plc->t[1].ONDELAY == TRUE);
+    CU_ASSERT(plc->status == PLC_OK); 
+   
+/******************************************************************/  
+   
+    plc = configure_pulse_scale(plc, 99, "105");
+    CU_ASSERT(plc->status == ERR_BADINDEX);
+
+    plc->status = PLC_OK;
+    plc = configure_pulse_scale(plc, 1, "105");
+    CU_ASSERT(plc->s[1].S == 105);
+    CU_ASSERT(plc->status == PLC_OK);    
 }
 
 #endif //_UT_INIT_H_

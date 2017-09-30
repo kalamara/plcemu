@@ -682,6 +682,32 @@ plc_t declare_variable(const plc_t p,
                         const char* val);
 
 /**
+ * @brief assign initial value to a plc register variable
+ * @param plc instance   
+ * @param the type of variable (IL_OPERANDS enum value)
+ * @param variable index
+ * @param variable initial value (serialized float or long eg.
+ * "5.35" or "12345")
+ * @see also data.h
+ * @return plc instance with saved change or updated error status
+ */
+plc_t init_variable(const plc_t p, int var, BYTE idx, const char* val);
+
+/**
+ * @brief configure a plc register variable as readonly
+ * @param plc instance   
+ * @param the type of variable (IL_OPERANDS enum value)
+ * @param variable index
+ * @param serialized readonly flag (true if "TRUE", false otherwise)
+ * @see also data.h
+ * @return plc instance with saved change or updated error status
+ */
+plc_t configure_variable_readonly(const plc_t p, 
+                                int var, 
+                                BYTE idx, 
+                                const char* val);
+                                
+/**
  * @brief assign upper or lower limit to an analog input or output
  * @param plc instance   
  * @param the type of io (IL_OPERANDS enum value)
@@ -691,27 +717,68 @@ plc_t declare_variable(const plc_t p,
  * @see also data.h
  * @return plc instance with saved change or updated error status
  */
-plc_t configure_io_limit(
-    const plc_t p, 
-    int io, 
-    BYTE idx, 
-    const char* val,
-    BYTE max);
+plc_t configure_io_limit(const plc_t p, 
+                        int io, 
+                        BYTE idx, 
+                        const char* val,
+                        BYTE max);                                
 
-plc_t init_register(const plc_t p, BYTE idx, const char* val);
+/**
+ * @brief configure a register as up or down counter
+ * @param plc instance   
+ * @param variable index
+ * @param serialized direction flag (true if "DOWN", false otherwise)
+ * @return plc instance with saved change or updated error status
+ */
+plc_t configure_counter_direction(const plc_t p, 
+                                    BYTE idx, 
+                                    const char* val);
+/**
+ * @brief configure a timer scale
+ * @param plc instance   
+ * @param timer index
+ * @param serialized long (eg 100000)
+ * @see also timer_t
+ * @return plc instance with saved change or updated error status
+ */
+plc_t configure_timer_scale(const plc_t p, 
+                     BYTE idx, 
+                     const char* val);
 
-plc_t init_register_r(const plc_t p, BYTE idx, const char* val);
+/**
+ * @brief configure a timer preset
+ * @param plc instance   
+ * @param timer index
+ * @param serialized long (eg 100000)
+ * @see also timer_t
+ * @return plc instance with saved change or updated error status
+ */
+plc_t configure_timer_preset(const plc_t p, 
+                        BYTE idx, 
+                        const char* val);
 
-plc_t define_reg_direction(const plc_t p, BYTE idx, const char* val);
+/**
+ * @brief configure a timer delay mode
+ * @param plc instance   
+ * @param timer index
+ * @param serialized mode flag (true if "ON", false otherwise)
+ * @see also timer_t
+ * @return plc instance with saved change or updated error status
+ */
+plc_t configure_timer_delay_mode(const plc_t p, 
+                        BYTE idx, 
+                        const char* val);
 
-plc_t define_reg_readonly(const plc_t p, BYTE idx, const char* val);
-
-plc_t init_timer_set(const plc_t p, BYTE idx, const char* val);
-
-plc_t init_timer_preset(const plc_t p, BYTE idx, const char* val);
-
-plc_t init_timer_delay(const plc_t p, BYTE idx, const char* val);
-
-plc_t init_blinker_set(const plc_t p, BYTE idx, const char* val);
+/**
+ * @brief configure a pulse scale
+ * @param plc instance   
+ * @param pulse index
+ * @param serialized long (eg 100000)
+ * @see also blink_t
+ * @return plc instance with saved change or updated error status
+ */
+plc_t configure_pulse_scale(const plc_t p, 
+                        BYTE idx, 
+                        const char* val);
 
 #endif //_PLCLIB_H_

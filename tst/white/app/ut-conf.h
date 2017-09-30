@@ -221,7 +221,7 @@ AI:  \n\
 
 void ut_save(){
     config_t conf = init_config();
-    conf = store_seq_value(CONFIG_AI, 0, "VALUE", "1.0", conf);
+    conf = store_seq_value(CONFIG_AI, 0, "MAX", "1.0", conf);
     conf = store_seq_value(CONFIG_AI, 0, "ID", "var1", conf);
     yaml_emitter_t emitter;
     yaml_emitter_initialize(&emitter);
@@ -267,7 +267,7 @@ AI:\n\
 - 8\n\
 - INDEX: 0\n\
   ID: var1\n\
-  VALUE: 1.0\n\
+  MAX: 1.0\n\
 AQ:\n\
 - 8\n\
 DI:\n\
@@ -284,11 +284,18 @@ PULSES:\n\
 - 4\n\
 ...\n\
 ";
-   
+    
+    
 	CU_ASSERT_STRING_EQUAL(output,expected);
 	printf("%s\n", output);
     CU_ASSERT(r == PLC_OK);
-
+    
+    //how to configure variables
+    //get sequence entry eg. CONFIG_AI
+    //for i -> size
+    //get variable[i]
+    //get value (eg. "MAX")
+    
 }
 
 #endif//_UT_CONF_H_

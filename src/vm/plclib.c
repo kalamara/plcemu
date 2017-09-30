@@ -1485,7 +1485,67 @@ plc_t declare_variable(const plc_t p,
     return r;
 }
 
+plc_t init_variable(const plc_t p, int var, BYTE idx, const char* val){
+    plc_t r = p;
+    BYTE len = 0;
 
+    switch(var){
+       case OP_REAL_MEMORY:
+            len = r->nmr;
+            if(idx >= len){
+                r->status = ERR_BADINDEX;
+            } else {
+                r->mr[idx].V = atof(val);
+            }
+            break;
+            
+        case OP_MEMORY:
+            len = r->nm;
+            if(idx >= len){
+                r->status = ERR_BADINDEX;
+            } else {
+                r->m[idx].V = atol(val);
+            }
+            break;    
+        
+        default:
+            r->status = ERR_BADOPERAND; 
+            break;
+    }
+    return r;
+}
+
+plc_t configure_variable_readonly(const plc_t p, 
+                                int var, 
+                                BYTE idx, 
+                                const char* val){
+    plc_t r = p;
+    BYTE len = 0;
+    switch(var){
+       case OP_REAL_MEMORY:
+            len = r->nmr;
+            if(idx >= len){
+                r->status = ERR_BADINDEX;
+            } else {
+                r->mr[idx].RO = !strcmp(val, "TRUE");
+            }
+            break;
+            
+        case OP_MEMORY:
+            len = r->nm;
+            if(idx >= len){
+                r->status = ERR_BADINDEX;
+            } else {
+                r->m[idx].RO = !strcmp(val, "TRUE");
+            }
+            break;    
+        
+        default:
+            r->status = ERR_BADOPERAND; 
+            break;
+    }
+    return r;
+}
 
 plc_t configure_io_limit(const plc_t p, 
                         int var, 
@@ -1496,7 +1556,7 @@ plc_t configure_io_limit(const plc_t p,
     aio_t io = NULL;
     BYTE len = 0;
     switch(var){
-            case OP_REAL_INPUT:
+        case OP_REAL_INPUT:
             io = r->ai;
             len = r->nai;
             break;
@@ -1521,26 +1581,76 @@ plc_t configure_io_limit(const plc_t p,
     } else {
         
         io[idx].min = atof(val);
-    }
-    
+    }    
     return r;
 }
 
-/*
+plc_t configure_counter_direction(const plc_t p, 
+                                    BYTE idx, 
+                                    const char* val){
+    plc_t r = p;
+    BYTE len = r->nm;
+    
+    if(idx >= len){
+        r->status = ERR_BADINDEX;
+    } else {
+        r->m[idx].DOWN = !strcmp(val, "DOWN");
+    }
+    return r;
+}
 
-plc_t init_register(const plc_t p, BYTE idx, const char* val);
+plc_t configure_timer_scale(const plc_t p, 
+                     BYTE idx, 
+                     const char* val){
+    plc_t r = p;
+    BYTE len = r->nt;
+    
+    if(idx >= len){
+        r->status = ERR_BADINDEX;
+    } else {
+        r->t[idx].S = atol(val);
+    }
+    return r;
+}
+           
+plc_t configure_timer_preset(const plc_t p, 
+                        BYTE idx, 
+                        const char* val){
+    plc_t r = p;
+    BYTE len = r->nt;
 
-plc_t init_register_r(const plc_t p, BYTE idx, const char* val);
+    if(idx >= len){
+        r->status = ERR_BADINDEX;
+    } else {
+        r->t[idx].P = atol(val);
+    }
+    return r;
+}                     
 
-plc_t define_reg_direction(const plc_t p, BYTE idx, const char* val);
+plc_t configure_timer_delay_mode(const plc_t p, 
+                        BYTE idx, 
+                        const char* val){
+    plc_t r = p;
+    BYTE len = r->nt;
+     if(idx >= len){
+        r->status = ERR_BADINDEX;
+    } else {
+        r->t[idx].ONDELAY = !strcmp(val, "ON");
+    }
+    return r;
+}
 
-plc_t define_reg_readonly(const plc_t p, BYTE idx, const char* val);
+plc_t configure_pulse_scale(const plc_t p, 
+                     BYTE idx, 
+                     const char* val){
+    plc_t r = p;
+    BYTE len = r->ns;
+    
+    if(idx >= len){
+        r->status = ERR_BADINDEX;
+    } else {
+        r->s[idx].S = atol(val);
+    }
+    return r;
+}
 
-plc_t init_timer_set(const plc_t p, BYTE idx, const char* val);
-
-plc_t init_timer_preset(const plc_t p, BYTE idx, const char* val);
-
-plc_t init_timer_delay(const plc_t p, BYTE idx, const char* val);
-
-plc_t init_blinker_set(const plc_t p, BYTE idx, const char* val);
-*/
