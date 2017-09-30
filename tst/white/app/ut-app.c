@@ -68,6 +68,7 @@ int main ()
   || ADD_TEST(suite_conf, ut_save)
   || ADD_TEST(suite_conf, ut_store)
   || ADD_TEST(suite_conf, ut_process)
+  || ADD_TEST(suite_conf, ut_get)
      )
   {
 	CU_cleanup_registry ();

@@ -31,14 +31,14 @@ typedef enum
     N_WIN
 }WINDOWS;
 
-extern struct PLC_regs Plc;
+extern plc_t Plc;
 extern char Lines[MAXBUF][MAXSTR];///ladder lines
 extern int Lineno;	///actual no of active lines
 
 void ui_display_message(char *msgstr);
 void ui_draw();
 int ui_update(int page);
-int ui_init(int h, int w);
+int ui_init();
 void ui_end();
 void ui_toggle_enabled();
 

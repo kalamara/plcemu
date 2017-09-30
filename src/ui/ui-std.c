@@ -3,6 +3,10 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <time.h>
+
+#include "data.h"
+#include "instruction.h"
+#include "rung.h"
 #include "plclib.h"
 #include "plcemu.h"
 #include "ui.h"
@@ -69,11 +73,11 @@ void ui_draw()
     memset(outstr,0,SMALLSTR);
     memset(mstr,0,SMALLSTR);
     
-    for(i = 0;i < BYTESIZE * Plc.ni; i++)
-        instr[i] = (((Plc.inputs[i/BYTESIZE])>>(i%BYTESIZE)) % 2)?'1':'0';
+    for(i = 0;i < BYTESIZE * Plc->ni; i++)
+        instr[i] = (((Plc->inputs[i/BYTESIZE])>>(i%BYTESIZE)) % 2)?'1':'0';
     
-    for(i = 0;i < BYTESIZE * Plc.nq; i++)
-        outstr[i] = (((Plc.outputs[i/BYTESIZE])>>(i%BYTESIZE)) % 2)?'1':'0';
+    for(i = 0;i < BYTESIZE * Plc->nq; i++)
+        outstr[i] = (((Plc->outputs[i/BYTESIZE])>>(i%BYTESIZE)) % 2)?'1':'0';
     
     sprintf(buf, "Inputs: %s \n", instr);
     ui_display_message(buf);
@@ -81,30 +85,30 @@ void ui_draw()
     sprintf(buf, "Outputs: %s \n", outstr);
     ui_display_message(buf);
     
-    for(i = 0; i < Plc.nai; i++){
-        sprintf(instr, "%lx", Plc.real_in[i]);  
+    for(i = 0; i < Plc->nai; i++){
+        sprintf(instr, "%lx", Plc->real_in[i]);  
         sprintf(buf, "Analog Input %d (raw): 0x%s \n", i, instr);
         ui_display_message(buf);
-        sprintf(instr, "%lf", Plc.ai[i].V);
+        sprintf(instr, "%lf", Plc->ai[i].V);
         sprintf(buf, "Analog Input %d : %s \n", i, instr);
         ui_display_message(buf);
     }    
     
-    for(i = 0; i < Plc.naq; i++){
-        sprintf(outstr, "%lx", Plc.real_out[i]);  
+    for(i = 0; i < Plc->naq; i++){
+        sprintf(outstr, "%lx", Plc->real_out[i]);  
         sprintf(buf, "Analog Output %d (raw): %s \n", i, outstr);
         ui_display_message(buf);
-        sprintf(outstr, "%lf", Plc.aq[i].V);
+        sprintf(outstr, "%lf", Plc->aq[i].V);
         sprintf(buf, "Analog Output %d : %s \n", i, outstr);
         ui_display_message(buf);
     }
-    for(i = 0; i < Plc.nm; i++){
-        sprintf(mstr, "%lx", Plc.m[i].V);  
+    for(i = 0; i < Plc->nm; i++){
+        sprintf(mstr, "%lx", Plc->m[i].V);  
         sprintf(buf, "Memory Register %d (u): %s \n", i, mstr);
         ui_display_message(buf);
     }
-    for(i = 0; i < Plc.nmr; i++){
-        sprintf(mstr, "%lf", Plc.mr[i].V);
+    for(i = 0; i < Plc->nmr; i++){
+        sprintf(mstr, "%lf", Plc->mr[i].V);
         sprintf(buf, "Memory Register %d (real): %s \n", i, mstr);
         ui_display_message(buf);
     }    
@@ -112,10 +116,10 @@ void ui_draw()
     for(i = 0; i < Lineno; i++)
         ui_display_message(Lines[i]);
     
-    if (Plc.status % 2 == ST_RUNNING) //running
-        sprintf(buf, "Hardware:%s  RUNNING\n", Plc.hw);
+    if (Plc->status % 2 == ST_RUNNING) //running
+        sprintf(buf, "Hardware:%s  RUNNING\n", Plc->hw);
     else
-        sprintf(buf, "Hardware:%s  STOPPED\n", Plc.hw);
+        sprintf(buf, "Hardware:%s  STOPPED\n", Plc->hw);
     
     strcat(str,buf);
     time(&now);
@@ -128,7 +132,7 @@ void ui_draw()
     ui_display_message(str);
 }
 
-int ui_init(int h, int w)
+int ui_init()
 {
     init_help();
     return 1;

@@ -1,4 +1,7 @@
 #include "plcemu.h"
+#include "data.h"
+#include "instruction.h"
+#include "rung.h"
 #include "plclib.h"
 #include "project.h"
 int project_task(plc_t p)

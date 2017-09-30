@@ -1,6 +1,9 @@
 #include <stdarg.h>
 #include <time.h>
 
+#include "data.h"
+#include "instruction.h"
+#include "rung.h"
 #include "plclib.h"
 #include "ui.h"
 #include "util.h"

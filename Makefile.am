@@ -14,7 +14,9 @@ plcemu_SOURCES= src/plcemu.c src/plcemu.h \
                 src/vm/parser-ld.c src/vm/parser-ld.h \
                 src/vm/parser-tree.c src/vm/parser-tree.h \
                 src/vm/codegen.c src/vm/codegen.h \
-                src/vm/init.c src/vm/init.h \
+                src/vm/data.c src/vm/data.h \
+                src/vm/instruction.c src/vm/instruction.h \
+                src/vm/rung.c src/vm/rung.h \
                 src/hw/hardware.h \
                 src/ui/ui.h \
                 src/project.h src/project.c

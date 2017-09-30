@@ -7,6 +7,9 @@
 #include "greek.h"
 #include "plcemu.h"
 #include "util.h"
+#include "data.h"
+#include "instruction.h"
+#include "rung.h"
 #include "plclib.h"
 #include "ui.h"
 
@@ -89,8 +92,8 @@ void load_timers()
 	int i;
 	char s[SMALLBUF], color;
 	buf_clear(TimWinBuf);
-	for (i = 0; i < Plc.nt; i++){
-		if (Plc.t[i].Q)
+	for (i = 0; i < Plc->nt; i++){
+		if (Plc->t[i].Q)
 			color = '.'; //red
 		else
 			color = '#'; //green
@@ -98,10 +101,10 @@ void load_timers()
                 "%cT%dx%ld\t %ld %ld %s", 
                 color, 
                 i, 
-                Plc.t[i].S, 
-                Plc.t[i].V,
-				Plc.t[i].P, 
-				Plc.t[i].nick);
+                Plc->t[i].S, 
+                Plc->t[i].V,
+				Plc->t[i].P, 
+				Plc->t[i].nick);
 		//printf("%s\n",s);
 		app_line(TimWinBuf, s);
 	}
@@ -112,16 +115,16 @@ void load_blinkers()
 	int i;
 	char s[SMALLBUF], color;
 	buf_clear(BlinkWinBuf);
-	for (i = 0; i < Plc.ns; i++){
-		if (Plc.s[i].Q)
+	for (i = 0; i < Plc->ns; i++){
+		if (Plc->s[i].Q)
 			color = '.'; //red
 		else
 			color = '#'; //green
         sprintf(s, "%cS%dx%ld\t %s", 
                 color, 
                 i,
-                Plc.s[i].S, 
-                Plc.s[i].nick);
+                Plc->s[i].S, 
+                Plc->s[i].nick);
 		//printf("%s\n",s);
 		app_line(BlinkWinBuf, s);
 	}
@@ -132,18 +135,18 @@ void load_mvars()
 	int i;
     char s[SMALLBUF], color;
 	buf_clear(MVarWinBuf);
-	for (i = 0; i < Plc.nm; i++){
-		if (Plc.m[i].PULSE)
+	for (i = 0; i < Plc->nm; i++){
+		if (Plc->m[i].PULSE)
 			color = '#'; //green
-		else if (Plc.m[i].RO) //locked
+		else if (Plc->m[i].RO) //locked
 			color = '.'; //red
 		else
 			color = ' ';
         sprintf(s, "%cM%d.\t %ld %s", 
                 color, 
                 i, 
-                Plc.m[i].V, 
-                Plc.m[i].nick);
+                Plc->m[i].V, 
+                Plc->m[i].nick);
 		//printf("%s\n",s);
 		app_line(MVarWinBuf, s);
 	}
@@ -154,16 +157,16 @@ void load_mreals()
 	int i;
     char s[SMALLBUF], color;
 	buf_clear(MRealWinBuf);
-	for (i = 0; i < Plc.nmr; i++){
-		if (Plc.m[i].RO) //locked
+	for (i = 0; i < Plc->nmr; i++){
+		if (Plc->m[i].RO) //locked
 			color = '.'; //red
 		else
 			color = ' ';
         sprintf(s, "%cMF%d.\t %lf %s", 
                 color, 
                 i, 
-                Plc.mr[i].V, 
-                Plc.mr[i].nick);
+                Plc->mr[i].V, 
+                Plc->mr[i].nick);
 		//printf("%s\n",s);
 		app_line(MRealWinBuf, s);
 	}
@@ -175,10 +178,10 @@ void load_inputs()
 	int i;
     char s[SMALLBUF], color, bit;
 	buf_clear(InWinBuf);
-	for(i = 0; i < BYTESIZE * Plc.ni; i++){
-		if(!(((Plc.maskin[i / BYTESIZE]) >> (i % BYTESIZE)) % 2)
-		&& !(((Plc.maskin_N[i / BYTESIZE]) >> (i % BYTESIZE)) % 2)){
-			if(((Plc.inputs[i / BYTESIZE]) >> (i % BYTESIZE)) % 2){
+	for(i = 0; i < BYTESIZE * Plc->ni; i++){
+		if(!(((Plc->maskin[i / BYTESIZE]) >> (i % BYTESIZE)) % 2)
+		&& !(((Plc->maskin_N[i / BYTESIZE]) >> (i % BYTESIZE)) % 2)){
+			if(((Plc->inputs[i / BYTESIZE]) >> (i % BYTESIZE)) % 2){
 				color = '#'; //green
 				bit = '1';
 			}
@@ -189,16 +192,16 @@ void load_inputs()
 		}
 		else{
 			color = '.'; //red
-			if (((Plc.maskin[i / BYTESIZE]) >> (i % BYTESIZE)) % 2)
+			if (((Plc->maskin[i / BYTESIZE]) >> (i % BYTESIZE)) % 2)
 				bit = '1';
-			else if (((Plc.maskin_N[i / BYTESIZE]) >> (i % BYTESIZE)) % 2)
+			else if (((Plc->maskin_N[i / BYTESIZE]) >> (i % BYTESIZE)) % 2)
 				bit = '0';
 		}
 		sprintf(s, "%cI%d.\t %c %s", 
 		        color, 
 		        i, 
 		        bit, 
-		        Plc.di[i].nick);
+		        Plc->di[i].nick);
 		//printf("%s\n",s);
 		app_line(InWinBuf, s);
 	}
@@ -211,20 +214,20 @@ void load_ai()
     char color; 
     double val;
 	buf_clear(AIWinBuf);
-	for(i = 0; i < Plc.nai; i++){
+	for(i = 0; i < Plc->nai; i++){
 		if(is_input_forced(&Plc, i) == FALSE){
 				color = ' ';
-				val = Plc.ai[i].V;
+				val = Plc->ai[i].V;
 		}
 		else{
 			color = '.'; //red
-			val = Plc.mask_ai[i];
+			val = Plc->mask_ai[i];
 		}
 		sprintf(s, "%cIF%d.\t %lf %s", 
 		        color, 
 		        i, 
 		        val, 
-		        Plc.ai[i].nick);
+		        Plc->ai[i].nick);
 		//printf("%s\n",s);
 		app_line(AIWinBuf, s);
 	}
@@ -235,10 +238,10 @@ void load_outputs()
 	int i;
     char s[SMALLBUF], color, bit;
 	buf_clear(OutWinBuf);
-	for(i = 0; i < BYTESIZE * Plc.nq; i++){
-		if(!(((Plc.maskout[i / BYTESIZE]) >> (i % BYTESIZE)) % 2)
-		&& !(((Plc.maskout_N[i / BYTESIZE]) >> (i % BYTESIZE)) % 2)){
-			if(((Plc.outputs[i / BYTESIZE]) >> (i % BYTESIZE)) % 2){
+	for(i = 0; i < BYTESIZE * Plc->nq; i++){
+		if(!(((Plc->maskout[i / BYTESIZE]) >> (i % BYTESIZE)) % 2)
+		&& !(((Plc->maskout_N[i / BYTESIZE]) >> (i % BYTESIZE)) % 2)){
+			if(((Plc->outputs[i / BYTESIZE]) >> (i % BYTESIZE)) % 2){
 				bit = '1';
 				color = '#'; //green
 			}
@@ -249,9 +252,9 @@ void load_outputs()
 		}
 		else{
 			color = '.'; //red
-			if(((Plc.maskout[i / BYTESIZE]) >> (i % BYTESIZE)) % 2)
+			if(((Plc->maskout[i / BYTESIZE]) >> (i % BYTESIZE)) % 2)
 				bit = '1';
-			else if(((Plc.maskout_N[i / BYTESIZE]) >> 
+			else if(((Plc->maskout_N[i / BYTESIZE]) >> 
 			         (i % BYTESIZE)) % 2)
 				bit = '0';
         }
@@ -259,7 +262,7 @@ void load_outputs()
 		        color, 
 		        i, 
 		        bit, 
-		        Plc.dq[i].nick);
+		        Plc->dq[i].nick);
 		//printf("%s\n",s);
 		app_line(OutWinBuf, s);
 	}
@@ -272,20 +275,20 @@ void load_aq()
     char color; 
     double val;
 	buf_clear(AQWinBuf);
-	for(i = 0; i < Plc.naq; i++){
+	for(i = 0; i < Plc->naq; i++){
 		if(is_output_forced(&Plc, i) == FALSE){
 				color = ' ';
-				val = Plc.aq[i].V;
+				val = Plc->aq[i].V;
 		}
 		else{
 			color = '.'; //red
-			val = Plc.mask_aq[i];
+			val = Plc->mask_aq[i];
 		}
 		sprintf(s, "%cQF%d.\t %lf %s", 
 		        color, 
 		        i, 
 		        val, 
-		        Plc.aq[i].nick);
+		        Plc->aq[i].nick);
 		//printf("%s\n",s);
 		app_line(AQWinBuf, s);
 	}
@@ -360,7 +363,7 @@ int main_page()
 			win_set(BlinkWin, i);
 		}
 		else if (WinFlag == WIN_PROGRAM){
-			if (Plc.status % 2 == ST_STOPPED){	
+			if (Plc->status % 2 == ST_STOPPED){	
 				draw_info_line(1,
 						"F4:Run and execute |F7:Load|F8:Save|F9:Help|F10:Quit");
                 return PAGE_EDITMODE;
@@ -395,12 +398,12 @@ int main_page()
 
 		case KEY_F(1):    //F1 forces 1
             if (WinFlag == WIN_DI){
-				Plc.maskin[i / BYTESIZE] |= (1 << i % BYTESIZE);
-				Plc.maskin_N[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
+				Plc->maskin[i / BYTESIZE] |= (1 << i % BYTESIZE);
+				Plc->maskin_N[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
 			}
             else if (WinFlag == WIN_DQ){
-				Plc.maskout[i / BYTESIZE] |= (1 << i % BYTESIZE);
-				Plc.maskout_N[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
+				Plc->maskout[i / BYTESIZE] |= (1 << i % BYTESIZE);
+				Plc->maskout_N[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
 			}
 			else if (WinFlag == WIN_AI){
 			; //TODO: a mechanism for forcing
@@ -417,12 +420,12 @@ int main_page()
 			break;
 		case KEY_F(2):    //F2 forces 0
             if (WinFlag == WIN_DI){
-				Plc.maskin[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
-				Plc.maskin_N[i / BYTESIZE] |= (1 << i % BYTESIZE);
+				Plc->maskin[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
+				Plc->maskin_N[i / BYTESIZE] |= (1 << i % BYTESIZE);
 			}
             else if (WinFlag == WIN_DQ){
-				Plc.maskout[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
-				Plc.maskout_N[i / BYTESIZE] |= (1 << i % BYTESIZE);
+				Plc->maskout[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
+				Plc->maskout_N[i / BYTESIZE] |= (1 << i % BYTESIZE);
 			}
             else if (WinFlag == WIN_AI){
 			; //TODO: a mechanism for forcing
@@ -440,12 +443,12 @@ int main_page()
 			break;
 		case KEY_F(3):    //F3 unforces
             if (WinFlag == WIN_DI){
-				Plc.maskin[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
-				Plc.maskin_N[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
+				Plc->maskin[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
+				Plc->maskin_N[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
 			}
             else if (WinFlag == WIN_DQ){
-				Plc.maskout[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
-				Plc.maskout_N[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
+				Plc->maskout[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
+				Plc->maskout_N[i / BYTESIZE] &= ~(1 << i % BYTESIZE);
 			}
             else if (WinFlag == WIN_AI){
 			; //TODO: a mechanism for forcing
@@ -459,13 +462,13 @@ int main_page()
 			redraw = TRUE;
 			break;
 		case KEY_F(4):    //F4 runs/stops
-			if (Plc.status % 2 == ST_STOPPED){//stopped
+			if (Plc->status % 2 == ST_STOPPED){//stopped
                 plc_log("Start!");
-                Plc.status = ST_RUNNING;
+                Plc->status = ST_RUNNING;
             }
 			else{
                 plc_log("Stop!");
-				--Plc.status;    //running
+				--Plc->status;    //running
             }
 			redraw = TRUE;
 			break;
@@ -475,7 +478,7 @@ int main_page()
 			break;
 		case KEY_F(6):    //toggle lock
 			if (WinFlag == WIN_MEMORY)
-				Plc.m[i].RO = (Plc.m[i].RO) ? FALSE : TRUE;
+				Plc->m[i].RO = (Plc->m[i].RO) ? FALSE : TRUE;
 			redraw = TRUE;
 			break;
 
@@ -557,8 +560,8 @@ int edit_page(int i)
             //x, y;
     //n;
 
-	if (Plc.status % 2)    //if running
-		--Plc.status;    //running
+	if (Plc->status % 2)    //if running
+		--Plc->status;    //running
 
 	if (redraw)
 	{    //init window
@@ -572,77 +575,77 @@ int edit_page(int i)
 		case WIN_DI:    //inputs
 			maxrow = 1;
 			win_puts(EditWin, 1, 1, "Comment        :");
-			sprintf(buf, "%s", Plc.di[i].nick);
+			sprintf(buf, "%s", Plc->di[i].nick);
 			win_puts(EditWin, 1, 20, buf);
 			break;
 		case WIN_DQ:    //outputs
 			maxrow = 1;
 			win_puts(EditWin, 1, 1, "Comment        :");
-			sprintf(buf, "%s", Plc.dq[i].nick);
+			sprintf(buf, "%s", Plc->dq[i].nick);
 			win_puts(EditWin, 1, 20, buf);
 			break;
 		case WIN_AI:    //inputs
 			maxrow = 1;
 			win_puts(EditWin, 1, 1, "Comment        :");
-			sprintf(buf, "%s", Plc.ai[i].nick);
+			sprintf(buf, "%s", Plc->ai[i].nick);
 			win_puts(EditWin, 1, 20, buf);
 			break;
 		case WIN_AQ:    //outputs
 			maxrow = 1;
 			win_puts(EditWin, 1, 1, "Comment        :");
-			sprintf(buf, "%s", Plc.aq[i].nick);
+			sprintf(buf, "%s", Plc->aq[i].nick);
 			win_puts(EditWin, 1, 20, buf);
 			break;
 		
 		case WIN_MEMORY:    //memory
 			maxrow = 3;
 			win_puts(EditWin, 1, 1, "Comment        :");
-			sprintf(buf, "%s", Plc.m[i].nick);
+			sprintf(buf, "%s", Plc->m[i].nick);
 			win_puts(EditWin, 1, 20, buf);
 			win_puts(EditWin, 2, 1, "Value          :");
-            sprintf(buf, "%ld", Plc.m[i].V);
+            sprintf(buf, "%ld", Plc->m[i].V);
 			win_puts(EditWin, 2, 20, buf);
 			win_puts(EditWin, 3, 1, "Downcounting     :");
-			sprintf(buf, "%d", Plc.m[i].DOWN);
+			sprintf(buf, "%d", Plc->m[i].DOWN);
 			win_puts(EditWin, 3, 20, buf);
 			break;
 			
 		case WIN_REAL:    //real
 			maxrow = 2;
 			win_puts(EditWin, 1, 1, "Comment        :");
-			sprintf(buf, "%s", Plc.mr[i].nick);
+			sprintf(buf, "%s", Plc->mr[i].nick);
 			win_puts(EditWin, 1, 20, buf);
 			win_puts(EditWin, 2, 1, "Value          :");
-            sprintf(buf, "%lf", Plc.mr[i].V);
+            sprintf(buf, "%lf", Plc->mr[i].V);
 			win_puts(EditWin, 2, 20, buf);
 			break;
 				
 		case WIN_TIMER:    //timers
 			maxrow = 5;
 			win_puts(EditWin, 1, 1, "Comment        :");
-			sprintf(buf, "%s", Plc.t[i].nick);
+			sprintf(buf, "%s", Plc->t[i].nick);
 			win_puts(EditWin, 1, 20, buf);
 			win_puts(EditWin, 2, 1, "Value          :");
-            sprintf(buf, "%ld", Plc.t[i].V);
+            sprintf(buf, "%ld", Plc->t[i].V);
 			win_puts(EditWin, 2, 20, buf);
 			win_puts(EditWin, 3, 1, "Preset         :");
-            sprintf(buf, "%ld", Plc.t[i].P);
+            sprintf(buf, "%ld", Plc->t[i].P);
 			win_puts(EditWin, 3, 20, buf);
 			win_puts(EditWin, 4, 1, "Cycles/count   :");
-            sprintf(buf, "%ld", Plc.t[i].S);
+            sprintf(buf, "%ld", Plc->t[i].S);
 			win_puts(EditWin, 4, 20, buf);
 			win_puts(EditWin, 5, 1, "ON/OFF delay   :");
-			sprintf(buf, "%d", Plc.t[i].ONDELAY);
+			sprintf(buf, "%d", Plc->t[i].ONDELAY);
 			win_puts(EditWin, 5, 20, buf);
 			break;
 
 		case WIN_BLINKER:    //blinkers
 			maxrow = 2;
 			win_puts(EditWin, 1, 1, "Comment        :");
-			sprintf(buf, "%s", Plc.s[i].nick);
+			sprintf(buf, "%s", Plc->s[i].nick);
 			win_puts(EditWin, 1, 20, buf);
 			win_puts(EditWin, 2, 1, "Cycles/count   :");
-            sprintf(buf, "%ld", Plc.s[i].S);
+            sprintf(buf, "%ld", Plc->s[i].S);
 			win_puts(EditWin, 2, 20, buf);
 			break;
 		case WIN_PROGRAM: //last window is for programming
@@ -662,31 +665,31 @@ int edit_page(int i)
 	switch (WinFlag){    //update correct row every time
 	case WIN_DI:    //inputs
 		if (row == 0)
-			sprintf(buf, "%s", Plc.di[i].nick);
+			sprintf(buf, "%s", Plc->di[i].nick);
 		break;
 	case WIN_DQ:    //outputs
 		if (row == 0)
-			sprintf(buf, "%s", Plc.dq[i].nick);
+			sprintf(buf, "%s", Plc->dq[i].nick);
 		break;
 	case WIN_AI:    //inputs
 		if (row == 0)
-			sprintf(buf, "%s", Plc.ai[i].nick);
+			sprintf(buf, "%s", Plc->ai[i].nick);
 		break;
 	case WIN_AQ:    //outputs
 		if (row == 0)
-			sprintf(buf, "%s", Plc.aq[i].nick);
+			sprintf(buf, "%s", Plc->aq[i].nick);
 		break;
 	
 	case WIN_MEMORY:    //memory
 		switch (row){
 		case 0:
-			sprintf(buf, "%s", Plc.m[i].nick);
+			sprintf(buf, "%s", Plc->m[i].nick);
 			break;
 		case 1:
-            sprintf(buf, "%ld", Plc.m[i].V);
+            sprintf(buf, "%ld", Plc->m[i].V);
 			break;
 		case 2:
-			sprintf(buf, "%d", Plc.m[i].DOWN);
+			sprintf(buf, "%d", Plc->m[i].DOWN);
 			break;
 		default:
 			break;
@@ -695,10 +698,10 @@ int edit_page(int i)
 	case WIN_REAL:    //reals
 		switch (row){
 		case 0:
-			sprintf(buf, "%s", Plc.mr[i].nick);
+			sprintf(buf, "%s", Plc->mr[i].nick);
 			break;
 		case 1:
-            sprintf(buf, "%lf", Plc.mr[i].V);
+            sprintf(buf, "%lf", Plc->mr[i].V);
 			break;
 		default:
 			break;
@@ -707,19 +710,19 @@ int edit_page(int i)
 	case WIN_TIMER:    //timers
 		switch (row){
 		case 0:
-			sprintf(buf, "%s", Plc.t[i].nick);
+			sprintf(buf, "%s", Plc->t[i].nick);
 			break;
 		case 1:
-            sprintf(buf, "%ld", Plc.t[i].V);
+            sprintf(buf, "%ld", Plc->t[i].V);
 			break;
 		case 2:
-            sprintf(buf, "%ld", Plc.t[i].P);
+            sprintf(buf, "%ld", Plc->t[i].P);
 			break;
 		case 3:
-            sprintf(buf, "%ld", Plc.t[i].S);
+            sprintf(buf, "%ld", Plc->t[i].S);
 			break;
 		case 4:
-			sprintf(buf, "%d", Plc.t[i].ONDELAY);
+			sprintf(buf, "%d", Plc->t[i].ONDELAY);
 			break;
 		default:
 
@@ -728,9 +731,9 @@ int edit_page(int i)
 		break;
 	case WIN_BLINKER:    //blinkers
 		if (row == 0)
-			sprintf(buf, "%s", Plc.s[i].nick);
+			sprintf(buf, "%s", Plc->s[i].nick);
 		if (row == 1)
-            sprintf(buf, "%ld", Plc.s[i].S);
+            sprintf(buf, "%ld", Plc->s[i].S);
 		break;
 	default:
 		break;
@@ -739,32 +742,32 @@ int edit_page(int i)
 	switch (WinFlag){    //update correct value with input
 	case WIN_DI:    //inputs
 		if (row == 0)
-			sprintf(Plc.di[i].nick, "%s", buf);
+			sprintf(Plc->di[i].nick, "%s", buf);
 		break;
 	case WIN_DQ:    //outputs
 		if (row == 0)
-			sprintf(Plc.dq[i].nick, "%s", buf);
+			sprintf(Plc->dq[i].nick, "%s", buf);
 		break;
 	case WIN_AI:    //inputs
 		if (row == 0)
-			sprintf(Plc.ai[i].nick, "%s", buf);
+			sprintf(Plc->ai[i].nick, "%s", buf);
 		break;
 	case WIN_AQ:    //outputs
 		if (row == 0)
-			sprintf(Plc.aq[i].nick, "%s", buf);
+			sprintf(Plc->aq[i].nick, "%s", buf);
 		break;
 	
 	
 	case WIN_MEMORY:    //memory
 		switch (row){
 		case 0:
-			sprintf(Plc.m[i].nick, "%s", buf);
+			sprintf(Plc->m[i].nick, "%s", buf);
 			break;
 		case 1:
-			Plc.m[i].V = (uint64_t)atoi(buf);
+			Plc->m[i].V = (uint64_t)atoi(buf);
 			break;
 		case 2:
-			Plc.m[i].DOWN = atoi(buf) ? 1 : 0;
+			Plc->m[i].DOWN = atoi(buf) ? 1 : 0;
 		default:
 			break;
 		}
@@ -772,10 +775,10 @@ int edit_page(int i)
     case WIN_REAL:    //reals
 		switch (row){
 		case 0:
-			sprintf(Plc.mr[i].nick, "%s", buf);
+			sprintf(Plc->mr[i].nick, "%s", buf);
 			break;
 		case 1:
-			Plc.mr[i].V = atof(buf);
+			Plc->mr[i].V = atof(buf);
 			break;
 		default:
 			break;
@@ -785,28 +788,28 @@ int edit_page(int i)
 	case WIN_TIMER:    //timers
 		switch (row){
 		case 0:
-			sprintf(Plc.t[i].nick, "%s", buf);
+			sprintf(Plc->t[i].nick, "%s", buf);
 			break;
 		case 1:
-			Plc.t[i].V = atoi(buf);
+			Plc->t[i].V = atoi(buf);
 			break;
 		case 2:
-			Plc.t[i].P = atoi(buf);
+			Plc->t[i].P = atoi(buf);
 			break;
 		case 3:
-			Plc.t[i].S = atoi(buf);
+			Plc->t[i].S = atoi(buf);
 			break;
 		case 4:
-			Plc.t[i].ONDELAY = atoi(buf) ? 1 : 0;
+			Plc->t[i].ONDELAY = atoi(buf) ? 1 : 0;
 		default:
 			break;
 		}
 		break;
 	case WIN_BLINKER:    //blinkers
 		if (row == 0)
-			sprintf(Plc.s[i].nick, "%s", buf);
+			sprintf(Plc->s[i].nick, "%s", buf);
 		if (row == 1)
-			Plc.s[i].S = atoi(buf);
+			Plc->s[i].S = atoi(buf);
 		break;
 
 	default:
@@ -835,17 +838,17 @@ int edit_page(int i)
 	case KEY_END:
 		redraw = TRUE;
 		win_clear(EditWin);
-		Plc.status |= ST_RUNNING;    //RUN mode
+		Plc->status |= ST_RUNNING;    //RUN mode
 		if (WinFlag == WIN_PROGRAM){
 			memset(Lines[i], 0, MAXSTR);
-			Plc.status |= ST_STOPPED;  //STOP mode
+			Plc->status |= ST_STOPPED;  //STOP mode
 		}
         return (PAGE_MAIN);
 
 	case KEY_ESC:
 		redraw = TRUE;
 		win_clear(EditWin);
-		Plc.status |= ST_RUNNING;    //RUN mode
+		Plc->status |= ST_RUNNING;    //RUN mode
         return (PAGE_MAIN);
 	}
     return (PAGE_EDIT);
@@ -861,8 +864,8 @@ int file_page()
 	static char buf[MEDSTR] = "";
 
 	if (redraw){
-		if (Plc.status % 2)    //if running
-			--Plc.status;    //running
+		if (Plc->status % 2)    //if running
+			--Plc->status;    //running
 		wdraw(FileWin);
 		draw_footer("Esc:Cancel  Enter:Enter");
 		wshowall(FileWin, FileWinBuf);
@@ -874,6 +877,7 @@ int file_page()
 		redraw = TRUE;
 		win_clear(ConfWin);
 		sprintf(path, "%s", buf);
+		/*
 		if (SaveFlag){    //save to file
             if (plc_save_file(path) < 0){
 				draw_info_line(PageLen + 1, "Invalid filename!");
@@ -883,14 +887,14 @@ int file_page()
 		else{    //init from file
             if (plc_load_file(path) < 0)
                 return PAGE_FILE;
-		}
-		Plc.status |= ST_RUNNING;    //RUN mode
+		}*/
+		Plc->status |= ST_RUNNING;    //RUN mode
         return (PAGE_MAIN);
 	}
 	if (c == KEY_ESC){
 		redraw = TRUE;
 		win_clear(FileWin);
-		Plc.status |= ST_RUNNING;    //RUN mode
+		Plc->status |= ST_RUNNING;    //RUN mode
         return (PAGE_MAIN);
 	}
     return (PAGE_FILE);
@@ -921,10 +925,10 @@ int edit_mode()
 void ui_draw()
 {
     char str[SMALLSTR];
-    if (Plc.status % 2) //running
-        sprintf(str, "Hardware:%s  RUNNING", Plc.hw);
+    if (Plc->status % 2) //running
+        sprintf(str, "Hardware:%s  RUNNING", Plc->hw);
     else
-        sprintf(str, "Hardware:%s  STOPPED", Plc.hw);
+        sprintf(str, "Hardware:%s  STOPPED", Plc->hw);
     draw_footer(str);
 //	draw_info_line(1,"F1/2:Force 1/0|F3:Unforce|F4:Run|F5:Edit|F6:Lock|F7:Load|FBYTESIZE:Save|F9:Help|F10:Quit");
 

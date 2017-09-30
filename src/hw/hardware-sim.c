@@ -1,5 +1,8 @@
 #include <fcntl.h>
 
+#include "data.h"
+#include "instruction.h"
+#include "rung.h"
 #include "plclib.h"
 #include "util.h"
 #include "plcemu.h"
@@ -16,12 +19,13 @@ char * AdcOut = NULL;
 char SimInFile[MAXSTR];
 char SimOutFile[MAXSTR];
 
-extern struct PLC_regs Plc;
+extern plc_t Plc;
 
 void hw_config(const config_t conf)
 {
-    sprintf(SimInFile, "%s", conf->sim_in_file);
-    sprintf(SimOutFile, "%s", conf->sim_out_file);
+    config_t c = get_recursive_entry(CONFIG_SIM, conf);
+    sprintf(SimInFile, "%s", get_string_entry(SIM_INPUT, c));
+    sprintf(SimOutFile, "%s", get_string_entry(SIM_OUTPUT, c));
 }
 
 int enable_bus() /* Enable bus communication */
@@ -44,25 +48,25 @@ int enable_bus() /* Enable bus communication */
     //else
       //  plc_log("Opened simulation output to %s", SimOutFile);
 
-    if(!(BufIn = (char * )malloc(sizeof(char) * Plc.ni)))
+    if(!(BufIn = (char * )malloc(sizeof(char) * Plc->ni)))
         r = PLC_ERR;
     else
-        memset(BufIn, 0, sizeof(BYTE)*Plc.ni);
+        memset(BufIn, 0, sizeof(BYTE)*Plc->ni);
 
-    if(!(BufOut = (char * )malloc(sizeof(char) * Plc.nq)))
+    if(!(BufOut = (char * )malloc(sizeof(char) * Plc->nq)))
         r = PLC_ERR;
     else
-        memset(BufOut, 0, sizeof(char) * Plc.nq);
+        memset(BufOut, 0, sizeof(char) * Plc->nq);
     
-    if(!(AdcIn = (char * )malloc(sizeof(char) * LONG_BYTES * Plc.nai)))
+    if(!(AdcIn = (char * )malloc(sizeof(char) * LONG_BYTES * Plc->nai)))
         r = PLC_ERR;
     else
-        memset(AdcIn, 0, sizeof(BYTE) * LONG_BYTES * Plc.nai);
+        memset(AdcIn, 0, sizeof(BYTE) * LONG_BYTES * Plc->nai);
 
-    if(!(AdcOut = (char * )malloc(sizeof(char) * LONG_BYTES * Plc.naq)))
+    if(!(AdcOut = (char * )malloc(sizeof(char) * LONG_BYTES * Plc->naq)))
         r = PLC_ERR;
     else
-        memset(AdcOut, 0, sizeof(char) * LONG_BYTES * Plc.naq);
+        memset(AdcOut, 0, sizeof(char) * LONG_BYTES * Plc->naq);
     return r;
 }
 
@@ -91,8 +95,8 @@ int disable_bus() /* Disable bus communication */
 
 int io_fetch()
 {
-    unsigned int digital = Plc.ni;
-    unsigned int analog = Plc.nai;
+    unsigned int digital = Plc->ni;
+    unsigned int analog = Plc->nai;
     int bytes_read = 0;
     
     bytes_read = fread(BufIn, 
@@ -125,8 +129,8 @@ int io_fetch()
 int io_flush()
 {
     int bytes_written = 0;
-    unsigned int digital = Plc.nq;
-    unsigned int analog = Plc.naq;
+    unsigned int digital = Plc->nq;
+    unsigned int analog = Plc->naq;
     bytes_written = fwrite(BufOut, 
                         sizeof(BYTE), 
                         digital, 

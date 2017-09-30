@@ -1,9 +1,6 @@
 #include <yaml.h>
 #include "util.h"
 #include "config.h"
-//#include "data.h"
-//#include "instruction.h"
-//#include "plclib.h"
 
 char * strdup_r(const char * dest, const char * src) {
 //strdup with realloc
@@ -172,6 +169,51 @@ entry_t get_entry(int key, const config_t conf){
     }
     
     return conf->map[key];
+}
+
+int get_numeric_entry(int key, const config_t conf){
+    entry_t e = get_entry(key, conf);
+    if(e && e->type_tag == ENTRY_INT){
+    
+        return e->e.scalar_int;
+    } else {
+    
+        return CONF_ERR;    
+    } 
+}
+
+char * get_string_entry(int key, const config_t conf){
+    
+    entry_t e = get_entry(key, conf);
+    if(e && e->type_tag == ENTRY_STR){
+    
+        return e->e.scalar_str;
+    } else {
+    
+        return NULL;    
+    }    
+}
+
+sequence_t get_sequence_entry(int key, const config_t conf){
+    entry_t e = get_entry(key, conf);
+    if(e && e->type_tag == ENTRY_SEQ){
+    
+        return e->e.seq;
+    } else {
+    
+        return NULL;    
+    }    
+}
+
+config_t get_recursive_entry(int key, const config_t conf){
+    entry_t e = get_entry(key, conf);
+    if(e && e->type_tag == ENTRY_MAP){
+    
+        return e->e.conf;
+    } else {
+    
+        return NULL;    
+    }    
 }
 
 //TODO: in a c++ impl. this would be a hashmap

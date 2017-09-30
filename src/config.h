@@ -47,6 +47,7 @@ typedef enum {
     N_SIM_VARS
 }SIM_VARS;
 
+
 typedef enum{
     CONFIG_STEP,
     CONFIG_PIPE,
@@ -66,8 +67,7 @@ typedef enum{
     CONFIG_USPACE,
     CONFIG_COMEDI,
     CONFIG_SIM,
-    CONFIG_PROGRAM_IL,
-    CONFIG_PROGRAM_LD,
+    CONFIG_PROGRAM,
      //(runtime updatable) sequences,
     CONFIG_AI,
     CONFIG_AQ,
@@ -170,6 +170,26 @@ int save_config_yml(const char * filename, const config_t conf);
  * @brief get config entry by key
  */
 entry_t get_entry(int key, const config_t conf);
+
+/**
+ * @brief get numeric config entry by key
+ */
+int get_numeric_entry(int key, const config_t conf);
+
+/**
+ * @brief get string config entry by key
+ */
+char * get_string_entry(int key, const config_t conf);
+
+/**
+ * @brief get sequence config entry by key
+ */
+sequence_t get_sequence_entry(int key, const config_t conf);
+
+/**
+ * @brief get recursive map config entry by key
+ */
+config_t get_recursive_entry(int key, const config_t conf);
 
 /**
  * @brief get config key by literal value

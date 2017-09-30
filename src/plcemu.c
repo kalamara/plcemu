@@ -6,9 +6,12 @@
 #include <unistd.h>
 
 #include "plcemu.h"
-#include "util.h"
-#include "plclib.h"
 #include "config.h"
+#include "util.h"
+#include "data.h"
+#include "instruction.h"
+#include "rung.h"
+#include "plclib.h"
 #include "parser-tree.h"
 #include "parser-il.h"
 #include "parser-ld.h"
@@ -18,10 +21,7 @@
 
 
 /*************GLOBALS************************************************/
-struct PLC_regs Plc;
-//TODO: this will go away
-char com_nick[MEDSTR][COMMLEN];///comments for up to 256 serial commands
-
+plc_t Plc;
 char Lines[MAXBUF][MAXSTR];///program lines
 int Lineno;    ///actual no of active lines
 int UiReady=FALSE;
@@ -80,21 +80,270 @@ void sigkill() {
     exit(0);
 }
 
-void init_emu(const config_t conf, plc_t plc) {
-    memset(plc, 0, sizeof(struct PLC_regs));
-    configure(conf, plc);
-    //int err = load_program_file(conf->program_file);
+plc_t declare_names(int operand,
+                    const variable_t var,                         
+                    plc_t plc){
+    char * name = NULL;
+
+    if(name = var->name){
+        return declare_variable(plc, operand, var->index, name); 
+    } else return plc;
+} 
+
+plc_t configure_limits(int operand,                        
+                       const variable_t var, 
+                       plc_t plc){
+    plc_t p = plc;
+    char * max = NULL;
+    char * min = NULL;
     
+    if(max = get_param_val("MAX", var->params)){
+        p = configure_io_limit(p, operand, var->index, max, TRUE);
+    }
+    if(min = get_param_val("MIN", var->params)){
+        p = configure_io_limit(p, operand, var->index, min, FALSE);
+    }   
+    return p;                         
+}
+
+plc_t init_values(int operand,                        
+                  const variable_t var, 
+                  plc_t plc){
+    char * val = NULL;
+    
+    if(val = get_param_val("VALUE", var->params)){
+        return init_variable(plc, operand, var->index, val);
+    }
+    return plc;                         
+}
+
+plc_t configure_readonly(int operand,                        
+                        const variable_t var, 
+                        plc_t plc){
+    char * val = NULL;
+    
+    if(val = get_param_val("READONLY", var->params)){
+      return configure_variable_readonly(plc, operand, var->index, val);
+    } 
+    return plc;               
+}
+
+
+plc_t configure_di(const config_t conf, plc_t plc){
+ 
+    sequence_t seq = get_sequence_entry(CONFIG_DI, conf);
+   
+    if(seq) {
+        plc_t p = plc;
+        int i = 0;
+        for(; i < seq->size; i++){
+        //names
+            p = declare_names(OP_INPUT, &(seq->vars[i]), p);    
+        }
+        return p;
+    } 
+    return plc;
+}
+
+plc_t configure_dq(const config_t conf, plc_t plc){
+
+    sequence_t seq = get_sequence_entry(CONFIG_DQ, conf); 
+    
+    if(seq) {
+        plc_t p = plc;
+        int i = 0;
+        for(; i < seq->size; i++){
+        //names
+            p = declare_names(OP_OUTPUT, &(seq->vars[i]), p);    
+        }
+        return p;
+    } 
+    return plc;
+}
+
+plc_t configure_ai(const config_t conf, plc_t plc){
+
+    sequence_t seq = get_sequence_entry(CONFIG_AI, conf);
+    
+    if(seq) {
+        
+        plc_t p = plc;
+        int i = 0;
+        for(; i < seq->size; i++){
+            //names
+            p = declare_names(OP_REAL_INPUT, &(seq->vars[i]), p);
+            //limits    
+            p = configure_limits(OP_REAL_INPUT, &(seq->vars[i]), p);
+        }
+        return p;
+    } 
+    return plc;
+}
+
+plc_t configure_aq(const config_t conf, plc_t plc){
+
+    sequence_t seq = get_sequence_entry(CONFIG_AQ, conf);
+    
+    if(seq) {
+        plc_t p = plc;
+        int i = 0;
+        for(; i < seq->size; i++){
+            //names
+            p = declare_names(OP_REAL_OUTPUT, &(seq->vars[i]), p);
+            //limits    
+            p = configure_limits(OP_REAL_OUTPUT, &(seq->vars[i]), p);
+        }
+        return p;
+    } 
+    return plc;
+}
+
+plc_t configure_counters(const config_t conf, plc_t plc){
+
+    sequence_t seq = get_sequence_entry(CONFIG_MVAR, conf);
+    
+    if(seq) {
+        plc_t p = plc;
+        int i = 0;
+        char * val = NULL;
+        for(; i < seq->size; i++){
+            //names
+            p = declare_names(OP_MEMORY, &(seq->vars[i]), p);
+            //defaults
+            p = init_values(OP_MEMORY, &(seq->vars[i]), p);
+            //readonlies
+            p = configure_readonly(OP_MEMORY, &(seq->vars[i]), p);
+            //directions    
+            if(val = get_param_val("COUNT", seq->vars[i].params)){
+                p = configure_counter_direction(p, i, val);
+                val = NULL;
+            }
+        }
+        return p;   
+    } 
+    return plc;
+}
+
+plc_t configure_reals(const config_t conf, plc_t plc){
+
+    sequence_t seq = get_sequence_entry(CONFIG_MREG, conf);
+    
+    if(seq) {
+        plc_t p = plc;
+        int i = 0;
+        for(; i < seq->size; i++){
+            //names
+            p = declare_names(OP_REAL_MEMORY, &(seq->vars[i]), plc);
+            //defaults
+            p = init_values(OP_REAL_MEMORY, &(seq->vars[i]), p);
+            //readonlies
+            p = configure_readonly(OP_REAL_MEMORY, &(seq->vars[i]), p); 
+        }
+        return p; 
+    } 
+    return plc;
+}
+
+plc_t configure_timers(const config_t conf, plc_t plc){
+
+    sequence_t seq = get_sequence_entry(CONFIG_TIMER, conf);
+    
+    if(seq) {
+        int i = 0;
+        char * scale = NULL;
+        char * preset = NULL;
+        char * ondelay = NULL;
+        plc_t p = plc;
+        for(; i < seq->size; i++){
+            //names
+            p = declare_names(OP_TIMEOUT, &(seq->vars[i]), plc);
+            //scales
+            if(scale = get_param_val("SCALE", seq->vars[i].params)){
+                p = configure_timer_scale(p, i, scale);
+                scale = NULL;
+            }
+            //presets            
+            if(preset = get_param_val("PRESET", seq->vars[i].params)){
+                p = configure_timer_preset(p, i, scale);
+                preset = NULL;
+            }
+            //modes
+            if(ondelay = get_param_val("ONDELAY", seq->vars[i].params)){
+                p = configure_timer_delay_mode(p, i, scale);
+                ondelay = NULL;
+            }
+        }   
+        return p; 
+    } 
+    return plc;    
+}
+
+plc_t configure_pulses(const config_t conf, plc_t plc){
+
+    sequence_t seq = get_sequence_entry(CONFIG_PULSE, conf);
+    
+    if(seq) {
+        int i = 0;
+        char * scale = NULL;
+        plc_t p = plc;
+        for(; i < seq->size; i++){
+            //names
+            p = declare_names(OP_BLINKOUT, &(seq->vars[i]), plc);
+            //scales
+            if(scale = get_param_val("SCALE", seq->vars[i].params)){
+                p = configure_pulse_scale(p, i, scale);
+                scale = NULL;
+            }
+        }   
+        return p; 
+    } 
+    return plc;    
+}
+
+
+plc_t configure(const config_t conf, plc_t plc){
+
+    plc_t p = plc;
+    
+    p = configure_di(conf, p);
+    p = configure_dq(conf, p);
+    p = configure_ai(conf, p);
+    p = configure_aq(conf, p);
+    p = configure_counters(conf, p);
+    p = configure_reals(conf, p);
+    p = configure_timers(conf, p);
+    p = configure_pulses(conf, p);
+    
+    return p;
+}
+
+plc_t init_emu(const config_t conf) {
+   
     hw_config(conf);
+        
+    int di = get_numeric_entry(CONFIG_NDI, conf); 
+    int dq = get_numeric_entry(CONFIG_NDQ, conf);
+    int ai = get_numeric_entry(CONFIG_NAI, conf);
+    int aq = get_numeric_entry(CONFIG_NAQ, conf);
+    int nt = get_numeric_entry(CONFIG_NT, conf);
+    int ns = get_numeric_entry(CONFIG_NS, conf);
+    int nm = get_numeric_entry(CONFIG_NM, conf);
+    int nr = get_numeric_entry(CONFIG_NR, conf);
+    int step = get_numeric_entry(CONFIG_STEP, conf);
+    char * hw = get_string_entry(CONFIG_HW, conf);
+    
+    plc_t p = new_plc(di, dq, ai, aq, nt, ns, nm, nr, step, hw);
+    p = configure(conf, p);
     
     Update = TRUE;
     
-    signal(conf->sigenable, sigenable);
+    //signal(conf->sigenable, sigenable);
     signal(SIGINT, sigkill);
     signal(SIGTERM, sigkill);
     
     project_init();
-    open_pipe(conf->pipe, plc);
+    open_pipe(get_string_entry(CONFIG_HW, conf), p);
+    return p;
 }
 
 int load_program_file(const char * path, plc_t plc) {
@@ -131,24 +380,6 @@ int load_program_file(const char * path, plc_t plc) {
     
     return r;
 }
-/*
-    {    
-    if(r >= PLC_OK)
-    if (r < 0) {
-        switch (r){
-        case ERR_BADFILE:
-            plc_log( "Failed to open source file");
-            break;
-        case ERR_BADPROG:
-            plc_log( "Failed to parse code");
-            break;
-        default:
-            break;
-        }
-        return PLC_ERR;
-    }
-}
-*/
 
 const char * Config_vars[N_CONFIG_VARIABLES] = {
     "STEP",
@@ -182,221 +413,6 @@ const char * Config_vars[N_CONFIG_VARIABLES] = {
     "PULSE"
 };
 
-int plc_load_file(const char * path) { 
-    FILE * f;
-    char * tab = 0;
-    int idx = 0;
-    int r = 0;
-    //int lineno=0;
-    int i=0;
-    int j=0;
-    int found_start = FALSE;
-    int ld = FALSE;
-    int il = FALSE;
-    char line[MAXSTR], name[SMALLSTR], val[SMALLSTR];
-    
-    if ((f = fopen(path, "r"))){
-        memset(line, 0, MAXSTR);
-        memset(name, 0, SMALLSTR);
-        memset(val, 0, NICKLEN);
-        disable_bus();
-        while (fgets(line, MAXSTR, f)){    //read initialization values
-            j = extract_name(line, name, 0);
-            if(ld || il)
-                found_start = TRUE;
-            if (!found_start){
-                ld = !strcmp(name, "LD");
-                il = !strcmp(name, "IL");
-               
-                if (j < 0)
-                    break;
-
-                j = extract_index(line, &idx, j);
-                if (j < 0)
-                    break;
-                
-                if (idx < 0){
-                    r = ERR_BADINDEX;
-                    break;
-                }
-                extract_value( line, val, j);
-                //lineno++;
-               // plc_log("Found: %s, %d, %s\n", name, idx, val); 
-                if((r = declare_input(name, idx, val))<0)
-                    break;
-                if((r = declare_output(name, idx, val))<0)
-                    break;
-                
-                if((r = declare_analog_input(name, idx, val))<0)
-                    break;
-                if((r = declare_analog_output(name, idx, val))<0)
-                    break;
-                if((r = configure_input_min(name, idx, val))<0)
-                    break;
-                if((r = configure_output_min(name, idx, val))<0)
-                    break;
-                if((r = configure_input_max(name, idx, val))<0)
-                    break;
-                if((r = configure_output_max(name, idx, val))<0)
-                    break;
-                                
-                if((r = declare_register(name, idx, val))<0)
-                    break;
-                if((r = declare_register_r(name, idx, val))<0)
-                    break;    
-                if((r = declare_timer(name, idx, val))<0)
-                    break;
-                if((r = declare_blinker(name, idx, val))<0)
-                    break;
-                if((r = declare_serial(name, idx, val))<0)
-                    break;
-                if((r = init_register(name, idx, val))<0)
-                    break;
-                if((r = init_register_r(name, idx, val))<0)
-                    break;    
-                if((r = define_reg_direction(name, idx, val))<0)
-                    break;
-                if((r = define_reg_readonly(name, idx, val))<0)
-                    break;
-                if((r = init_timer_set(name, idx, val))<0)
-                    break;
-                if((r = init_timer_preset(name, idx, val))<0)
-                    break;
-                if((r = init_timer_delay(name, idx, val))<0)
-                    break;
-                if((r = init_blinker_set(name, idx, val))<0)
-                    break;
-                if (name[0] != ';'
-                && !isalnum(name[0])
-                && !isspace(name[0])
-                && !isblank(name[0])
-                && name[0] != 0){
-                    r = ERR_BADOPERAND;
-                    break;
-                }
-            }
-            else {//copy line
-                while (strchr(line, '\t') != NULL ){
-                //tabs are not supported
-                    tab = strchr(line, '\t');
-                    *tab = '.';
-                }
-                memset(Lines[i], 0, MAXSTR);
-                sprintf(Lines[i++], "%s", line);
-            }
-            r = PLC_OK;
-            memset(line, 0, MAXSTR);
-            memset(name, 0, SMALLSTR);
-        }
-        enable_bus();
-        fclose(f);
-        Lineno = i;
-        plc_log("Successfully loaded %d lines of %s code from %s", 
-        i, ld?"LD":"IL", path);
-        
-        if(ld)
-            r = parse_ld_program(Lines, &Plc);
-        else
-            r = parse_il_program(Lines, &Plc);
-        
-    }
-    else
-        r = ERR_BADFILE;
-//    printf(msg,"");
-    if (r < 0){
-        switch (r){
-        case ERR_BADFILE:
-            plc_log( "Invalid filename:!");
-            break;
-    
-        default:
-            break;
-        }
-        return PLC_ERR;
-    }
-    else{
-        char dump[MAXSTR * MAXBUF];
-        memset(dump, 0, MAXBUF * MAXSTR);
-        dump_rung(Plc.rungs[0], dump);
-        printf("%s", dump); 
-        return PLC_OK;
-    }
-}
-
-int plc_save_file(const char *path) {
-    FILE * f;
-    int i;
-    //open file for writing
-    if ((f = fopen(path, "w")) == NULL ){
-        return PLC_ERR;
-    }
-    else{
-        for (i = 0; i < Plc.ni * BYTESIZE; i++){
-            if (Plc.di[i].nick[0] != 0)
-                fprintf(f, "I\t%d\t%s\t\n", i, Plc.di[i].nick);
-        }
-        for (i = 0; i < Plc.nq * BYTESIZE; i++){
-            if (Plc.dq[i].nick[0] != 0)
-                fprintf(f, "Q\t%d\t%s\t\n", i, Plc.dq[i].nick);
-        }
-        for (i = 0; i < Plc.nai ; i++){
-            if (Plc.ai[i].nick[0] != 0)
-                fprintf(f, "IF\t%d\t%s\t\n", i, Plc.ai[i].nick);
-            fprintf(f, "I_MIN\t%d\t%f\t\n", i, Plc.ai[i].min);
-            fprintf(f, "I_MAX\t%d\t%f\t\n", i, Plc.ai[i].max);    
-        }
-        for (i = 0; i < Plc.naq; i++){
-            if (Plc.aq[i].nick[0] != 0)
-                fprintf(f, "QF\t%d\t%s\t\n", i, Plc.aq[i].nick);
-            fprintf(f, "Q_MIN\t%d\t%f\t\n", i, Plc.aq[i].min);
-            fprintf(f, "Q_MAX\t%d\t%f\t\n", i, Plc.aq[i].max);    
-        }
-        
-
-        for (i = 0; i < Plc.nm; i++){
-            if (Plc.m[i].nick[0] != 0)
-                fprintf(f, "M\t%d\t%s\t\n", i, Plc.m[i].nick);
-            if (Plc.m[i].V > 0)
-                fprintf(f, "MEMORY\t%d\t%ld\t\n", i, Plc.m[i].V);
-            if (Plc.m[i].DOWN > 0)
-                fprintf(f, "COUNT\t%d\tDOWN\t\n", i);
-            if (Plc.m[i].RO > 0)
-                fprintf(f, "COUNTER\t%d\tOFF\t\n", i);
-        }
-        for (i = 0; i < Plc.nmr; i++){
-            if (Plc.mr[i].nick[0] != 0)
-                fprintf(f, "MF\t%d\t%s\t\n", i, Plc.mr[i].nick);
-            if (Plc.mr[i].V > FLOAT_PRECISION)
-                fprintf(f, "REAL\t%d\t%lf\t\n", i, Plc.mr[i].V);
-        }
-
-        for (i = 0; i < Plc.nt; i++){
-            if (Plc.t[i].nick[0] != 0)
-                fprintf(f, "T\t%d\t%s\t\n", i, Plc.t[i].nick);
-            if (Plc.t[i].S > 0)
-                fprintf(f, "TIME\t%d\t%ld\t\n", i, Plc.t[i].S);
-            if (Plc.t[i].P > 0)
-                fprintf(f, "PRESET\t%d\t%ld\t\n", i, Plc.t[i].P);
-            if (Plc.t[i].ONDELAY > 0)
-                fprintf(f, "DELAY\t%d\tON\t\n", i);
-        }
-        for (i = 0; i < Plc.ns; i++){
-            if (Plc.s[i].nick[0] != 0)
-                fprintf(f, "B\t%d\t%s\t\n", i, Plc.s[i].nick);
-            if (Plc.s[i].S > 0)
-                fprintf(f, "BLINK\t%d\t%ld\t\n", i, Plc.s[i].S);
-        }
-        for (i = 0; i < MEDSTR; i++){
-            if (com_nick[i][0] != 0)
-                fprintf(f, "COM\t%d\t%s\t\n", i, com_nick[i]);
-        }
-        fprintf(f, "\n%s\n", "LD");
-        for (i = 0; i < Lineno; i++)
-            fprintf(f, "%s\n", Lines[i]);
-        fclose(f);
-    }
-    return 0;
-}
 
 const char * Usage = "Usage: plcemu [-c config file] \n \
         Options:\n \
@@ -482,23 +498,23 @@ int main(int argc, char **argv)
         return PLC_ERR;
     }
 
-    init_emu(conf, &Plc);
+    Plc = init_emu(conf);
    
-    more = ui_init(conf->page_len, conf->page_width);
+    more = ui_init();//conf->page_len, conf->page_width);
     UiReady=more;
     
-    load_program_file(conf->program_file, &Plc);   
+    load_program_file(get_string_entry(CONFIG_PROGRAM,conf), Plc);   
     
     while (more > 0 ) {
        if(Update == TRUE)
-           ui_draw(&Plc, Lines, Lineno);
+           ui_draw(Plc, Lines, Lineno);
         more = ui_update(more);
         
-        if(errcode >= PLC_OK && Plc.status > 0){  
-            errcode = plc_func(&Update, &Plc);
+        if(errcode >= PLC_OK && Plc->status > 0){  
+            errcode = plc_func(&Update, Plc);
             if(errcode < 0){
                 print_error(errcode);
-                Plc.status = 0;
+                Plc->status = 0;
             }
         }
     }

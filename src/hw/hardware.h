@@ -10,7 +10,7 @@
  * @brief apply a configuration
  * @param the configuration
  */
-//void hw_config(const config_t conf);
+void hw_config(const config_t conf);
 
 /**
  * @brief Enable bus communication

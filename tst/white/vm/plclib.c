@@ -3,7 +3,6 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-//#include "config.h"
 #include "data.h"
 #include "instruction.h"
 #include "rung.h"
@@ -11,6 +10,7 @@
 #include "plcemu.h"
 #include "util.h"
 
+#include "config.h"
 #include "../hw/hardware.h"
 #include "project.h"
 

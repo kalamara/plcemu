@@ -12,15 +12,18 @@ int Comedi_subdev_i;
 int Comedi_subdev_q;
 int Comedi_subdev_ai;
 int Comedi_subdev_aq;
-extern struct PLC_regs Plc;
+extern plc_t Plc;
 
 void hw_config(const config_t conf)
 {
-    Comedi_file = conf->comedi_file;
-    Comedi_subdev_i = conf->comedi_subdev_i;
-    Comedi_subdev_q = conf->comedi_subdev_q;
-    Comedi_subdev_ai = conf->comedi_subdev_ai;
-    Comedi_subdev_aq = conf->comedi_subdev_aq;
+    config_t c = get_recursive_entry(CONFIG_SIM, conf);
+    Comedi_file = get_numeric_entry(COMEDI_FILE, c);
+    config_t sub = get_recursive_entry(COMEDI_SUBDEV, c);
+    
+    Comedi_subdev_i = get_numeric_entry(SUBDEV_IN, sub);
+    Comedi_subdev_q = get_numeric_entry(SUBDEV_OUT, sub;
+    Comedi_subdev_ai = get_numeric_entry(SUBDEV_ADC, sub;
+    Comedi_subdev_aq = get_numeric_entry(SUBDEV_DAC, sub;
 }
 
 int enable_bus() /* Enable bus communication */

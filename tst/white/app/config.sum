@@ -124,6 +124,24 @@ Lines executed:100.00% of 6
 No branches
 No calls
 
+Function 'get_sequence_entry'
+Lines executed:80.00% of 5
+Branches executed:100.00% of 4
+Taken at least once:50.00% of 4
+Calls executed:100.00% of 1
+
+Function 'get_string_entry'
+Lines executed:100.00% of 5
+Branches executed:100.00% of 4
+Taken at least once:75.00% of 4
+Calls executed:100.00% of 1
+
+Function 'get_numeric_entry'
+Lines executed:100.00% of 5
+Branches executed:100.00% of 4
+Taken at least once:75.00% of 4
+Calls executed:100.00% of 1
+
 Function 'get_entry'
 Lines executed:100.00% of 6
 Branches executed:100.00% of 6
@@ -179,9 +197,9 @@ Taken at least once:100.00% of 2
 No calls
 
 File 'config.c'
-Lines executed:74.50% of 447
-Branches executed:72.92% of 144
-Taken at least once:59.72% of 144
-Calls executed:74.01% of 177
+Lines executed:75.11% of 462
+Branches executed:75.00% of 156
+Taken at least once:60.26% of 156
+Calls executed:74.44% of 180
 Creating 'config.c.gcov'
 

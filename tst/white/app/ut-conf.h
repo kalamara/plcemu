@@ -285,17 +285,43 @@ PULSES:\n\
 ...\n\
 ";
     
-    
 	CU_ASSERT_STRING_EQUAL(output,expected);
-	printf("%s\n", output);
+	//printf("%s\n", output);
     CU_ASSERT(r == PLC_OK);
-    
-    //how to configure variables
-    //get sequence entry eg. CONFIG_AI
-    //for i -> size
-    //get variable[i]
-    //get value (eg. "MAX")
-    
 }
 
+void ut_get(){
+
+    config_t conf = init_config();
+    conf = store_seq_value(CONFIG_AI, 3, "MAX", "1.0", conf);
+    conf = store_seq_value(CONFIG_AI, 3, "ID", "var1", conf);
+ 
+    //bullshit should return -1
+    int step = get_numeric_entry(-523, conf);
+    CU_ASSERT(step == CONF_ERR);
+    
+    step = get_numeric_entry(CONFIG_STEP, conf);
+    CU_ASSERT(step == 1);
+    
+    //wrong type should return NULL
+    char * hw = get_string_entry(CONFIG_STEP, conf);
+    CU_ASSERT(hw == NULL);
+    
+    hw = get_string_entry(CONFIG_HW, conf);
+    CU_ASSERT_STRING_EQUAL(hw, "STDI/O");
+    
+    sequence_t seq =  get_sequence_entry(CONFIG_AI, conf);
+    int i = 0;
+    char * name = NULL;
+    char * max = NULL;
+    for(; i < seq->size; i++){
+        if(i == 3){
+            name = seq->vars[i].name;
+            CU_ASSERT_STRING_EQUAL(name, "var1");
+            max = get_param_val("MAX", seq->vars[i].params);
+            CU_ASSERT_STRING_EQUAL(max, "1.0");
+        }        
+    }
+}    
+    
 #endif//_UT_CONF_H_
