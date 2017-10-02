@@ -10,76 +10,6 @@
 #define CONF_F 0
 #define CONF_T 1
 
-typedef enum{
-    MAP_ROOT,
-    MAP_USPACE,
-    MAP_COMEDI,
-    MAP_COMEDI_SUBDEV,
-    MAP_SIM,
-    MAP_VARIABLE,
-    N_MAPPINGS    
-}CONFIG_MAPPINGS;
-
-typedef enum{
-    USPACE_BASE,
-    USPACE_WR,
-    USPACE_RD,
-    N_USPACE_VARS
-}USPACE_VARS;
-
-typedef enum{
-    SUBDEV_IN,
-    SUBDEV_OUT,
-    SUBDEV_ADC,
-    SUBDEV_DAC,
-    N_SUBDEV_VARS
-}SUBDEV_VARS;
-
-typedef enum{
-    COMEDI_FILE,
-    COMEDI_SUBDEV,
-    N_COMEDI_VARS
-}COMEDI_VARS; 
-
-typedef enum {
-    SIM_INPUT,
-    SIM_OUTPUT,
-    N_SIM_VARS
-}SIM_VARS;
-
-
-typedef enum{
-    CONFIG_STEP,
-    CONFIG_PIPE,
-    CONFIG_SIGENABLE,//DEPRECATED
-    CONFIG_PAGELEN,//DEPRECATED
-    CONFIG_PAGEWIDTH,//DEPRECATED
-    CONFIG_HW,
-    CONFIG_NT,
-    CONFIG_NS,
-    CONFIG_NR,
-    CONFIG_NM,
-    CONFIG_NDI,
-    CONFIG_NDQ,
-    CONFIG_NAI,
-    CONFIG_NAQ,
-    CONFIG_RESPONSE,//DEPRECATED
-    CONFIG_USPACE,
-    CONFIG_COMEDI,
-    CONFIG_SIM,
-    CONFIG_PROGRAM,
-     //(runtime updatable) sequences,
-    CONFIG_AI,
-    CONFIG_AQ,
-    CONFIG_DI,
-    CONFIG_DQ,
-    CONFIG_MVAR,
-    CONFIG_MREG,
-    CONFIG_TIMER,
-    CONFIG_PULSE, 
-    N_CONFIG_VARIABLES
-} CONFIG_VARIABLES;
-
 typedef enum {
     STORE_KEY,
     STORE_VAL,
@@ -138,10 +68,18 @@ typedef struct config {
 } * config_t;
 
 /**
- * @brief initialize configuration
+ * @brief construct a sequence
+ * @param the size of the sequence
+ * @return a newly alloced sequence
+ */
+sequence_t new_sequence(int size);
+
+/**
+ * @brief construct  configuration
+ * @param the size of the entry map
  * @return a newly alloced config
  */
-config_t init_config();
+config_t new_config(int size);
 
 /**
  * @brief cleanup and free configuration
@@ -165,6 +103,55 @@ config_t load_config_yml(const char * filename, config_t conf);
  * @return OK or ERR
  */
 int save_config_yml(const char * filename, const config_t conf);
+
+/**
+ * @brief new numeric entry
+ * @param numeric value
+ * @param entry map key
+ * @return newly allocated entry
+ */
+entry_t new_entry_int(int i, char * name);
+
+/**
+ * @brief new string entry
+ * @param str value
+ * @param entry map key
+ * @return newly allocated entry
+ */
+entry_t new_entry_str(char * str, char * name);
+
+/**
+ * @brief new recursive map entry
+ * @param the map
+ * @param entry map key
+ * @return newly allocated entry
+ */
+entry_t new_entry_map(config_t map, char * name);
+
+/**
+ * @brief new fixed length sequence entry
+ * @param the sequence
+ * @param entry map key
+ * @return newly allocated entry
+ */
+entry_t new_entry_seq(sequence_t seq, char * name);
+
+/**
+ * @brief new empty entry (for debugging only)
+ * @return newly allocated entry
+ */
+entry_t new_entry_null();
+
+/**
+ * @brief update and replace an entry in a configuration
+ * @param the entry key
+ * @param the new entry
+ * @param the configuration
+ * @return the updated configuration
+ */
+config_t update_entry(unsigned int key, 
+                      const entry_t item,
+                      const config_t conf);
 
 /**
  * @brief get config entry by key

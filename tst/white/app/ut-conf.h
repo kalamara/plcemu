@@ -250,19 +250,19 @@ STEP: 1\n\
 PIPE: plcpipe\n\
 HW: STDI/O\n\
 USPACE:\n\
-  USPACE_BASE: 50176\n\
-  USPACE_WR: 0\n\
-  USPACE_RD: 8\n\
+  BASE: 50176\n\
+  WR: 0\n\
+  RD: 8\n\
 COMEDI:\n\
-  COMEDI_FILE: 0\n\
-  COMEDI_SUBDEV:\n\
-    SUBDEV_IN: 0\n\
-    SUBDEV_OUT: 1\n\
-    SUBDEV_ADC: 2\n\
-    SUBDEV_DAC: 3\n\
+  FILE: 0\n\
+  SUBDEV:\n\
+    IN: 0\n\
+    OUT: 1\n\
+    ADC: 2\n\
+    DAC: 3\n\
 SIM:\n\
-  SIM_INPUT: sim.in\n\
-  SIM_OUTPUT: sim.out\n\
+  INPUT: sim.in\n\
+  OUTPUT: sim.out\n\
 AI:\n\
 - 8\n\
 - INDEX: 0\n\

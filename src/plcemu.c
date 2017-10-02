@@ -85,7 +85,7 @@ plc_t declare_names(int operand,
                     plc_t plc){
     char * name = NULL;
 
-    if(name = var->name){
+    if((name = var->name)){
         return declare_variable(plc, operand, var->index, name); 
     } else return plc;
 } 
@@ -97,10 +97,10 @@ plc_t configure_limits(int operand,
     char * max = NULL;
     char * min = NULL;
     
-    if(max = get_param_val("MAX", var->params)){
+    if((max = get_param_val("MAX", var->params))){
         p = configure_io_limit(p, operand, var->index, max, TRUE);
     }
-    if(min = get_param_val("MIN", var->params)){
+    if((min = get_param_val("MIN", var->params))){
         p = configure_io_limit(p, operand, var->index, min, FALSE);
     }   
     return p;                         
@@ -111,7 +111,7 @@ plc_t init_values(int operand,
                   plc_t plc){
     char * val = NULL;
     
-    if(val = get_param_val("VALUE", var->params)){
+    if((val = get_param_val("VALUE", var->params))){
         return init_variable(plc, operand, var->index, val);
     }
     return plc;                         
@@ -122,7 +122,7 @@ plc_t configure_readonly(int operand,
                         plc_t plc){
     char * val = NULL;
     
-    if(val = get_param_val("READONLY", var->params)){
+    if((val = get_param_val("READONLY", var->params))){
       return configure_variable_readonly(plc, operand, var->index, val);
     } 
     return plc;               
@@ -214,7 +214,7 @@ plc_t configure_counters(const config_t conf, plc_t plc){
             //readonlies
             p = configure_readonly(OP_MEMORY, &(seq->vars[i]), p);
             //directions    
-            if(val = get_param_val("COUNT", seq->vars[i].params)){
+            if((val = get_param_val("COUNT", seq->vars[i].params))){
                 p = configure_counter_direction(p, i, val);
                 val = NULL;
             }
@@ -258,18 +258,21 @@ plc_t configure_timers(const config_t conf, plc_t plc){
             //names
             p = declare_names(OP_TIMEOUT, &(seq->vars[i]), plc);
             //scales
-            if(scale = get_param_val("SCALE", seq->vars[i].params)){
+            if((scale = get_param_val("RESOLUTION", 
+                                        seq->vars[i].params))){
                 p = configure_timer_scale(p, i, scale);
                 scale = NULL;
             }
             //presets            
-            if(preset = get_param_val("PRESET", seq->vars[i].params)){
-                p = configure_timer_preset(p, i, scale);
+            if((preset = get_param_val("PRESET", 
+                                        seq->vars[i].params))){
+                p = configure_timer_preset(p, i, preset);
                 preset = NULL;
             }
             //modes
-            if(ondelay = get_param_val("ONDELAY", seq->vars[i].params)){
-                p = configure_timer_delay_mode(p, i, scale);
+            if((ondelay = get_param_val("ONDELAY", 
+                                        seq->vars[i].params))){
+                p = configure_timer_delay_mode(p, i, ondelay);
                 ondelay = NULL;
             }
         }   
@@ -290,7 +293,8 @@ plc_t configure_pulses(const config_t conf, plc_t plc){
             //names
             p = declare_names(OP_BLINKOUT, &(seq->vars[i]), plc);
             //scales
-            if(scale = get_param_val("SCALE", seq->vars[i].params)){
+            if((scale = get_param_val("RESOLUTION",
+                                     seq->vars[i].params))){
                 p = configure_pulse_scale(p, i, scale);
                 scale = NULL;
             }
@@ -321,14 +325,14 @@ plc_t init_emu(const config_t conf) {
    
     hw_config(conf);
         
-    int di = get_numeric_entry(CONFIG_NDI, conf); 
-    int dq = get_numeric_entry(CONFIG_NDQ, conf);
-    int ai = get_numeric_entry(CONFIG_NAI, conf);
-    int aq = get_numeric_entry(CONFIG_NAQ, conf);
-    int nt = get_numeric_entry(CONFIG_NT, conf);
-    int ns = get_numeric_entry(CONFIG_NS, conf);
-    int nm = get_numeric_entry(CONFIG_NM, conf);
-    int nr = get_numeric_entry(CONFIG_NR, conf);
+    int di = get_sequence_entry(CONFIG_DI, conf)->size; 
+    int dq = get_sequence_entry(CONFIG_DQ, conf)->size;
+    int ai = get_sequence_entry(CONFIG_AI, conf)->size;
+    int aq = get_sequence_entry(CONFIG_AQ, conf)->size;
+    int nt = get_sequence_entry(CONFIG_TIMER, conf)->size;
+    int ns = get_sequence_entry(CONFIG_PULSE, conf)->size;
+    int nm = get_sequence_entry(CONFIG_MREG, conf)->size;
+    int nr = get_sequence_entry(CONFIG_MVAR, conf)->size;
     int step = get_numeric_entry(CONFIG_STEP, conf);
     char * hw = get_string_entry(CONFIG_HW, conf);
     
@@ -357,12 +361,13 @@ int load_program_file(const char * path, plc_t plc) {
     char * ext = strrchr(path, '.');
     int lang = PLC_ERR;
     
-    if(ext != NULL)
-        if(strcmp(ext, ".il") == 0)
+    if(ext != NULL){
+        if(strcmp(ext, ".il") == 0){
             lang = LANG_IL;
-        else if(strcmp(ext, ".ld") == 0)
+        }else if(strcmp(ext, ".ld") == 0) {
             lang = LANG_LD;
-                  
+        }
+    }          
     if (lang > PLC_ERR && (f = fopen(path, "r"))) {
         memset(line, 0, MAXSTR);
        
@@ -372,47 +377,15 @@ int load_program_file(const char * path, plc_t plc) {
         }
         r = PLC_OK;
     } 
-    if(r > PLC_ERR)
-        if(lang == LANG_IL)
+    if(r > PLC_ERR){
+        if(lang == LANG_IL){
             r = parse_il_program(Lines, plc);
-        else 
+        }else{ 
             r = parse_ld_program(Lines, plc);   
-    
+        }
+    }
     return r;
 }
-
-const char * Config_vars[N_CONFIG_VARIABLES] = {
-    "STEP",
-    "PIPE",
-    "SIGENABLE",
-    "PAGELEN",
-    "PAGEWIDTH",
-    "HW",
-    "NT",
-    "NS",
-    "NR",
-    "NM",
-    "NDI",
-    "NDQ",
-    "NAI",
-    "NAQ",
-    "RESPONSE",
-    "USPACE",
-    "COMEDI",
-    "SIM",
-    "IL",
-    "LD",
-    //sequences
-    "AI",
-    "AQ",
-    "DI",
-    "DQ",
-    "MVAR",
-    "MREG",
-    "TIMER",
-    "PULSE"
-};
-
 
 const char * Usage = "Usage: plcemu [-c config file] \n \
         Options:\n \
@@ -453,6 +426,157 @@ void print_error(int errcode)
     plc_log("error %d: %s", -errcode, errmsg);
 }
 
+config_t init_config(){
+ //TODO: in a c++ implementation this all can be done automatically 
+ //using a hashmap
+    config_t conf = new_config(N_CONFIG_VARIABLES);
+   
+    config_t uspace = new_config(N_USPACE_VARS);
+        
+    uspace = update_entry(
+        USPACE_BASE,
+	    new_entry_int(50176, "BASE"),
+	    uspace);
+	
+	uspace = update_entry(
+	    USPACE_WR, 
+	    new_entry_int(0, "WR"),
+	    uspace);
+	    
+	uspace = update_entry(
+	    USPACE_RD, 
+	    new_entry_int(8, "RD"),
+	    uspace);
+	
+	config_t subdev = new_config(N_SUBDEV_VARS);
+	
+    subdev = update_entry(
+        SUBDEV_IN,
+	    new_entry_int(0, "IN"),
+	    subdev);
+	    
+	subdev = update_entry(
+	    SUBDEV_OUT,
+	    new_entry_int(1, "OUT"),
+	    subdev);
+	    
+    subdev = update_entry(
+        SUBDEV_ADC, 
+	    new_entry_int(2, "ADC"),
+	    subdev);
+	    
+	subdev = update_entry(
+	    SUBDEV_DAC, 
+	    new_entry_int(3, "DAC"),
+	    subdev);
+	
+	config_t comedi = new_config(N_COMEDI_VARS);
+	
+	comedi = update_entry(
+	    COMEDI_FILE,
+	    new_entry_int(0, "FILE"),
+	    comedi);
+	    
+	comedi = update_entry(
+	    COMEDI_SUBDEV, 
+	    new_entry_map(subdev, "SUBDEV"),
+	    comedi);
+    
+    config_t sim = new_config(N_SIM_VARS);
+    
+    sim = update_entry(
+        SIM_INPUT,
+        new_entry_str("sim.in", "INPUT"), 
+        sim);
+        
+    sim = update_entry(
+        SIM_OUTPUT,
+        new_entry_str("sim.out", "OUTPUT"),
+        sim);    
+
+    conf = update_entry(
+        CONFIG_STEP,
+        new_entry_int(1, "STEP"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_PIPE,
+        new_entry_str("plcpipe", "PIPE"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_HW,
+        new_entry_str("STDI/O", "HW"),
+        conf);
+        
+    conf = update_entry(
+        CONFIG_USPACE,
+        new_entry_map(uspace, "USPACE"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_COMEDI,
+        new_entry_map(comedi, "COMEDI"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_SIM,
+        new_entry_map(sim, "SIM"),
+        conf);
+        
+     conf = update_entry(
+        CONFIG_PROGRAM_IL,
+        new_entry_map(sim, "IL"),
+        conf);   
+    
+    conf = update_entry(
+        CONFIG_PROGRAM_LD,
+        new_entry_map(sim, "LD"),
+        conf);         
+   /*******************************************/
+   
+    conf = update_entry(
+        CONFIG_TIMER,
+        new_entry_seq(new_sequence(4), "TIMERS"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_PULSE,
+        new_entry_seq(new_sequence(4), "PULSES"),
+        conf);
+        
+    conf = update_entry(
+        CONFIG_MREG,
+        new_entry_seq(new_sequence(4), "MREG"),
+        conf);
+        
+    conf = update_entry(
+        CONFIG_MVAR,
+        new_entry_seq(new_sequence(4), "MVAR"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_DI,
+        new_entry_seq(new_sequence(8), "DI"),
+        conf);
+ 
+    conf = update_entry(
+        CONFIG_DQ,
+        new_entry_seq(new_sequence(8), "DQ"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_AI,
+        new_entry_seq(new_sequence(8), "AI"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_AQ,
+        new_entry_seq(new_sequence(8), "AQ"),
+        conf);
+
+    return conf;
+}
 
 int main(int argc, char **argv)
 {
@@ -503,7 +627,8 @@ int main(int argc, char **argv)
     more = ui_init();//conf->page_len, conf->page_width);
     UiReady=more;
     
-    load_program_file(get_string_entry(CONFIG_PROGRAM,conf), Plc);   
+    load_program_file(get_string_entry(CONFIG_PROGRAM_IL,conf), Plc);   
+    load_program_file(get_string_entry(CONFIG_PROGRAM_LD,conf), Plc);
     
     while (more > 0 ) {
        if(Update == TRUE)
@@ -520,8 +645,9 @@ int main(int argc, char **argv)
     }
     
     disable_bus();
-    clear_config(&conf);
+    clear_config(conf);
     close_log();
     ui_end();
     return 0;
 }
+

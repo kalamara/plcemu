@@ -29,10 +29,10 @@ Taken at least once:0.00% of 6
 Calls executed:0.00% of 10
 
 Function 'process'
-Lines executed:95.35% of 43
+Lines executed:95.45% of 44
 Branches executed:100.00% of 21
 Taken at least once:95.24% of 21
-Calls executed:85.71% of 7
+Calls executed:87.50% of 8
 
 Function 'process_mapping'
 Lines executed:100.00% of 10
@@ -64,20 +64,15 @@ Taken at least once:71.43% of 7
 Calls executed:100.00% of 3
 
 Function 'log_yml_event'
-Lines executed:0.00% of 26
-Branches executed:0.00% of 12
-Taken at least once:0.00% of 12
-Calls executed:0.00% of 12
+Lines executed:88.46% of 26
+Branches executed:100.00% of 12
+Taken at least once:83.33% of 12
+Calls executed:83.33% of 12
 
 Function 'clear_config'
 Lines executed:100.00% of 2
 No branches
 No calls
-
-Function 'init_config'
-Lines executed:100.00% of 32
-No branches
-Calls executed:100.00% of 63
 
 Function 'new_sequence'
 Lines executed:100.00% of 7
@@ -123,6 +118,12 @@ Function 'new_param'
 Lines executed:100.00% of 6
 No branches
 No calls
+
+Function 'get_recursive_entry'
+Lines executed:0.00% of 5
+Branches executed:0.00% of 4
+Taken at least once:0.00% of 4
+Calls executed:0.00% of 1
 
 Function 'get_sequence_entry'
 Lines executed:80.00% of 5
@@ -197,9 +198,9 @@ Taken at least once:100.00% of 2
 No calls
 
 File 'config.c'
-Lines executed:75.11% of 462
-Branches executed:75.00% of 156
-Taken at least once:60.26% of 156
-Calls executed:74.44% of 180
+Lines executed:77.75% of 436
+Branches executed:80.63% of 160
+Taken at least once:65.00% of 160
+Calls executed:68.91% of 119
 Creating 'config.c.gcov'
 

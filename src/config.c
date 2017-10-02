@@ -92,8 +92,7 @@ static void yaml_parser_error(yaml_parser_t parser){
     }
 }
 
-static entry_t new_entry_int(int i, char * name) {
-
+entry_t new_entry_int(int i, char * name) {
 	entry_t r = (entry_t)malloc(sizeof(struct entry));
 	r->type_tag = ENTRY_INT;
 	r->name = name;
@@ -102,7 +101,7 @@ static entry_t new_entry_int(int i, char * name) {
 	return r;
 }
 
-static entry_t new_entry_str(char * str, char * name) {
+entry_t new_entry_str(char * str, char * name) {
 
 	entry_t r = (entry_t)malloc(sizeof(struct entry));
 	r->type_tag = ENTRY_STR;
@@ -112,7 +111,7 @@ static entry_t new_entry_str(char * str, char * name) {
 	return r;
 }
 
-static entry_t new_entry_map(config_t map, char * name) {
+entry_t new_entry_map(config_t map, char * name) {
 	
 	entry_t r = (entry_t)malloc(sizeof(struct entry));
 	r->type_tag = ENTRY_MAP;
@@ -122,7 +121,7 @@ static entry_t new_entry_map(config_t map, char * name) {
 	return r;
 }
 
-static entry_t new_entry_seq(sequence_t seq, char * name) {
+entry_t new_entry_seq(sequence_t seq, char * name) {
 	
 	entry_t r = (entry_t)malloc(sizeof(struct entry));
 	r->type_tag = ENTRY_SEQ;
@@ -132,7 +131,7 @@ static entry_t new_entry_seq(sequence_t seq, char * name) {
 	return r;
 }
 
-static entry_t new_entry_null() {
+entry_t new_entry_null() {
 	entry_t r = (entry_t)malloc(sizeof(struct entry));
 	r->type_tag = ENTRY_NONE;
 	r->name = "";
@@ -141,7 +140,7 @@ static entry_t new_entry_null() {
 	return r;
 }
 
-static config_t update_entry(
+config_t update_entry(
     unsigned int key, 
     const entry_t item,
     const config_t conf) {
@@ -319,148 +318,6 @@ sequence_t new_sequence(int size) {
 	memset(r->vars, 0, size*sizeof(struct variable));
 	
 	return r;
-}
-
-config_t init_config(){
- //TODO: in a c++ implementation this all can be done automatically 
- //using a hashmap
-    config_t conf = new_config(N_CONFIG_VARIABLES);
-   
-    config_t uspace = new_config(N_USPACE_VARS);
-        
-    uspace = update_entry(
-        USPACE_BASE,
-	    new_entry_int(50176, "USPACE_BASE"),
-	    uspace);
-	
-	uspace = update_entry(
-	    USPACE_WR, 
-	    new_entry_int(0, "USPACE_WR"),
-	    uspace);
-	    
-	uspace = update_entry(
-	    USPACE_RD, 
-	    new_entry_int(8, "USPACE_RD"),
-	    uspace);
-	
-	config_t subdev = new_config(N_SUBDEV_VARS);
-	
-    subdev = update_entry(
-        SUBDEV_IN,
-	    new_entry_int(0, "SUBDEV_IN"),
-	    subdev);
-	    
-	subdev = update_entry(
-	    SUBDEV_OUT,
-	    new_entry_int(1, "SUBDEV_OUT"),
-	    subdev);
-	    
-    subdev = update_entry(
-        SUBDEV_ADC, 
-	    new_entry_int(2, "SUBDEV_ADC"),
-	    subdev);
-	    
-	subdev = update_entry(
-	    SUBDEV_DAC, 
-	    new_entry_int(3, "SUBDEV_DAC"),
-	    subdev);
-	
-	config_t comedi = new_config(N_COMEDI_VARS);
-	
-	comedi = update_entry(
-	    COMEDI_FILE,
-	    new_entry_int(0, "COMEDI_FILE"),
-	    comedi);
-	    
-	comedi = update_entry(
-	    COMEDI_SUBDEV, 
-	    new_entry_map(subdev, "COMEDI_SUBDEV"),
-	    comedi);
-    
-    config_t sim = new_config(N_SIM_VARS);
-    
-    sim = update_entry(
-        SIM_INPUT,
-        new_entry_str("sim.in", "SIM_INPUT"), 
-        sim);
-        
-    sim = update_entry(
-        SIM_OUTPUT,
-        new_entry_str("sim.out", "SIM_OUTPUT"),
-        sim);    
-
-    conf = update_entry(
-        CONFIG_STEP,
-        new_entry_int(1, "STEP"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_PIPE,
-        new_entry_str("plcpipe", "PIPE"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_HW,
-        new_entry_str("STDI/O", "HW"),
-        conf);
-        
-    conf = update_entry(
-        CONFIG_USPACE,
-        new_entry_map(uspace, "USPACE"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_COMEDI,
-        new_entry_map(comedi, "COMEDI"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_SIM,
-        new_entry_map(sim, "SIM"),
-        conf);
-   /*******************************************/
-   
-    conf = update_entry(
-        CONFIG_TIMER,
-        new_entry_seq(new_sequence(4), "TIMERS"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_PULSE,
-        new_entry_seq(new_sequence(4), "PULSES"),
-        conf);
-        
-    conf = update_entry(
-        CONFIG_MREG,
-        new_entry_seq(new_sequence(4), "MREG"),
-        conf);
-        
-    conf = update_entry(
-        CONFIG_MVAR,
-        new_entry_seq(new_sequence(4), "MVAR"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_DI,
-        new_entry_seq(new_sequence(8), "DI"),
-        conf);
- 
-    conf = update_entry(
-        CONFIG_DQ,
-        new_entry_seq(new_sequence(8), "DQ"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_AI,
-        new_entry_seq(new_sequence(8), "AI"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_AQ,
-        new_entry_seq(new_sequence(8), "AQ"),
-        conf);
-
-    return conf;
 }
 
 config_t clear_config(config_t c){
@@ -765,7 +622,8 @@ config_t process(int sequence,
          if(config->err < CONF_OK) {
              done = CONF_T;
              //log_yml_event(event);
-         }                                              
+         }            
+         log_yml_event(event);                                  
          yaml_event_delete(&event);   
      }
      
@@ -1048,7 +906,7 @@ int emit(yaml_emitter_t *emitter, const config_t conf) {
     entry_map_t config_map = conf->map;
     entry_t iter = *config_map;
     int i = 0;
-    while(i < N_CONFIG_VARIABLES) {
+    while(i < conf->size) {
         if(iter != NULL){
     	    emit_entry(iter, emitter);
     	}
