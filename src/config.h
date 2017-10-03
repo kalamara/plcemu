@@ -6,6 +6,7 @@
 #define CONF_OK 0
 #define CONF_ERR -1
 #define CONF_STR 1024 //string length
+#define CONF_MAX_SEQ 256 //max sequence elements
 #define CONF_NUM 24 //number digits 
 #define CONF_F 0
 #define CONF_T 1

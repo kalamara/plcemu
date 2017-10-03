@@ -456,6 +456,23 @@ config_t store_seq_value(
     return conf;                       
 }
 
+static config_t resize_sequence(config_t config, int sequence, int size){
+    config_t conf = config;
+    sequence_t seq = get_sequence_entry(sequence, conf);
+    if(size <= 0 ||
+        size > CONF_MAX_SEQ || 
+        sequence == NULL){
+        conf->err = CONF_ERR;
+        
+        return conf;
+    }  
+    seq->size = size;
+	seq->vars = (variable_t)realloc(seq->vars, size*sizeof(struct variable));
+	memset(seq->vars, 0, size*sizeof(struct variable));    
+        
+    return conf;
+}
+
 static config_t process_seq_element(
                    yaml_event_t event,
                    int sequence, 
@@ -465,8 +482,14 @@ static config_t process_seq_element(
     
     config_t conf = config;
     char * val = (char *)event.data.scalar.value;
-                    
-    if(!strcmp(key, "INDEX")){
+    long size = 0;
+    if(key[0] == 0) { //we are not in a map yet
+        size = strtol(val, NULL, 10);
+    }
+    if(size > 0 &&
+        size < CONF_MAX_SEQ){
+        conf = resize_sequence(conf, sequence, (int)size);
+    } else if(!strcmp(key, "INDEX")){
                              
             *idx = atoi(val);
     } else {  
@@ -561,11 +584,12 @@ config_t process(int sequence,
                 case YAML_SCALAR_EVENT: 
 //swap storage to process val after key and vice versa 
                     if(storage == STORE_KEY) {
-                        memset(key, 0, CONF_STR);
-                        sprintf(key, "%s", 
-                            (char *)event.data.scalar.value);
+ 
+                            memset(key, 0, CONF_STR);
+                            sprintf(key, "%s", 
+                                (char *)event.data.scalar.value);
                         
-                        storage = STORE_VAL;
+                            storage = STORE_VAL;
                     } else {
                         if(sequence > CONF_ERR) {
                     
@@ -589,6 +613,7 @@ config_t process(int sequence,
                 case YAML_SEQUENCE_START_EVENT:
 
                     sequence = get_key(key, config);
+                    memset(key, 0, CONF_STR);
                     break;
                 
                 case YAML_SEQUENCE_END_EVENT:
@@ -622,9 +647,9 @@ config_t process(int sequence,
          if(config->err < CONF_OK) {
              done = CONF_T;
              plc_log("Could not parse event:");
-             log_yml_event(event);
+            // log_yml_event(event);
          }            
-         //log_yml_event(event);                                  
+         log_yml_event(event);                                  
          //yaml_event_delete(&event);   
      }
      

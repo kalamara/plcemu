@@ -27,7 +27,7 @@ void ut_conf()
                 conf)->e.conf);
     
     CU_ASSERT(got->type_tag == ENTRY_STR);
-    CU_ASSERT_STRING_EQUAL(got->name, "SIM_INPUT");
+    CU_ASSERT_STRING_EQUAL(got->name, "INPUT");
     CU_ASSERT_STRING_EQUAL(got->e.scalar_str, "sim.in");
     
     got = get_entry(
@@ -39,7 +39,7 @@ void ut_conf()
                      conf)->e.conf)->e.conf);
     
     CU_ASSERT(got->type_tag == ENTRY_INT);
-    CU_ASSERT_STRING_EQUAL(got->name, "SUBDEV_IN");
+    CU_ASSERT_STRING_EQUAL(got->name, "IN");
     CU_ASSERT_EQUAL(got->e.scalar_int, 0);
     
     got = get_entry(CONFIG_TIMER, conf);
@@ -143,8 +143,8 @@ void ut_process()
     char * input = 
 "#SIMULATION IO \n\
 SIM: \n\
-    SIM_INPUT:   simin.txt \n\
-    SIM_OUTPUT:  simout.txt \n\
+    INPUT:   simin.txt \n\
+    OUTPUT:  simout.txt \n\
 ";
     memset(&parser, 0, sizeof(parser));
     yaml_parser_initialize(&parser);
@@ -160,19 +160,19 @@ SIM: \n\
                 conf)->e.conf);
     
     CU_ASSERT(got->type_tag == ENTRY_STR);
-    CU_ASSERT_STRING_EQUAL(got->name, "SIM_INPUT");
+    CU_ASSERT_STRING_EQUAL(got->name, "INPUT");
     CU_ASSERT_STRING_EQUAL(got->e.scalar_str, "simin.txt");
     printf("%s\n", got->e.scalar_str);
 
     input = 
 "#COMEDI interface:\n\
 COMEDI: \n\
-    COMEDI_FILE:     1 \n\
-    COMEDI_SUBDEV :     \n\
-        SUBDEV_IN :  5 \n\
-        SUBDEV_OUT:  6 \n\
-        SUBDEV_ADC:  7 \n\
-        SUBDEV_DAC:  8 \n\
+    FILE:     1 \n\
+    SUBDEV :     \n\
+        IN :  5 \n\
+        OUT:  6 \n\
+        ADC:  7 \n\
+        DAC:  8 \n\
 ";  
     memset(&parser, 0, sizeof(parser));
     yaml_parser_initialize(&parser);
@@ -196,6 +196,7 @@ COMEDI: \n\
    
     input = "\n\
 AI:  \n\
+ - 5 \n\
  - INDEX  :     1    \n\
    ID     :    var1\n\
    VALUE  :    5.0\n\
@@ -210,7 +211,7 @@ AI:  \n\
     
     got = get_entry(CONFIG_AI,conf);
     CU_ASSERT(got->type_tag == ENTRY_SEQ);
-    
+    CU_ASSERT(got->e.seq->size == 5);
     CU_ASSERT_STRING_EQUAL(
     get_param_val("MAX",
         get_entry(CONFIG_AI, conf)->e.seq->vars[1].params), 
