@@ -1,9 +1,5 @@
 STEP:         10                    #time cycle in milliseconds
 PIPE:         plcpipe                 #UNIX path of named pipe polled for commands
-RESPONSE:     plcresponse                 #>>  named pipe for response
-SIGENABLE:     36                     #POSIX enable signal which is used to lock/unlock the interface.
-PAGELEN:        24                    #max screen length in characters.
-PAGEWIDTH:     80                    #>> width
 NT:         16                     #number of timers
 NS:         16                    #number of blinking timers
 NM:         32                     #number of internal memory registers 

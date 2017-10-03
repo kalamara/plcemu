@@ -1,2 +1,5 @@
-Successfully loaded 17 lines of LD code from tst/should_run_ld_file/plc.init:Sat May 28 14:04:30 2016
-LAST command:207, :Sat May 28 14:04:30 2016
+Looking for configuration from config.yml ...:Tue Oct  3 06:39:09 2017
+program interrupted:Tue Oct  3 06:39:41 2017
+Total loops: 3441:Tue Oct  3 06:39:41 2017
+Average loop time: 9234.343214 us:Tue Oct  3 06:39:41 2017
+Standard deviation: +-74.912367 us:Tue Oct  3 06:39:41 2017

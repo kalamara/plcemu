@@ -346,6 +346,7 @@ plc_t init_emu(const config_t conf) {
     signal(SIGTERM, sigkill);
     
     project_init();
+    
     open_pipe(get_string_entry(CONFIG_HW, conf), p);
     return p;
 }
@@ -375,6 +376,7 @@ int load_program_file(const char * path, plc_t plc) {
             memset(Lines[i], 0, MAXSTR);
             sprintf(Lines[i++], "%s", line);
         }
+        Lineno = i;
         r = PLC_OK;
     } 
     if(r > PLC_ERR){
@@ -526,12 +528,12 @@ config_t init_config(){
         
      conf = update_entry(
         CONFIG_PROGRAM_IL,
-        new_entry_map(sim, "IL"),
+        new_entry_str("", "IL"),
         conf);   
     
     conf = update_entry(
         CONFIG_PROGRAM_LD,
-        new_entry_map(sim, "LD"),
+        new_entry_str("", "LD"),
         conf);         
    /*******************************************/
    
@@ -621,10 +623,12 @@ int main(int argc, char **argv)
         plc_log("Invalid configuration file %s\n", cvalue);
         return PLC_ERR;
     }
-
+//initialize PLC
     Plc = init_emu(conf);
-   
-    more = ui_init();//conf->page_len, conf->page_width);
+//start hardware
+    enable_bus();
+//start UI
+    more = ui_init();
     UiReady=more;
     
     load_program_file(get_string_entry(CONFIG_PROGRAM_IL,conf), Plc);   
@@ -632,7 +636,7 @@ int main(int argc, char **argv)
     
     while (more > 0 ) {
        if(Update == TRUE)
-           ui_draw(Plc, Lines, Lineno);
+           ui_draw();
         more = ui_update(more);
         
         if(errcode >= PLC_OK && Plc->status > 0){  
