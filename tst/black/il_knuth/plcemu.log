@@ -1,2 +1,117 @@
-Successfully loaded 17 lines of LD code from tst/should_run_ld_file/plc.init:Sat May 28 14:04:30 2016
-LAST command:207, :Sat May 28 14:04:30 2016
+Looking for configuration from config.yml ...:Sun Oct  8 20:54:27 2017
+STREAM START:Sun Oct  8 20:54:27 2017
+Start Document:Sun Oct  8 20:54:27 2017
+Got scalar (value STEP):Sun Oct  8 20:54:27 2017
+Got scalar (value 100):Sun Oct  8 20:54:27 2017
+Got scalar (value PIPE):Sun Oct  8 20:54:27 2017
+Got scalar (value plcpipe):Sun Oct  8 20:54:27 2017
+Got scalar (value HW):Sun Oct  8 20:54:27 2017
+Got scalar (value STDI/O):Sun Oct  8 20:54:27 2017
+Got scalar (value USPACE):Sun Oct  8 20:54:27 2017
+Got scalar (value BASE):Sun Oct  8 20:54:27 2017
+Got scalar (value 50176):Sun Oct  8 20:54:27 2017
+Got scalar (value WR):Sun Oct  8 20:54:27 2017
+Got scalar (value 4):Sun Oct  8 20:54:27 2017
+Got scalar (value RD):Sun Oct  8 20:54:27 2017
+Got scalar (value 0):Sun Oct  8 20:54:27 2017
+End Mapping:Sun Oct  8 20:54:27 2017
+Start Mapping:Sun Oct  8 20:54:27 2017
+Got scalar (value COMEDI):Sun Oct  8 20:54:27 2017
+Got scalar (value FILE):Sun Oct  8 20:54:27 2017
+Got scalar (value 0):Sun Oct  8 20:54:27 2017
+Got scalar (value SUBDEV):Sun Oct  8 20:54:27 2017
+Got scalar (value IN):Sun Oct  8 20:54:27 2017
+Got scalar (value 0):Sun Oct  8 20:54:27 2017
+Got scalar (value OUT):Sun Oct  8 20:54:27 2017
+Got scalar (value 1):Sun Oct  8 20:54:27 2017
+Got scalar (value ADC):Sun Oct  8 20:54:27 2017
+Got scalar (value 2):Sun Oct  8 20:54:27 2017
+Got scalar (value DAC):Sun Oct  8 20:54:27 2017
+Got scalar (value 3):Sun Oct  8 20:54:27 2017
+End Mapping:Sun Oct  8 20:54:27 2017
+Start Mapping:Sun Oct  8 20:54:27 2017
+End Mapping:Sun Oct  8 20:54:27 2017
+Start Mapping:Sun Oct  8 20:54:27 2017
+Got scalar (value SIM):Sun Oct  8 20:54:27 2017
+Got scalar (value INPUT):Sun Oct  8 20:54:27 2017
+Got scalar (value sim.in):Sun Oct  8 20:54:27 2017
+Got scalar (value OUTPUT):Sun Oct  8 20:54:27 2017
+Got scalar (value sim.out):Sun Oct  8 20:54:27 2017
+End Mapping:Sun Oct  8 20:54:27 2017
+Start Mapping:Sun Oct  8 20:54:27 2017
+Got scalar (value MVAR):Sun Oct  8 20:54:27 2017
+Start Sequence:Sun Oct  8 20:54:27 2017
+Got scalar (value 6):Sun Oct  8 20:54:27 2017
+Got scalar (value INDEX):Sun Oct  8 20:54:27 2017
+Got scalar (value 0):Sun Oct  8 20:54:27 2017
+Got scalar (value ID):Sun Oct  8 20:54:27 2017
+Got scalar (value N):Sun Oct  8 20:54:27 2017
+Got scalar (value VALUE):Sun Oct  8 20:54:27 2017
+Got scalar (value 1.0):Sun Oct  8 20:54:27 2017
+End Mapping:Sun Oct  8 20:54:27 2017
+Start Mapping:Sun Oct  8 20:54:27 2017
+Got scalar (value INDEX):Sun Oct  8 20:54:27 2017
+Got scalar (value 1):Sun Oct  8 20:54:27 2017
+Got scalar (value ID):Sun Oct  8 20:54:27 2017
+Got scalar (value MEAN):Sun Oct  8 20:54:27 2017
+End Mapping:Sun Oct  8 20:54:27 2017
+Start Mapping:Sun Oct  8 20:54:27 2017
+Got scalar (value INDEX):Sun Oct  8 20:54:27 2017
+Got scalar (value 2):Sun Oct  8 20:54:27 2017
+Got scalar (value ID):Sun Oct  8 20:54:27 2017
+Got scalar (value M2):Sun Oct  8 20:54:27 2017
+End Mapping:Sun Oct  8 20:54:27 2017
+Start Mapping:Sun Oct  8 20:54:27 2017
+Got scalar (value INDEX):Sun Oct  8 20:54:27 2017
+Got scalar (value 3):Sun Oct  8 20:54:27 2017
+Got scalar (value ID):Sun Oct  8 20:54:27 2017
+Got scalar (value DELTA):Sun Oct  8 20:54:27 2017
+End Mapping:Sun Oct  8 20:54:27 2017
+Start Mapping:Sun Oct  8 20:54:27 2017
+Got scalar (value INDEX):Sun Oct  8 20:54:27 2017
+Got scalar (value 4):Sun Oct  8 20:54:27 2017
+Got scalar (value ID):Sun Oct  8 20:54:27 2017
+Got scalar (value ONE):Sun Oct  8 20:54:27 2017
+Got scalar (value VALUE):Sun Oct  8 20:54:27 2017
+Got scalar (value 1.0):Sun Oct  8 20:54:27 2017
+End Mapping:Sun Oct  8 20:54:27 2017
+Start Mapping:Sun Oct  8 20:54:27 2017
+End Sequence:Sun Oct  8 20:54:27 2017
+Got scalar (value AI):Sun Oct  8 20:54:27 2017
+Start Sequence:Sun Oct  8 20:54:27 2017
+Got scalar (value 1):Sun Oct  8 20:54:27 2017
+Got scalar (value INDEX):Sun Oct  8 20:54:27 2017
+Got scalar (value 0):Sun Oct  8 20:54:27 2017
+Got scalar (value ID):Sun Oct  8 20:54:27 2017
+Got scalar (value INPUT):Sun Oct  8 20:54:27 2017
+Got scalar (value MIN):Sun Oct  8 20:54:27 2017
+Got scalar (value 0.0):Sun Oct  8 20:54:27 2017
+Got scalar (value MAX):Sun Oct  8 20:54:27 2017
+Got scalar (value 24.0):Sun Oct  8 20:54:27 2017
+End Mapping:Sun Oct  8 20:54:27 2017
+Start Mapping:Sun Oct  8 20:54:27 2017
+End Sequence:Sun Oct  8 20:54:27 2017
+Got scalar (value AQ):Sun Oct  8 20:54:27 2017
+Start Sequence:Sun Oct  8 20:54:27 2017
+Got scalar (value 1):Sun Oct  8 20:54:27 2017
+Got scalar (value INDEX):Sun Oct  8 20:54:27 2017
+Got scalar (value 0):Sun Oct  8 20:54:27 2017
+Got scalar (value ID):Sun Oct  8 20:54:27 2017
+Got scalar (value OUTPUT):Sun Oct  8 20:54:27 2017
+Got scalar (value MIN):Sun Oct  8 20:54:27 2017
+Got scalar (value 0.0):Sun Oct  8 20:54:27 2017
+Got scalar (value MAX):Sun Oct  8 20:54:27 2017
+Got scalar (value 10.0):Sun Oct  8 20:54:27 2017
+End Mapping:Sun Oct  8 20:54:27 2017
+Start Mapping:Sun Oct  8 20:54:27 2017
+End Sequence:Sun Oct  8 20:54:27 2017
+Got scalar (value IL):Sun Oct  8 20:54:27 2017
+Got scalar (value knuth.il):Sun Oct  8 20:54:27 2017
+End Mapping:Sun Oct  8 20:54:27 2017
+Start Mapping:Sun Oct  8 20:54:27 2017
+End Document:Sun Oct  8 20:54:27 2017
+STREAM END:Sun Oct  8 20:54:27 2017
+program interrupted:Sun Oct  8 20:54:44 2017
+Total loops: 0:Sun Oct  8 20:54:44 2017
+Average loop time: 0.000000 us:Sun Oct  8 20:54:44 2017
+Standard deviation: +-0.000000 us:Sun Oct  8 20:54:44 2017
