@@ -67,35 +67,6 @@ int minmin(const int * arr, int min, int max) {
 	return r;
 }
 
-int handle_coil(const int type, ld_line_t line) {
-//(expect Q,T,M,W followed by number)
-	int rv = PLC_OK;
-    int c = read_char(line->buf, ++line->cursor);
-    if (c >= OP_CONTACT && c < OP_END) {
-		int operand = c;
-	    c = read_char(line->buf, line->cursor);
-		int idx = extract_number(line->buf, ++line->cursor);
-		if (idx >= 0) {
-		    item_t identifier = mk_identifier(operand, 
-			                                idx / BYTESIZE, 
-			                                idx % BYTESIZE);
-		    line->stmt = mk_assignment(identifier,
-		                               line->stmt,
-		                               type);
-		    line->status = STATUS_RESOLVED;
-		}
-		else {
-			rv = ERR_BADINDEX;
-			line->status = STATUS_ERROR;
-	    }
-	}
-	else {
-		rv = ERR_BADCOIL;
-		line->status = STATUS_ERROR;
-    }
-    return rv;
-}
-
 BYTE digits(unsigned int i) {
     if (i > 100)
 		return 3;
@@ -104,29 +75,65 @@ BYTE digits(unsigned int i) {
 	else
 		return 1;
 }
+/***********************************************************************/
+int handle_coil(const int type, ld_line_t line) {
+//(expect Q,T,M,W followed by byte / bit)
+	int rv = PLC_OK;
+	BYTE byte = 0;
+    BYTE bit = 0;
+    int c = read_char(line->buf, ++line->cursor);
+    if (c >= OP_CONTACT && c < OP_END) {
+		int operand = c;
+	    c = read_char(line->buf, line->cursor);
+		//int idx = extract_number(line->buf, ++line->cursor);
+		rv = extract_arguments(line->buf + (++line->cursor),
+		                       &byte,
+		                       &bit);
+		if (rv == PLC_OK) {
+		    item_t identifier = mk_identifier(operand, 
+			                                byte, 
+			                                bit);
+		    line->stmt = mk_assignment(identifier,
+		                               line->stmt,
+		                               type);
+		    line->status = STATUS_RESOLVED;
+		} else {
+			rv = ERR_BADINDEX;
+			line->status = STATUS_ERROR;
+	    }
+	} else {
+		rv = ERR_BADCOIL;
+		line->status = STATUS_ERROR;
+    }
+    return rv;
+}
 
 int handle_operand(int operand, 
                    BYTE negate, ld_line_t line) {
     int rv = PLC_OK;
+    BYTE byte = 0;
+    BYTE bit = 0;
     if (operand >= OP_INPUT && operand < OP_CONTACT){	//valid input symbol
-		//int c = read_char(line->buf, line->cursor);
-		int idx = extract_number(line->buf, ++line->cursor);
-		if (idx >= 0){
-			line->cursor += digits((unsigned int)idx) -1;
+		rv = extract_arguments(line->buf + (++line->cursor), 
+		                            &byte, 
+		                            &bit);       
+		//extract_number(line->buf, ++line->cursor);
+		if (rv == PLC_OK){
+			/*byte + slash + bit*/
+			line->cursor += digits((unsigned int)byte) + 2; 
+			
 			item_t identifier = mk_identifier(operand, 
-			                                idx / BYTESIZE, 
-			                                idx % BYTESIZE);
+			                                byte, 
+			                                bit);
 			line->stmt = mk_expression(identifier,
 			                                 line->stmt,
 			                                 IL_AND,
 			                                 negate?IL_NEG:IL_NORM);
-		}
-		else{
+		} else {
 			rv = ERR_BADINDEX;
 			line->status = STATUS_ERROR;		    
 		}
-	}
-	else{
+	} else {
 		rv = ERR_BADOPERAND;
 	    line->status = STATUS_ERROR;
 	}

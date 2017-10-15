@@ -647,9 +647,9 @@ config_t process(int sequence,
          if(config->err < CONF_OK) {
              done = CONF_T;
              plc_log("Could not parse event:");
-            // log_yml_event(event);
+             log_yml_event(event);
          }            
-         log_yml_event(event);                                  
+         //log_yml_event(event);                                  
          //yaml_event_delete(&event);   
      }
      

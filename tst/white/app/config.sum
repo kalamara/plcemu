@@ -70,10 +70,10 @@ Taken at least once:71.43% of 7
 Calls executed:100.00% of 3
 
 Function 'log_yml_event'
-Lines executed:88.46% of 26
+Lines executed:19.23% of 26
 Branches executed:100.00% of 12
-Taken at least once:83.33% of 12
-Calls executed:83.33% of 12
+Taken at least once:8.33% of 12
+Calls executed:8.33% of 12
 
 Function 'clear_config'
 Lines executed:100.00% of 2
@@ -204,9 +204,9 @@ Taken at least once:100.00% of 2
 No calls
 
 File 'config.c'
-Lines executed:78.19% of 454
+Lines executed:74.23% of 454
 Branches executed:81.98% of 172
-Taken at least once:64.53% of 172
-Calls executed:69.67% of 122
+Taken at least once:59.30% of 172
+Calls executed:62.30% of 122
 Creating 'config.c.gcov'
 

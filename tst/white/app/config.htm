@@ -354,51 +354,51 @@
 353:        4:  325:    return (config_t)NULL;
 354:        -:  326:}
 355:        -:  327:
-356:function log_yml_event called 132 returned 1000locks executed 88%
-357:      132:  328:static int log_yml_event(yaml_event_t event){
+356:function log_yml_event called 2 returned 1000locks executed 19%
+357:        2:  328:static int log_yml_event(yaml_event_t event){
 358:        -:  329:
-359:      132:  330:    switch(event.type){ 
+359:        2:  330:    switch(event.type){ 
 360:        -:  331:    
 361:        -:  332:        case YAML_NO_EVENT: 
 362:        2:  333:        	plc_log("No event!"); 
 363:        2:  334:            break;
 364:        -:  335:    /* Stream start/end */
 365:        -:  336:        case YAML_STREAM_START_EVENT: 
-366:        8:  337:        	plc_log("STREAM START"); 
-367:        8:  338:            break;
+366:<font color=red>    #####:  337:        	plc_log("STREAM START"); </font>
+367:<font color=red>    #####:  338:            break;</font>
 368:        -:  339:        case YAML_STREAM_END_EVENT: 
-369:        8:  340:        	plc_log("STREAM END");   
-370:        8:  341:            break;
+369:<font color=red>    #####:  340:        	plc_log("STREAM END");   </font>
+370:<font color=red>    #####:  341:            break;</font>
 371:        -:  342:    /* Block delimeters */
 372:        -:  343:        case YAML_DOCUMENT_START_EVENT: 
-373:        8:  344:        	plc_log("Start Document"); 
-374:        8:  345:            break;
+373:<font color=red>    #####:  344:        	plc_log("Start Document"); </font>
+374:<font color=red>    #####:  345:            break;</font>
 375:        -:  346:        case YAML_DOCUMENT_END_EVENT: 
-376:        8:  347:        	plc_log("End Document");   
-377:        8:  348:            break;
+376:<font color=red>    #####:  347:        	plc_log("End Document");   </font>
+377:<font color=red>    #####:  348:            break;</font>
 378:        -:  349:        case YAML_SEQUENCE_START_EVENT: 
-379:        2:  350:        	plc_log("Start Sequence"); 
-380:        2:  351:            break;
+379:<font color=red>    #####:  350:        	plc_log("Start Sequence"); </font>
+380:<font color=red>    #####:  351:            break;</font>
 381:        -:  352:        case YAML_SEQUENCE_END_EVENT: 
-382:        2:  353:        	plc_log("End Sequence");
-383:        2:  354:            break;
+382:<font color=red>    #####:  353:        	plc_log("End Sequence");</font>
+383:<font color=red>    #####:  354:            break;</font>
 384:        -:  355:        case YAML_MAPPING_START_EVENT: 
-385:       16:  356:        	plc_log("Start Mapping");         
-386:       16:  357:            break;
+385:<font color=red>    #####:  356:        	plc_log("Start Mapping");         </font>
+386:<font color=red>    #####:  357:            break;</font>
 387:        -:  358:        case YAML_MAPPING_END_EVENT: 
-388:       16:  359:        	plc_log("End Mapping");      
-389:       16:  360:            break;
+388:<font color=red>    #####:  359:        	plc_log("End Mapping");      </font>
+389:<font color=red>    #####:  360:            break;</font>
 390:        -:  361:    /* Data */
 391:        -:  362:        case YAML_ALIAS_EVENT:  
 392:<font color=red>    #####:  363:        	plc_log("Got alias (anchor )", event.data.alias.anchor); </font>
 393:<font color=red>    #####:  364:            break;</font>
 394:        -:  365:        case YAML_SCALAR_EVENT: 
-395:       62:  366:        	plc_log("Got scalar (value )", event.data.scalar.value); 
-396:       62:  367:        	break;
+395:<font color=red>    #####:  366:        	plc_log("Got scalar (value )", event.data.scalar.value); </font>
+396:<font color=red>    #####:  367:        	break;</font>
 397:        -:  368:        default:
 398:<font color=red>    #####:  369:            plc_log("default?");</font>
 399:        -:  370:    }
-400:      132:  371:    return CONF_OK;
+400:        2:  371:    return CONF_OK;
 401:        -:  372:}
 402:        -:  373:
 403:function store_value called 26 returned 1000locks executed 85%
@@ -684,9 +684,9 @@
 683:      132:  647:         if(config-&gt;err &lt; CONF_OK) {
 684:        2:  648:             done = CONF_T;
 685:        2:  649:             plc_log("Could not parse event:");
-686:        -:  650:            // log_yml_event(event);
+686:        2:  650:             log_yml_event(event);
 687:        -:  651:         }            
-688:      132:  652:         log_yml_event(event);                                  
+688:        -:  652:         //log_yml_event(event);                                  
 689:        -:  653:         //yaml_event_delete(&event);   
 690:        -:  654:     }
 691:        -:  655:     

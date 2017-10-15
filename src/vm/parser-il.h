@@ -5,10 +5,20 @@
  * @brief read an unsigned integer value from string
  * starting @ position start
  * @param line
- * @param start
  * @return number read (positive value) or error (negative value)
  */
-int extract_number(const char * line, const BYTE start);
+int extract_number(const char * line);
+
+/**
+ * @brief extract bit and byte from X/Y expression starting @ start
+ * @param the string
+ * @param the byte
+ * @param the bit
+ * @return OK or error
+ */
+int extract_arguments(const char* buf,  
+                     BYTE* byte, 
+                     BYTE* bit);
 
 /**
  * @brief read optional descriptor (currently only f) 

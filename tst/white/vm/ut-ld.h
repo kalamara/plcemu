@@ -49,7 +49,7 @@ void ut_parse_ld_line()
     CU_ASSERT(line.status == STATUS_ERROR);
     
     memset(&line, 0, sizeof(line));
-    line.buf = " ---i5--";
+    line.buf = " ---i0/5--";
     result = parse_ld_line(&line);
     CU_ASSERT(result == PLC_OK);
     CU_ASSERT(line.cursor == strlen(line.buf));
@@ -57,7 +57,7 @@ void ut_parse_ld_line()
     CU_ASSERT(line.stmt == NULL);
     
     memset(&line, 0, sizeof(line));
-    line.buf = " ---i5--( ";
+    line.buf = " ---i0/5--( ";
     result = parse_ld_line(&line);
     CU_ASSERT(result == ERR_BADCOIL);
     CU_ASSERT(line.cursor == strlen(line.buf)-1); 
@@ -65,7 +65,7 @@ void ut_parse_ld_line()
     CU_ASSERT(line.stmt == NULL);
     
     memset(&line, 0, sizeof(line));
-    line.buf = " ---i5--(QQ ";
+    line.buf = " ---i0/5--(QQ ";
     result = parse_ld_line(&line);
     CU_ASSERT(result == ERR_BADINDEX);
     CU_ASSERT(line.cursor == strlen(line.buf)-2); 
@@ -73,10 +73,10 @@ void ut_parse_ld_line()
     CU_ASSERT(line.stmt == NULL);
     
     memset(&line, 0, sizeof(line));
-    line.buf = " ---!i5--(Q3 ";
+    line.buf = " ---!i0/5--(Q0/3 ";
     result = parse_ld_line(&line);
     CU_ASSERT(result == PLC_OK);
-    CU_ASSERT(line.cursor == strlen(line.buf)-2); 
+    CU_ASSERT(line.cursor == strlen(line.buf)-4); 
     CU_ASSERT(line.status == STATUS_RESOLVED);
     CU_ASSERT(line.stmt->tag == TAG_ASSIGNMENT);
     CU_ASSERT(line.stmt->v.ass.type == LD_COIL);
@@ -103,7 +103,7 @@ void ut_parse_ld_line()
     clear_tree(line.stmt);
     memset(&line, 0, sizeof(line));
     
-    line.buf = " ---q9--+";
+    line.buf = " ---q1/1--+";
     result = parse_ld_line(&line);
     CU_ASSERT(result == PLC_OK);
     CU_ASSERT(line.cursor == strlen(line.buf)-1);
@@ -123,7 +123,7 @@ void ut_parse_ld_line()
     
     clear_tree(line.stmt);
     memset(&line, 0, sizeof(line));
-    line.buf = " ---f9--|--+";
+    line.buf = " ---f1/1--|--+";
     result = parse_ld_line(&line);
     CU_ASSERT(result == PLC_OK);
     CU_ASSERT(line.cursor == strlen(line.buf)-1);
@@ -131,7 +131,7 @@ void ut_parse_ld_line()
     CU_ASSERT(line.stmt == NULL);
     
     memset(&line, 0, sizeof(line));
-    line.buf = " ---q9-!i3--+";
+    line.buf = " ---q1/1-!i0/3--+";
     result = parse_ld_line(&line);
     CU_ASSERT(result == PLC_OK);
     CU_ASSERT(line.cursor == strlen(line.buf)-1);
@@ -176,9 +176,9 @@ void ut_find_next_node()
     char lines[MAXBUF][MAXSTR];
     memset(lines, 0, MAXBUF * MAXSTR);
     
-    sprintf(lines[0], "%s\n", " i1--)Q0");
-    sprintf(lines[1], "%s\n", " i2--+");
-    sprintf(lines[2], "%s\n", " i3--+--(Q1");
+    sprintf(lines[0], "%s\n", " i0/1--)Q0/0");
+    sprintf(lines[1], "%s\n", " i0/2--+");
+    sprintf(lines[2], "%s\n", " i0/3--+--(Q0/1");
     
     ld_line_t * program = construct_program(lines, 3);
     int result = horizontal_parse(3, program);
@@ -189,9 +189,9 @@ void ut_find_next_node()
 
     destroy_program(3, program);
     
-    sprintf(lines[0], "%s\n", " i1--(Q0");
-    sprintf(lines[1], "%s\n", " i2--");
-    sprintf(lines[2], "%s\n", " i3----(Q1");
+    sprintf(lines[0], "%s\n", " i0/1--(Q0/0");
+    sprintf(lines[1], "%s\n", " i0/2--");
+    sprintf(lines[2], "%s\n", " i0/3----(Q0/1");
     
     program = construct_program(lines, 3);
     result = horizontal_parse(3, program);
@@ -203,13 +203,13 @@ void ut_find_next_node()
     destroy_program(3, program);
     
     
-    sprintf(lines[0], "%s\n", " i1--+-[Q0");
-    sprintf(lines[1], "%s\n", " i2--+ ");
-    sprintf(lines[2], "%s\n", " i3--+           ");
+    sprintf(lines[0], "%s\n", " i0/1--+-[Q0/0");
+    sprintf(lines[1], "%s\n", " i0/2--+ ");
+    sprintf(lines[2], "%s\n", " i0/3--+           ");
     
     sprintf(lines[3], "%s\n", " ");
-    sprintf(lines[4], "%s\n", " i4--+ ");
-    sprintf(lines[5], "%s\n", " i5--+--(Q1           ");
+    sprintf(lines[4], "%s\n", " i0/4--+ ");
+    sprintf(lines[5], "%s\n", " i0/5--+--(Q0/1           ");
     
     program = construct_program(lines, 6);
     result = horizontal_parse(6, program);
@@ -236,14 +236,14 @@ void ut_parse_ld_program()
     result = vertical_parse(0, 0, NULL);
     CU_ASSERT(result == PLC_ERR);
     
-    sprintf(lines[0], "%s\n", " i1--+---[Q0       ");
-    sprintf(lines[1], "%s\n", "     |     ");
-    sprintf(lines[2], "%s\n", " i3--+       ");
+    sprintf(lines[0], "%s\n", " i0/1--+---[Q0/0       ");
+    sprintf(lines[1], "%s\n", "       |     ");
+    sprintf(lines[2], "%s\n", " i0/3--+       ");
     
     ld_line_t * program = construct_program(lines, 3);
     
     result = horizontal_parse(3, program);
-    CU_ASSERT(program[0]->cursor == 5);
+    CU_ASSERT(program[0]->cursor == 7);
 
     result = find_next_node(program, 0, 3);
     CU_ASSERT(result == 0);
@@ -277,12 +277,12 @@ void ut_parse_ld_program()
    
     memset(dump, 0, MAXBUF * MAXSTR);
     
-    sprintf(lines[0], "%s\n", " i1--+ ");
-    sprintf(lines[1], "%s\n", " i2--+-+-[Q0  ");
-    sprintf(lines[2], "%s\n", " i3----+ ");
+    sprintf(lines[0], "%s\n", " i0/1--+ ");
+    sprintf(lines[1], "%s\n", " i0/2--+-+-[Q0/0  ");
+    sprintf(lines[2], "%s\n", " i0/3----+ ");
     sprintf(lines[3], "%s\n", "  ");
-    sprintf(lines[4], "%s\n", " i4--+   ");
-    sprintf(lines[5], "%s\n", " i5--+-(Q1            ");
+    sprintf(lines[4], "%s\n", " i0/4--+   ");
+    sprintf(lines[5], "%s\n", " i0/5--+-(Q0/1            ");
     result = parse_ld_program(lines, &p);
     
     CU_ASSERT(result == PLC_OK);

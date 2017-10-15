@@ -89,21 +89,46 @@ const char * IlErrors[N_IE] =
 
 /***LEX**/
 
-int extract_number(const char *line, const BYTE start)
+int extract_number(const char *line)
 { //read characters from string line
-	int i, n;
-//starting @ position start
-    if(line == NULL 
-    || start >= strlen(line))
+	int i, n= 0;
+    if(line == NULL){
+    
 		return PLC_ERR;
-	n = 0;
-    for (i = start; isdigit(line[i]); i++)
+    }
+    for (i = 0; isdigit(line[i]); i++){
 		n = 10 * n + (line[i] - '0');
-    if (i == start)
+    }
+    if (i == 0){
 		//no digits read
 		return PLC_ERR;
+	}
 	return n;
 //return number read or error 
+}
+
+int extract_arguments(const char* buf, 
+                     BYTE* byte, 
+                     BYTE* bit){
+    //read first numeric chars after operand
+    //store byte
+    *byte = extract_number(buf);
+    if (*byte == (BYTE)PLC_ERR){
+    
+        return ERR_BADINDEX;
+    }    
+    //find '/'. if not found truncate, return.
+    char * cursor = strchr(buf, '/');
+    *bit = BYTESIZE;
+    if (cursor){
+        if (!isdigit(cursor[1]) || cursor[1] > '7'){
+        
+            return ERR_BADINDEX;
+        } else {
+            *bit = cursor[1] - '0';
+        }
+    }
+    return PLC_OK;
 }
 
 BYTE read_operand(const char *line, unsigned int index)
@@ -314,7 +339,7 @@ int find_arguments(const char* buf,
                    BYTE* bit)
 {
     int ret = PLC_OK;
-    char* cursor = 0;
+    
     if(buf == NULL)
         return PLC_ERR;
         
@@ -327,38 +352,31 @@ int find_arguments(const char* buf,
     if (isalpha(str[index])){
         *operand = read_operand(str, index);
         index++;
-    }
-    else
-        return ERR_BADOPERAND;
+    } else {
     
-    if(*operand == (BYTE)ERR_BADCHAR)
+        return ERR_BADOPERAND;
+    }
+    if(*operand == (BYTE)ERR_BADCHAR){
+    
         return ERR_BADCHAR;    
-
+    }
     if (isalpha(str[index])){
         ret = read_type(str, operand, index);
         index++;
-        if(ret != PLC_OK)
-            return ret;
-    }
-    
-    //read first numeric chars after operand
-    //store byte
-    //if not found or out of range, return error.
-    *byte = extract_number(str, index);
-    if (*byte == (BYTE)PLC_ERR)
-        return ERR_BADINDEX;
+        if(ret != PLC_OK){
         
-    //find '/'. if not found truncate, return.
-    cursor = strchr(str, '/');
-    *bit = BYTESIZE;
-    if (cursor){
-        if (!isdigit(cursor[1]) || cursor[1] > '7')
-            return ERR_BADINDEX;
-        else
-            *bit = cursor[1] - '0';
+            return ret;
+        }
     }
+    if(index > strlen(str)){
+    
+        return ERR_BADINDEX;
+    }
+    ret = extract_arguments(str + index, byte, bit);
+
     return ret;
 }
+
 /***PARSE & GENERATE CODE**/
 int parse_il_line(char * line, rung_t r)
 { //    line format:[label:]<operator>[<modifier>[%<operand><byte>[/<bit>]]|<label>][;comment]

@@ -17,7 +17,6 @@
 #include "parser-il.h"
 #include "parser-ld.h"
 #include "codegen.h"
-#include "init.h"
 
 #include "ut-data.h"
 #include "ut-lib.h"

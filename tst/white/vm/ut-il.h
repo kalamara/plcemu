@@ -9,27 +9,25 @@ void ut_char()
 
 void ut_number()
 {
-    int result = extract_number(NULL, -1);
+    int result = extract_number(NULL);
     CU_ASSERT(result == PLC_ERR);
     
     char * line = "lol lol";
-    result = extract_number(line, 0);
+    result = extract_number(line);
     CU_ASSERT(result == PLC_ERR);
     
     line = "lol52a";
-    result = extract_number(line, 100);
+    
+    result = extract_number(line + 5);
     CU_ASSERT(result == PLC_ERR);
     
-    result = extract_number(line, 5);
-    CU_ASSERT(result == PLC_ERR);
-    
-    result = extract_number(line, 4);
+    result = extract_number(line + 4);
     CU_ASSERT(result == 2);
     
-    result = extract_number(line, 3);
+    result = extract_number(line + 3);
     CU_ASSERT(result == 52);
     
-    result = extract_number(line, 0);
+    result = extract_number(line);
     CU_ASSERT(result == PLC_ERR);
 }
 
