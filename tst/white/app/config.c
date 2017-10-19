@@ -170,7 +170,35 @@ entry_t get_entry(int key, const config_t conf){
     return conf->map[key];
 }
 
-entry_t copy_entry(int key, const config_t conf){
+entry_t copy_entry(entry_t other){
+
+    entry_t r = NULL;
+    if(other == NULL){
+    
+        return NULL;
+    }
+    switch(other->type_tag){
+        case ENTRY_INT:
+            r = new_entry_int(
+                    other->e.scalar_int, 
+                    other->name);
+            break;
+	    case ENTRY_STR:
+	        r = new_entry_str(
+                    other->e.scalar_str, 
+                    other->name);
+	        break;
+	    case ENTRY_MAP:
+	        r = new_entry_map(copy_config(other->e.conf), other->name);
+	        
+	        break;
+	    case ENTRY_SEQ:
+	        r = new_entry_seq(copy_sequence(other->e.seq), other->name);
+	        break;
+        default: //NULL
+            r = new_entry_null();
+    }
+    return r;
 }
 
 int get_numeric_entry(int key, const config_t conf){
@@ -228,6 +256,15 @@ param_t new_param(const char * key,
         n->next = NULL;
         
         return n;        
+}
+
+param_t copy_params(param_t other){
+    param_t iter = other;
+    param_t r = NULL;
+    while(iter){
+        r = append_param(r, iter->key, iter->value);
+    }
+    return r;
 }
 
 param_t get_param(const char * key, const param_t params){
@@ -313,7 +350,21 @@ config_t new_config(int size) {
 	return r;
 }
 
+config_t copy_config(config_t other){
+    if(other == NULL){
+        
+        return NULL;
+    }
+    config_t r = new_config(other->size);
+    int i = 0;
+    for(;i< other->size; i++){
+        r->map[i] = copy_entry(other->map[i]);
+    }
+    return i;
+}
+
 sequence_t new_sequence(int size) {
+    
     sequence_t r = (sequence_t)malloc(size*sizeof(struct sequence));
 	memset(r, 0, sizeof(struct sequence));
 	r->size = size;
@@ -321,6 +372,23 @@ sequence_t new_sequence(int size) {
 	memset(r->vars, 0, size*sizeof(struct variable));
 	
 	return r;
+}
+
+sequence_t copy_sequence(sequence_t other){
+    if(other == NULL){
+        
+        return NULL;
+    }
+    sequence_t r = new_sequence(other->size);
+    int i = 0;
+    for(;i < other->size; i++){
+        r->vars[i].index = other->vars[i].index;
+        if(other->vars[i].name){
+            r->vars[i].name = strdup(other->vars[i].name);
+        }
+        r->vars[i].params = copy_params(other->vars[i].params);
+    }
+    return r;
 }
 
 config_t clear_config(config_t c){

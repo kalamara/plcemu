@@ -80,10 +80,22 @@ Lines executed:100.00% of 2
 No branches
 No calls
 
+Function 'copy_sequence'
+Lines executed:81.82% of 11
+Branches executed:100.00% of 6
+Taken at least once:66.67% of 6
+Calls executed:100.00% of 2
+
 Function 'new_sequence'
 Lines executed:100.00% of 7
 No branches
 No calls
+
+Function 'copy_config'
+Lines executed:87.50% of 8
+Branches executed:100.00% of 4
+Taken at least once:75.00% of 4
+Calls executed:100.00% of 2
 
 Function 'new_config'
 Lines executed:100.00% of 7
@@ -120,6 +132,12 @@ Branches executed:100.00% of 6
 Taken at least once:83.33% of 6
 No calls
 
+Function 'copy_params'
+Lines executed:83.33% of 6
+Branches executed:100.00% of 2
+Taken at least once:50.00% of 2
+Calls executed:0.00% of 1
+
 Function 'new_param'
 Lines executed:100.00% of 6
 No branches
@@ -150,9 +168,10 @@ Taken at least once:75.00% of 4
 Calls executed:100.00% of 1
 
 Function 'copy_entry'
-Lines executed:100.00% of 2
-No branches
-No calls
+Lines executed:86.67% of 15
+Branches executed:100.00% of 7
+Taken at least once:71.43% of 7
+Calls executed:85.71% of 7
 
 Function 'get_entry'
 Lines executed:100.00% of 6
@@ -209,9 +228,9 @@ Taken at least once:100.00% of 2
 No calls
 
 File 'config.c'
-Lines executed:74.34% of 456
-Branches executed:81.98% of 172
-Taken at least once:59.30% of 172
-Calls executed:62.30% of 122
+Lines executed:75.10% of 494
+Branches executed:83.77% of 191
+Taken at least once:60.21% of 191
+Calls executed:64.18% of 134
 Creating 'config.c.gcov'
 

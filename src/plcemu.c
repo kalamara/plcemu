@@ -585,9 +585,7 @@ config_t init_command(config_t conf){
     int i = CLI_AI;
     for(; i < N_CLI_ARGS; i++){
         com = update_entry(i,
-            copy_entry(i, conf),
-        //    new_entry_seq(
-        //        get_sequence_entry(i, conf)
+            copy_entry(get_entry(i, conf)),
             com);
     }
 }
@@ -598,8 +596,8 @@ int main(int argc, char **argv)
     int more = 0;
     char * confstr = "config.yml";
     config_t conf = init_config();
-    config_t command = init_command();
-    config_t state = NULL;
+    config_t command = init_command(conf);
+    config_t state = init_command(conf);
     char * cvalue = NULL;
     opterr = 0;
     int c;

@@ -327,10 +327,18 @@ void ut_get(){
 
 void ut_copy(){
     config_t conf = init_config();
-    entry_t numeric = copy_entry(CONFIG_STEP, conf);
-    entry_t string = copy_entry(CONFIG_HW, conf);
-    entry_t sequence = copy_entry(CONFIG_AI, conf);
-    //entry_t map = copy_entry(CONFIG_SIM, conf);
+    
+    entry_t numeric = copy_entry(get_entry(CONFIG_STEP, conf));
+    CU_ASSERT(numeric->e.scalar_int == 1);
+    
+    entry_t string = copy_entry(get_entry(CONFIG_HW, conf));
+    CU_ASSERT_STRING_EQUAL(string->e.scalar_str, "STDI/O");
+    
+    entry_t sequence = copy_entry(get_entry(CONFIG_AI, conf));
+    CU_ASSERT(sequence->type_tag == ENTRY_SEQ);
+    CU_ASSERT(sequence->e.seq->size == 8);
+    
+    entry_t map = copy_entry(get_entry(CONFIG_SIM, conf));
 }
 
     

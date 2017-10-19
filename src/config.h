@@ -76,11 +76,25 @@ typedef struct config {
 sequence_t new_sequence(int size);
 
 /**
+ * @brief copy a sequence
+ * @param another sequence
+ * @return a newly alloced sequence
+ */
+sequence_t copy_sequence(sequence_t other);
+
+/**
  * @brief construct  configuration
  * @param the size of the entry map
  * @return a newly alloced config
  */
 config_t new_config(int size);
+
+/**
+ * @brief copy a configuration
+ * @param another configuration
+ * @return a newly alloced config
+ */
+config_t copy_config(config_t other);
 
 /**
  * @brief cleanup and free configuration
@@ -160,10 +174,11 @@ config_t update_entry(unsigned int key,
 entry_t get_entry(int key, const config_t conf);
 
 /**
- * @brief copy an entry from a config
+ * @brief copy an entry
+ * @param another entry
  * @return newly allocated entry
  */
-entry_t copy_entry(int key, const config_t conf);
+entry_t copy_entry(entry_t other);
 
 /**
  * @brief get numeric config entry by key
@@ -194,6 +209,22 @@ int get_key(const char * value, const config_t conf);
  * @brief get param key by literal value
  */
 char * get_param_val(const char * key, const param_t params);
+
+/**
+ * @brief construct a new param
+ * @param the key
+ * @param the value
+ * @return newly alloced param
+ */
+param_t new_param(const char * key, 
+                     const char * val);
+
+/**
+ * @brief deep copy parameter list
+ * @param another list
+ * @return new param list
+ */
+param_t copy_params(param_t other);
 
 /**
  * @brief get param by literal value
