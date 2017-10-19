@@ -170,6 +170,9 @@ entry_t get_entry(int key, const config_t conf){
     return conf->map[key];
 }
 
+entry_t copy_entry(int key, const config_t conf){
+}
+
 int get_numeric_entry(int key, const config_t conf){
     entry_t e = get_entry(key, conf);
     if(e && e->type_tag == ENTRY_INT){

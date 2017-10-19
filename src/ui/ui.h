@@ -36,8 +36,8 @@ extern char Lines[MAXBUF][MAXSTR];///ladder lines
 extern int Lineno;	///actual no of active lines
 
 void ui_display_message(char *msgstr);
-void ui_draw();
-int ui_update(int page);
+void ui_draw(config_t state);
+config_t ui_update();
 int ui_init();
 void ui_end();
 void ui_toggle_enabled();

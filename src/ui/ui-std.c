@@ -3,18 +3,23 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <pthread.h>
+
 
 #include "data.h"
 #include "instruction.h"
 #include "rung.h"
 #include "plclib.h"
 #include "plcemu.h"
+#include "config.h"
 #include "ui.h"
 
 /*************GLOBALS************************************************/
 
 int Enable = TRUE;
 int More = TRUE;
+char * Cli_buf = NULL; //only reader thread writes here
+pthread_t Reader;
 
 void ui_display_message(char * msgstr)
 {
@@ -32,7 +37,19 @@ void init_help()
 		fclose(f);
 	}
 }
-/*
+
+void * read_cli(void *buf) {
+    
+    int len = sizeof(buf);
+    memset(buf, 0, len);
+    
+    int n = getline((char **)&buf, &len, stdin);
+    plc_log("CLI: %s!\n", buf);
+
+    return NULL;
+}
+
+
 char lasttime[TINYSTR] = "";
 void time_header()
 {
@@ -55,8 +72,8 @@ void time_header()
         ui_display_message(str);
      }
 }
-*/
-void ui_draw()
+
+void ui_draw(config_t state)
 {
     char str[MAXSTR];
     char buf[MEDSTR];
@@ -134,20 +151,34 @@ void ui_draw()
 
 int ui_init()
 {
+    
     init_help();
+    Cli_buf = (char*)malloc(MAXBUF);
+    int rc = pthread_create(&Reader, NULL, read_cli, (void *) Cli_buf);
+    //rc = pthread_join(reader, NULL);
     return 1;
 }
 
-int ui_update(int page)
+config_t parse_cli(char * input){
+    return NULL;
+}
+config_t ui_update()
 {
     //time_header();
-    
-    return More;
+    if(Cli_buf[0]){
+        config_t c = parse_cli(Cli_buf);
+        pthread_join(Reader, NULL);
+       // memset(Cli_buf, 0, MAX_BUF);
+        pthread_create(&Reader, NULL, read_cli, (void *) Cli_buf);
+        return c;
+    }
+    return NULL;
 }
 
 void ui_end()
 {
     More = FALSE;
+    
     return;
 }
 

@@ -160,6 +160,12 @@ config_t update_entry(unsigned int key,
 entry_t get_entry(int key, const config_t conf);
 
 /**
+ * @brief copy an entry from a config
+ * @return newly allocated entry
+ */
+entry_t copy_entry(int key, const config_t conf);
+
+/**
  * @brief get numeric config entry by key
  */
 int get_numeric_entry(int key, const config_t conf);

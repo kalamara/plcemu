@@ -324,5 +324,14 @@ void ut_get(){
         }        
     }
 }    
+
+void ut_copy(){
+    config_t conf = init_config();
+    entry_t numeric = copy_entry(CONFIG_STEP, conf);
+    entry_t string = copy_entry(CONFIG_HW, conf);
+    entry_t sequence = copy_entry(CONFIG_AI, conf);
+    //entry_t map = copy_entry(CONFIG_SIM, conf);
+}
+
     
 #endif//_UT_CONF_H_

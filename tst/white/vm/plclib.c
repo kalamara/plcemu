@@ -1109,15 +1109,15 @@ void write_mvars(plc_t p) {
 }
 
 BYTE check_pulses(plc_t p) {
-    BYTE m_changed=0;
+    BYTE changed=0;
     int i=0;
     for (i = 0; i < p->nm; i++){//check counter pulses
         if (p->m[i].PULSE != p->old->m[i].PULSE){
             p->m[i].EDGE = TRUE;
-            m_changed = TRUE;
+            changed = TRUE;
         }
     }
-    return m_changed;
+    return changed;
 }
 
 BYTE save_state(BYTE mask,
@@ -1125,24 +1125,29 @@ BYTE save_state(BYTE mask,
     BYTE update = FALSE;
     if (mask & CHANGED_I) {// Input changed!
         memcpy(p->old->inputs, p->inputs, p->ni);
+        plc_log("%s", "input updated"); 
         update = TRUE;
     }
     if (mask & CHANGED_O) {// Output changed!"
         memcpy(p->old->outputs, p->outputs, p->nq);
+        plc_log("%s", "output updated"); 
         update = TRUE;
     }
     if (mask & CHANGED_M) {
         memcpy(p->old->m, p->m, p->nm * sizeof(struct mvar));
+        plc_log("%s", "regs updated"); 
         update = TRUE;
 
     }
     if (mask & CHANGED_T) {
         memcpy(p->old->t, p->t, p->nt * sizeof(struct timer));
+        plc_log("%s", "timers updated"); 
         update = TRUE;
 
     }
     if (mask & CHANGED_S) {
         memcpy(p->old->s, p->s, p->ns * sizeof(struct blink));
+        plc_log("%s", "pulses updated"); 
         update = TRUE;
     }
     return update;

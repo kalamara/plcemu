@@ -22,9 +22,11 @@ AC_CHECK_LIB(ncurses, init_pair)
 AC_CHECK_LIB(comedi, comedi_close)
 #  a function in `-lyaml':
 AC_CHECK_LIB(yaml, yaml_parser_initialize)
+#  a function in `-lpthread':
+AC_CHECK_LIB(pthread, pthread_create)
 
 # Checks for header files.
-AC_CHECK_HEADERS([fcntl.h stdlib.h string.h, comedi.h])
+AC_CHECK_HEADERS([fcntl.h stdlib.h string.h pthread.h yaml.h comedi.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 #AC_CHECK_HEADER_STDBOOL
@@ -53,12 +55,12 @@ AM_CONDITIONAL([USPACE], [test x$uspace = xtrue])
 
 
 AC_ARG_ENABLE([ui],
-[  --disable-ui   user interface],
+[  --enable-ui   user interface],
 [case "${enableval}" in
   yes) ui=true ;;
   no)  ui=false ;;
   *) AC_MSG_ERROR([bad value ${enableval} for --enable-ui]) ;;
-esac],[ui=true])
+esac],[ui=false])
 AM_CONDITIONAL([UI], [test x$ui = xtrue])
 
 

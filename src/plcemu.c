@@ -17,7 +17,7 @@
 #include "parser-ld.h"
 #include "ui.h"
 #include "hardware.h"
-#include "init.h"
+
 
 
 /*************GLOBALS************************************************/
@@ -580,16 +580,30 @@ config_t init_config(){
     return conf;
 }
 
+config_t init_command(config_t conf){
+    config_t com = new_config(N_CLI_ARGS);
+    int i = CLI_AI;
+    for(; i < N_CLI_ARGS; i++){
+        com = update_entry(i,
+            copy_entry(i, conf),
+        //    new_entry_seq(
+        //        get_sequence_entry(i, conf)
+            com);
+    }
+}
+
 int main(int argc, char **argv)
 {
     int errcode = PLC_OK;
     int more = 0;
     char * confstr = "config.yml";
     config_t conf = init_config();
+    config_t command = init_command();
+    config_t state = NULL;
     char * cvalue = NULL;
     opterr = 0;
     int c;
-    while ((c = getopt (argc, argv, "hc:")) != PLC_ERR)
+    while ((c = getopt (argc, argv, "hc:")) != PLC_ERR){
         switch (c) {
             case 'h':
                  plc_log(Usage);
@@ -600,22 +614,23 @@ int main(int argc, char **argv)
                 break;
             case '?':
                 plc_log(Usage);
-                if (optopt == 'c')
+                if (optopt == 'c'){
                     plc_log( 
                     "Option -%c requires an argument\n", optopt);
-                else if (isprint (optopt))
+                } else if (isprint (optopt)){
                     plc_log(
                     "Unknown option `-%c'\n", optopt);
-                else
+                } else{
                     plc_log(
-                   "Unknown option character `\\x%x'\n",
-                   optopt);
+                    "Unknown option character `\\x%x'\n",
+                    optopt);
+                }
                 return 1;
             default:
                
                 abort ();
         }
-    
+    }
     if(cvalue == NULL)
        cvalue = confstr;
        
@@ -635,10 +650,14 @@ int main(int argc, char **argv)
     load_program_file(get_string_entry(CONFIG_PROGRAM_LD,conf), Plc);
     
     while (more > 0 ) {
-       if(Update == TRUE)
-           ui_draw();
-        more = ui_update(more);
-        
+       if(Update == TRUE){
+       //state = get_state(Plc);
+           ui_draw(state);
+           
+        }   
+        command = ui_update();
+        //apply(command, Plc)
+        more = 1;
         if(errcode >= PLC_OK && Plc->status > 0){  
             errcode = plc_func(&Update, Plc);
             if(errcode < 0){

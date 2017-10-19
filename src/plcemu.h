@@ -71,6 +71,19 @@ typedef enum{
     N_CONFIG_VARIABLES
 } CONFIG_VARIABLES;
 
+typedef enum{
+    CLI_COM,
+    CLI_AI = CONFIG_AI,
+    CLI_AQ,
+    CLI_DI,
+    CLI_DQ,
+    CLI_MVAR,
+    CLI_MREG,
+    CLI_TIMER,
+    CLI_PULSE, 
+    N_CLI_ARGS
+} CLI_ARGS;
+
 //int plc_load_file(const char * path);
 //int plc_save_file(const char * path);
 #endif //_PLCEMU_H_

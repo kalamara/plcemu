@@ -149,6 +149,11 @@ Branches executed:100.00% of 4
 Taken at least once:75.00% of 4
 Calls executed:100.00% of 1
 
+Function 'copy_entry'
+Lines executed:100.00% of 2
+No branches
+No calls
+
 Function 'get_entry'
 Lines executed:100.00% of 6
 Branches executed:100.00% of 6
@@ -204,7 +209,7 @@ Taken at least once:100.00% of 2
 No calls
 
 File 'config.c'
-Lines executed:74.23% of 454
+Lines executed:74.34% of 456
 Branches executed:81.98% of 172
 Taken at least once:59.30% of 172
 Calls executed:62.30% of 122
