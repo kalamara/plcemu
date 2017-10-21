@@ -1,8 +1,14 @@
 Function 'save_config_yml'
-Lines executed:0.00% of 23
-Branches executed:0.00% of 10
-Taken at least once:0.00% of 10
-Calls executed:0.00% of 13
+Lines executed:0.00% of 13
+Branches executed:0.00% of 4
+Taken at least once:0.00% of 4
+Calls executed:0.00% of 6
+
+Function 'print_config_yml'
+Lines executed:0.00% of 15
+Branches executed:0.00% of 8
+Taken at least once:0.00% of 8
+Calls executed:0.00% of 8
 
 Function 'emit'
 Lines executed:100.00% of 20
@@ -60,7 +66,7 @@ Calls executed:100.00% of 1
 Function 'store_seq_value'
 Lines executed:100.00% of 27
 Branches executed:100.00% of 12
-Taken at least once:75.00% of 12
+Taken at least once:83.33% of 12
 Calls executed:100.00% of 2
 
 Function 'store_value'
@@ -81,9 +87,9 @@ No branches
 No calls
 
 Function 'copy_sequence'
-Lines executed:81.82% of 11
+Lines executed:90.91% of 11
 Branches executed:100.00% of 6
-Taken at least once:66.67% of 6
+Taken at least once:83.33% of 6
 Calls executed:100.00% of 2
 
 Function 'new_sequence'
@@ -115,10 +121,10 @@ Taken at least once:75.00% of 4
 Calls executed:75.00% of 4
 
 Function 'append_param'
-Lines executed:88.89% of 9
+Lines executed:100.00% of 9
 Branches executed:100.00% of 4
-Taken at least once:75.00% of 4
-Calls executed:50.00% of 2
+Taken at least once:100.00% of 4
+Calls executed:100.00% of 2
 
 Function 'get_param_val'
 Lines executed:100.00% of 3
@@ -133,10 +139,10 @@ Taken at least once:83.33% of 6
 No calls
 
 Function 'copy_params'
-Lines executed:83.33% of 6
+Lines executed:100.00% of 7
 Branches executed:100.00% of 2
-Taken at least once:50.00% of 2
-Calls executed:0.00% of 1
+Taken at least once:100.00% of 2
+Calls executed:100.00% of 1
 
 Function 'new_param'
 Lines executed:100.00% of 6
@@ -228,9 +234,9 @@ Taken at least once:100.00% of 2
 No calls
 
 File 'config.c'
-Lines executed:75.10% of 494
-Branches executed:83.77% of 191
-Taken at least once:60.21% of 191
-Calls executed:64.18% of 134
+Lines executed:75.00% of 500
+Branches executed:82.90% of 193
+Taken at least once:61.66% of 193
+Calls executed:65.19% of 135
 Creating 'config.c.gcov'
 

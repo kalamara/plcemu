@@ -326,6 +326,23 @@ void ut_get(){
 }    
 
 void ut_copy(){
+
+    sequence_t seq = new_sequence(5);
+    seq->vars[0].name = "lol";
+    seq->vars[0].index = 1;
+    
+    seq->vars[0].params = 
+        append_param(seq->vars[0].params, "name", "a");    
+    seq->vars[0].params = 
+        append_param(seq->vars[0].params, "value", "m");
+        
+    sequence_t seqond = copy_sequence(seq);
+    CU_ASSERT(seqond->size == 5);    
+    CU_ASSERT_STRING_EQUAL(seqond->vars[0].name, "lol");
+    CU_ASSERT(seqond->vars[0].index == 1);
+    CU_ASSERT_STRING_EQUAL(seqond->vars[0].params->key, "name");
+    CU_ASSERT_STRING_EQUAL(seqond->vars[0].params->next->value, "m");
+        
     config_t conf = init_config();
     
     entry_t numeric = copy_entry(get_entry(CONFIG_STEP, conf));

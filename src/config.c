@@ -2,10 +2,11 @@
 #include "util.h"
 #include "config.h"
 
-char * strdup_r(const char * dest, const char * src) {
+char * strdup_r(char * dest, const char * src) {
 //strdup with realloc
 
-    char * r = (!dest)?(char *)malloc(sizeof(src)):realloc(dest, sizeof(src));
+    char * r = (!dest)?(char *)malloc(sizeof(src)):realloc(
+                                            (void*)dest, sizeof(src));
         
     memset(r, 0, sizeof(src));
     sprintf(r, "%s", src);
@@ -263,6 +264,7 @@ param_t copy_params(param_t other){
     param_t r = NULL;
     while(iter){
         r = append_param(r, iter->key, iter->value);
+        iter = iter->next;
     }
     return r;
 }
@@ -360,7 +362,7 @@ config_t copy_config(config_t other){
     for(;i< other->size; i++){
         r->map[i] = copy_entry(other->map[i]);
     }
-    return i;
+    return r;
 }
 
 sequence_t new_sequence(int size) {
@@ -532,7 +534,7 @@ static config_t resize_sequence(config_t config, int sequence, int size){
     sequence_t seq = get_sequence_entry(sequence, conf);
     if(size <= 0 ||
         size > CONF_MAX_SEQ || 
-        sequence == NULL){
+        seq == NULL){
         conf->err = CONF_ERR;
         
         return conf;
@@ -759,7 +761,7 @@ config_t load_config_yml(const char * filename, config_t conf) {
     return r;
 }
 
-static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
+static void emit_variable(const variable_t var, yaml_emitter_t *emitter) {
     yaml_event_t evt;
     if(var->name != NULL &&
         var->name[0]) {
@@ -792,7 +794,7 @@ static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
         yaml_scalar_event_initialize(
                         	&evt,
                     	    NULL,
-                    		NULL,
+                    		NULL,  
                     		(unsigned char *)idx,
                     		strlen(idx),
                     		CONF_T,
@@ -854,7 +856,7 @@ static void emit_variable(variable_t var, yaml_emitter_t *emitter) {
     }
 } 
 
-static void emit_entry(entry_t entry, yaml_emitter_t *emitter) {
+static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
     int i = 0;
     yaml_event_t evt;
      
@@ -966,7 +968,7 @@ static void emit_entry(entry_t entry, yaml_emitter_t *emitter) {
 			    if(viter != NULL) {
 				   emit_variable(viter, emitter);
 				}
-				*viter = (entry->e.seq->vars)[++i];
+				viter = &(entry->e.seq->vars)[++i];
 			}	
 			
 			yaml_sequence_end_event_initialize(&evt); 	
@@ -999,15 +1001,14 @@ int emit(yaml_emitter_t *emitter, const config_t conf) {
     	 	    
     yaml_emitter_emit(emitter, &evt);
    // log_yml_event(evt);
-    
-    entry_map_t config_map = conf->map;
-    entry_t iter = *config_map;
+
+    entry_t iter = conf->map[0];
     int i = 0;
     while(i < conf->size) {
         if(iter != NULL){
     	    emit_entry(iter, emitter);
     	}
-    	iter = config_map[++i];
+    	iter = conf->map[++i];
     }
    
     //mapping end
@@ -1023,10 +1024,41 @@ int emit(yaml_emitter_t *emitter, const config_t conf) {
     return r;
 }
 
-int save_config_yml(const char * filename, const config_t conf) {
+int print_config_yml(FILE * fcfg, const config_t conf) {
     
     yaml_emitter_t emitter;
     yaml_event_t event;
+    
+    int r = CONF_OK;
+    
+    if(!yaml_emitter_initialize(&emitter)){
+        return CONF_ERR;    
+    }
+    if (fcfg) {
+         
+         yaml_emitter_set_output_file(&emitter, fcfg);
+         yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);
+         
+         r = yaml_emitter_emit(&emitter, &event);
+         
+         if(r){
+          
+            r = emit(&emitter, conf);
+         }
+         if(r){
+            yaml_stream_end_event_initialize(&event);
+          
+            r = yaml_emitter_emit(&emitter, &event);   
+         }            
+    }
+    yaml_emitter_delete(&emitter);
+    return r;
+}
+
+int save_config_yml(const char * filename, const config_t conf) {
+    
+//    yaml_emitter_t emitter;
+//    yaml_event_t event;
     
     FILE * fcfg;
     char path[CONF_STR];
@@ -1035,12 +1067,12 @@ int save_config_yml(const char * filename, const config_t conf) {
     memset(path, 0, CONF_STR);
     sprintf(path, "%s", filename);
 
-    if(!yaml_emitter_initialize(&emitter)){
-        return CONF_ERR;    
-    }
+//    if(!yaml_emitter_initialize(&emitter)){
+//        return CONF_ERR;    
+//    }
     if ((fcfg = fopen(path, "wb"))) {
          plc_log("Save configuration to %s ...", path);
-         
+ /*        
          yaml_emitter_set_output_file(&emitter, fcfg);
          yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);
          
@@ -1052,7 +1084,8 @@ int save_config_yml(const char * filename, const config_t conf) {
             yaml_stream_end_event_initialize(&event);
             r = yaml_emitter_emit(&emitter, &event);   
          }
-            
+   */ 
+         print_config_yml(fcfg, conf);        
          if(r < CONF_OK)
             plc_log( "Configuration error ");
             
@@ -1061,7 +1094,8 @@ int save_config_yml(const char * filename, const config_t conf) {
         r = CONF_ERR;
         plc_log("Could not open file %s for write", filename);
     }
-    yaml_emitter_delete(&emitter);
+    //yaml_emitter_delete(&emitter);
     return r;
 }
+
 

@@ -40,11 +40,11 @@ void init_help()
 
 void * read_cli(void *buf) {
     
-    int len = sizeof(buf);
+    size_t len = sizeof(buf);
     memset(buf, 0, len);
     
     int n = getline((char **)&buf, &len, stdin);
-    plc_log("CLI: %s!\n", buf);
+    plc_log("CLI: %s!", buf);
 
     return NULL;
 }
@@ -75,6 +75,95 @@ void time_header()
 
 void ui_draw(config_t state)
 {
+    print_config_yml(stdout, state);
+/*
+    int i = 0;
+    sequence_t di = get_sequence_entry(CLI_DI, state);
+
+    printf("Digital Inputs:\n");
+    for(;i < di->size; i++){
+    //bit
+    
+    //name
+        
+    //value
+    
+    //forced
+    }
+    
+    sequence_t dq = get_sequence_entry(CLI_DQ, state);
+
+    printf("Digital Outputs:\n");
+    for(i = 0;i < dq->size; i++){
+    //bit
+    
+    //name
+        
+    //value
+    
+    //forced
+    }
+
+    sequence_t ai = get_sequence_entry(CLI_AI, state);
+                
+    printf("Analog Inputs:\n");
+    for(;i < ai->size; i++){
+    //name
+        
+    //value (raw / normalized)
+    
+    //forced
+    }
+    
+    sequence_t aq = get_sequence_entry(CLI_AQ, state);
+
+    printf("Analog Outputs:\n");
+    for(i = 0;i < aq->size; i++){
+    //name
+        
+    //value (raw / normalized)
+    
+    //forced
+    }
+    
+    sequence_t mvars = get_sequence_entry(CLI_MVAR, state);
+
+    printf("Real variables:\n");
+    for(i = 0;i < mvars->size; i++){
+    //name
+        
+    //value
+    }
+    
+    sequence_t mreg = get_sequence_entry(CLI_MREG, state);
+
+    printf("Counters:\n");
+    for(i = 0;i < mreg->size; i++){
+    //name
+        
+    //value
+    }
+
+    sequence_t t = get_sequence_entry(CLI_TIMER, state);
+                
+    printf("Timers:\n");
+    for(i = 0; i < t->size; i++){
+    //name
+        
+    //set
+    }
+    
+    sequence_t s = get_sequence_entry(CLI_PULSE, state);
+
+    printf("Pulses:\n");
+    for(i = 0;i < s->size; i++){
+    //name
+        
+    //set
+    }
+    
+    
+    
     char str[MAXSTR];
     char buf[MEDSTR];
     time_t now;
@@ -147,6 +236,8 @@ void ui_draw(config_t state)
 
     strcat(str,buf);
     ui_display_message(str);
+*/
+
 }
 
 int ui_init()
@@ -168,7 +259,7 @@ config_t ui_update()
     if(Cli_buf[0]){
         config_t c = parse_cli(Cli_buf);
         pthread_join(Reader, NULL);
-       // memset(Cli_buf, 0, MAX_BUF);
+
         pthread_create(&Reader, NULL, read_cli, (void *) Cli_buf);
         return c;
     }

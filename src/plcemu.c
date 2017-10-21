@@ -588,7 +588,10 @@ config_t init_command(config_t conf){
             copy_entry(get_entry(i, conf)),
             com);
     }
+    return com;
 }
+
+
 
 int main(int argc, char **argv)
 {
@@ -596,8 +599,7 @@ int main(int argc, char **argv)
     int more = 0;
     char * confstr = "config.yml";
     config_t conf = init_config();
-    config_t command = init_command(conf);
-    config_t state = init_command(conf);
+    
     char * cvalue = NULL;
     opterr = 0;
     int c;
@@ -638,20 +640,23 @@ int main(int argc, char **argv)
     }
 //initialize PLC
     Plc = init_emu(conf);
-//start hardware
-    enable_bus();
-//start UI
-    more = ui_init();
-    UiReady=more;
     
     load_program_file(get_string_entry(CONFIG_PROGRAM_IL,conf), Plc);   
     load_program_file(get_string_entry(CONFIG_PROGRAM_LD,conf), Plc);
+//start hardware
+    enable_bus();
+//start UI
+    
+    more = ui_init();
+    UiReady=more;
+    
+    config_t command = init_command(conf);
+    config_t state = init_command(conf);
     
     while (more > 0 ) {
        if(Update == TRUE){
        //state = get_state(Plc);
            ui_draw(state);
-           
         }   
         command = ui_update();
         //apply(command, Plc)

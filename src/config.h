@@ -112,6 +112,11 @@ config_t clear_config(config_t c);
 config_t load_config_yml(const char * filename, config_t conf);
 
 /**
+ * @brief print 
+ */
+int print_config_yml(FILE * fcfg, const config_t conf);
+
+/**
  * @brief entry point: save configuration to text file 
  * @param filename (full path)
  * @param the configuration
