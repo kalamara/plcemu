@@ -24,7 +24,7 @@
 plc_t Plc;
 char Lines[MAXBUF][MAXSTR];///program lines
 int Lineno;    ///actual no of active lines
-int UiReady=FALSE;
+//int UiReady=FALSE;
 BYTE Update=FALSE;
 
 int Language = LANG_LD;
@@ -325,8 +325,8 @@ plc_t init_emu(const config_t conf) {
    
     hw_config(conf);
         
-    int di = get_sequence_entry(CONFIG_DI, conf)->size; 
-    int dq = get_sequence_entry(CONFIG_DQ, conf)->size;
+    int di = get_sequence_entry(CONFIG_DI, conf)->size / 8; 
+    int dq = get_sequence_entry(CONFIG_DQ, conf)->size / 8;
     int ai = get_sequence_entry(CONFIG_AI, conf)->size;
     int aq = get_sequence_entry(CONFIG_AQ, conf)->size;
     int nt = get_sequence_entry(CONFIG_TIMER, conf)->size;
@@ -580,8 +580,18 @@ config_t init_config(){
     return conf;
 }
 
-config_t init_command(config_t conf){
-    config_t com = new_config(N_CLI_ARGS);
+config_t get_state(const plc_t plc, const config_t state){
+    config_t r = state;
+    //set status
+    r = set_numeric_entry(CLI_COM, plc->status, r);
+    //assign values
+    //show forced
+    //add program
+    return r;
+}
+
+config_t copy_sequences(const config_t conf, config_t com){
+    
     int i = CLI_AI;
     for(; i < N_CLI_ARGS; i++){
         com = update_entry(i,
@@ -591,12 +601,27 @@ config_t init_command(config_t conf){
     return com;
 }
 
-
-
+plc_t apply_command(const config_t com, plc_t plc){
+    switch(get_numeric_entry(CLI_COM, com)){
+        case COM_START:
+        
+            plc = plc_start(plc);
+            break;
+            
+        case COM_STOP:
+        
+            plc = plc_stop(plc);
+            break;
+        
+        default: break;
+    }
+    return plc;
+}
+ 
 int main(int argc, char **argv)
 {
     int errcode = PLC_OK;
-    int more = 0;
+//    int more = 0;
     char * confstr = "config.yml";
     config_t conf = init_config();
     
@@ -647,27 +672,30 @@ int main(int argc, char **argv)
     enable_bus();
 //start UI
     
-    more = ui_init();
-    UiReady=more;
-    
-    config_t command = init_command(conf);
-    config_t state = init_command(conf);
-    
-    while (more > 0 ) {
-       if(Update == TRUE){
-       //state = get_state(Plc);
+    ui_init(conf);
+    //UiReady=more;
+    config_t command = copy_sequences(conf, ui_init_command());
+    config_t state = copy_sequences(conf, ui_init_state());
+        
+    while (get_numeric_entry(CLI_COM, command)!=COM_QUIT) {
+       if(Plc->update){
+           state = get_state(Plc, state);
            ui_draw(state);
+           Plc->update = 0;
         }   
-        command = ui_update();
-        //apply(command, Plc)
-        more = 1;
+        command = ui_update(command);
+        Plc = apply_command(command, Plc);
+        Plc = plc_func(Plc);
+        /*
+        //more = 1;
         if(errcode >= PLC_OK && Plc->status > 0){  
-            errcode = plc_func(&Update, Plc);
+            Plc = plc_func(Plc);
             if(errcode < 0){
                 print_error(errcode);
                 Plc->status = 0;
             }
-        }
+        }*/
+        
     }
     
     disable_bus();

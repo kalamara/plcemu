@@ -31,13 +31,32 @@ typedef enum
     N_WIN
 }WINDOWS;
 
+
+typedef enum
+{///CLI commands
+    COM_NONE,
+    COM_START,
+    COM_STOP,
+    COM_HELP,
+    COM_FORCE,
+    COM_UNFORCE,
+    COM_EDIT,
+    COM_LOAD,
+    COM_SAVE,
+    COM_QUIT,
+    N_COM
+} COMMANDS;
+
 extern plc_t Plc;
 extern char Lines[MAXBUF][MAXSTR];///ladder lines
 extern int Lineno;	///actual no of active lines
 
+config_t ui_init_command();
+config_t ui_init_state();
+
 void ui_display_message(char *msgstr);
 void ui_draw(config_t state);
-config_t ui_update();
+config_t ui_update(config_t command);
 int ui_init();
 void ui_end();
 void ui_toggle_enabled();

@@ -82,6 +82,7 @@ typedef enum{
     CHANGED_M = 0x4,
     CHANGED_T = 0x8,
     CHANGED_S = 0x10,
+    CHANGED_STATUS = 0x20
 }CHANGE_DELTA; 
 
 /***********************plc_t*****************************/
@@ -186,6 +187,7 @@ typedef struct PLC_regs{
 	double *mask_aq;
     BYTE command;   ///serial command from plcpipe
     BYTE response;  ///response to named pipe
+    BYTE update; ///binary mask of state update
     int status;    ///0 = stopped, 1 = running, negative = error
 	
 	BYTE ni; ///number of bytes for digital inputs 
@@ -505,11 +507,10 @@ int open_pipe(const char * pipe, plc_t p);
  * Heavy parts can timeout
  * The timing is based on poll.h
  * which is also realtime when using a preempt scheduler
- * @param true if anything got updated in the last cycle
  * @param the PLC
- * @return OK or error
+ * @return PLC with updated state
  */
-int plc_func( BYTE *update, plc_t p);
+plc_t plc_func( plc_t p);
 
 /**
  * @brief is input forced

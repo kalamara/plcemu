@@ -28,10 +28,10 @@ void plc_log(const char * msg, ...) {
       fprintf(ErrLog, ":%s", ctime(&now));
       fflush(ErrLog);
    }
-   if(UiReady)
+   //if(UiReady)
        ui_display_message(msgstr);
-   else
-       printf("%s\n",msgstr);
+   //else
+   //    printf("%s\n",msgstr);
 }
 
 void close_log() {

@@ -1,10 +1,10 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <pthread.h>
-
 
 #include "data.h"
 #include "instruction.h"
@@ -26,14 +26,15 @@ void ui_display_message(char * msgstr)
     printf("%s\n", msgstr);
 }
 
-void init_help()
+void print_help()
 {
 	FILE * f;
-    char line[MAXSTR], helpline[MAXSTR];
+    char line[MAXSTR];
     if ((f = fopen("./help", "r"))){
-		while (fgets(line, MEDSTR, f))
+		while (fgets(line, MEDSTR, f)){
          //read help file
-            sprintf(helpline, " %s\n", line);
+            printf("%s", line);
+        }
 		fclose(f);
 	}
 }
@@ -44,8 +45,7 @@ void * read_cli(void *buf) {
     memset(buf, 0, len);
     
     int n = getline((char **)&buf, &len, stdin);
-    plc_log("CLI: %s!", buf);
-
+    
     return NULL;
 }
 
@@ -76,194 +76,58 @@ void time_header()
 void ui_draw(config_t state)
 {
     print_config_yml(stdout, state);
-/*
-    int i = 0;
-    sequence_t di = get_sequence_entry(CLI_DI, state);
-
-    printf("Digital Inputs:\n");
-    for(;i < di->size; i++){
-    //bit
-    
-    //name
-        
-    //value
-    
-    //forced
-    }
-    
-    sequence_t dq = get_sequence_entry(CLI_DQ, state);
-
-    printf("Digital Outputs:\n");
-    for(i = 0;i < dq->size; i++){
-    //bit
-    
-    //name
-        
-    //value
-    
-    //forced
-    }
-
-    sequence_t ai = get_sequence_entry(CLI_AI, state);
-                
-    printf("Analog Inputs:\n");
-    for(;i < ai->size; i++){
-    //name
-        
-    //value (raw / normalized)
-    
-    //forced
-    }
-    
-    sequence_t aq = get_sequence_entry(CLI_AQ, state);
-
-    printf("Analog Outputs:\n");
-    for(i = 0;i < aq->size; i++){
-    //name
-        
-    //value (raw / normalized)
-    
-    //forced
-    }
-    
-    sequence_t mvars = get_sequence_entry(CLI_MVAR, state);
-
-    printf("Real variables:\n");
-    for(i = 0;i < mvars->size; i++){
-    //name
-        
-    //value
-    }
-    
-    sequence_t mreg = get_sequence_entry(CLI_MREG, state);
-
-    printf("Counters:\n");
-    for(i = 0;i < mreg->size; i++){
-    //name
-        
-    //value
-    }
-
-    sequence_t t = get_sequence_entry(CLI_TIMER, state);
-                
-    printf("Timers:\n");
-    for(i = 0; i < t->size; i++){
-    //name
-        
-    //set
-    }
-    
-    sequence_t s = get_sequence_entry(CLI_PULSE, state);
-
-    printf("Pulses:\n");
-    for(i = 0;i < s->size; i++){
-    //name
-        
-    //set
-    }
-    
-    
-    
-    char str[MAXSTR];
-    char buf[MEDSTR];
-    time_t now;
-    char t[TINYSTR], *timestr;    
-    int i = 0;
-    char instr[SMALLSTR];
-    char outstr[SMALLSTR];
-    char mstr[SMALLSTR];
-    
-    memset(str,0,MAXSTR);
-    memset(buf,0,MEDSTR);
-    memset(instr,0,SMALLSTR);
-    memset(outstr,0,SMALLSTR);
-    memset(mstr,0,SMALLSTR);
-    
-    for(i = 0;i < BYTESIZE * Plc->ni; i++)
-        instr[i] = (((Plc->inputs[i/BYTESIZE])>>(i%BYTESIZE)) % 2)?'1':'0';
-    
-    for(i = 0;i < BYTESIZE * Plc->nq; i++)
-        outstr[i] = (((Plc->outputs[i/BYTESIZE])>>(i%BYTESIZE)) % 2)?'1':'0';
-    
-    sprintf(buf, "Inputs: %s \n", instr);
-    ui_display_message(buf);
-
-    sprintf(buf, "Outputs: %s \n", outstr);
-    ui_display_message(buf);
-    
-    for(i = 0; i < Plc->nai; i++){
-        sprintf(instr, "%lx", Plc->real_in[i]);  
-        sprintf(buf, "Analog Input %d (raw): 0x%s \n", i, instr);
-        ui_display_message(buf);
-        sprintf(instr, "%lf", Plc->ai[i].V);
-        sprintf(buf, "Analog Input %d : %s \n", i, instr);
-        ui_display_message(buf);
-    }    
-    
-    for(i = 0; i < Plc->naq; i++){
-        sprintf(outstr, "%lx", Plc->real_out[i]);  
-        sprintf(buf, "Analog Output %d (raw): %s \n", i, outstr);
-        ui_display_message(buf);
-        sprintf(outstr, "%lf", Plc->aq[i].V);
-        sprintf(buf, "Analog Output %d : %s \n", i, outstr);
-        ui_display_message(buf);
-    }
-    for(i = 0; i < Plc->nm; i++){
-        sprintf(mstr, "%lx", Plc->m[i].V);  
-        sprintf(buf, "Memory Register %d (u): %s \n", i, mstr);
-        ui_display_message(buf);
-    }
-    for(i = 0; i < Plc->nmr; i++){
-        sprintf(mstr, "%lf", Plc->mr[i].V);
-        sprintf(buf, "Memory Register %d (real): %s \n", i, mstr);
-        ui_display_message(buf);
-    }    
-        
-    for(i = 0; i < Lineno; i++)
-        ui_display_message(Lines[i]);
-    
-    if (Plc->status % 2 == ST_RUNNING) //running
-        sprintf(buf, "Hardware:%s  RUNNING\n", Plc->hw);
-    else
-        sprintf(buf, "Hardware:%s  STOPPED\n", Plc->hw);
-    
-    strcat(str,buf);
-    time(&now);
-	strcpy(t, ctime(&now));
-	t[19] = '\0';
-	timestr = t + 10;
-	sprintf(buf," PLC-EMUlator v%4.2f %14s\n ", PRINTABLE_VERSION, timestr);
-
-    strcat(str,buf);
-    ui_display_message(str);
-*/
-
+    time_header();
 }
 
-int ui_init()
+config_t ui_init_command(){
+    config_t com = new_config(N_CLI_ARGS);
+    return update_entry(CLI_COM, new_entry_int(0, "COMMAND"), com);
+}
+
+config_t ui_init_state(){
+    config_t stat = new_config(N_CLI_ARGS);
+    return update_entry(CLI_COM, new_entry_int(0, "STATUS"), stat);
+}
+
+int ui_init(const config_t conf)
 {
-    
-    init_help();
+ //   init_help();
+
     Cli_buf = (char*)malloc(MAXBUF);
     int rc = pthread_create(&Reader, NULL, read_cli, (void *) Cli_buf);
-    //rc = pthread_join(reader, NULL);
-    return 1;
+    
+    return rc;
 }
 
-config_t parse_cli(char * input){
-    return NULL;
+config_t parse_cli(const char * input, config_t command){
+    if(!strncasecmp(input, "HELP" , 4)){
+        print_help();
+        command = set_numeric_entry(CLI_COM, COM_HELP, command);
+    } else if(!strncasecmp(input, "QUIT" , 4)){
+    
+        command = set_numeric_entry(CLI_COM, COM_QUIT, command);
+    } else if(!strncasecmp(input, "START" , 5)){
+    
+        command = set_numeric_entry(CLI_COM, COM_START, command);
+    } else if(!strncasecmp(input, "STOP" , 4)){
+
+        command = set_numeric_entry(CLI_COM, COM_STOP, command);
+    }
+    plc_log("CLI: %s", input);
+    
+    return command;
 }
-config_t ui_update()
+
+config_t ui_update(config_t command)
 {
     //time_header();
     if(Cli_buf[0]){
-        config_t c = parse_cli(Cli_buf);
+        config_t c = parse_cli(Cli_buf, command);
         pthread_join(Reader, NULL);
-
         pthread_create(&Reader, NULL, read_cli, (void *) Cli_buf);
         return c;
     }
-    return NULL;
+    return command;
 }
 
 void ui_end()

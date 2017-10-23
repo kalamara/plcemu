@@ -191,6 +191,11 @@ entry_t copy_entry(entry_t other);
 int get_numeric_entry(int key, const config_t conf);
 
 /**
+ * @brief set numeric config entry by key
+ */
+config_t set_numeric_entry(int key, int val, const config_t conf);
+
+/**
  * @brief get string config entry by key
  */
 char * get_string_entry(int key, const config_t conf);

@@ -1120,37 +1120,36 @@ BYTE check_pulses(plc_t p) {
     return changed;
 }
 
-BYTE save_state(BYTE mask,
+plc_t save_state(BYTE mask,
                 plc_t p) {
-    BYTE update = FALSE;
+//    BYTE update = FALSE;
     if (mask & CHANGED_I) {// Input changed!
         memcpy(p->old->inputs, p->inputs, p->ni);
         plc_log("%s", "input updated"); 
-        update = TRUE;
+//        update = TRUE;
     }
     if (mask & CHANGED_O) {// Output changed!"
         memcpy(p->old->outputs, p->outputs, p->nq);
         plc_log("%s", "output updated"); 
-        update = TRUE;
+//        update = TRUE;
     }
     if (mask & CHANGED_M) {
         memcpy(p->old->m, p->m, p->nm * sizeof(struct mvar));
         plc_log("%s", "regs updated"); 
-        update = TRUE;
-
+//        update = TRUE;
     }
     if (mask & CHANGED_T) {
         memcpy(p->old->t, p->t, p->nt * sizeof(struct timer));
         plc_log("%s", "timers updated"); 
-        update = TRUE;
-
+//        update = TRUE;
     }
     if (mask & CHANGED_S) {
         memcpy(p->old->s, p->s, p->ns * sizeof(struct blink));
         plc_log("%s", "pulses updated"); 
-        update = TRUE;
+//        update = TRUE;
     }
-    return update;
+    p->update = mask;
+    return p;
 }
 
 void write_response(plc_t p) {
@@ -1216,7 +1215,25 @@ void manage_com(plc_t p) {
     }
 }
 
-int plc_func(BYTE *update, plc_t p) {
+plc_t plc_start(plc_t p){
+    if(p->status == ST_STOPPED){
+        p->update = CHANGED_STATUS;
+    }
+    p->status = ST_RUNNING;
+    
+    return p;
+}
+
+plc_t plc_stop(plc_t p){
+    if(p->status == ST_RUNNING){
+        p->update = CHANGED_STATUS;
+    }
+    p->status = ST_STOPPED;
+    
+    return p;
+}
+
+plc_t plc_func(plc_t p) {
 	struct timeval tp; //time for poll
 	struct timeval tn; //time since beginning of last output
 	struct timeval dt;
@@ -1226,7 +1243,7 @@ int plc_func(BYTE *update, plc_t p) {
 	static long run_time = 0;
 	int written=FALSE;
     int r = PLC_OK;
-    BYTE change_mask = 0;
+    BYTE change_mask = p->update;
 	BYTE i_changed = FALSE;
 	BYTE o_changed = FALSE;
 	BYTE m_changed = FALSE;
@@ -1235,7 +1252,7 @@ int plc_func(BYTE *update, plc_t p) {
     //char test[NICKLEN];
     dt.tv_sec = 0;
     dt.tv_usec = 0;
-	if ((p->status) % 2){//run
+	if ((p->status) == ST_RUNNING){//run
 //remaining time = step 
         read_inputs(p);
         t_changed = manage_timers(p);
@@ -1298,14 +1315,16 @@ int plc_func(BYTE *update, plc_t p) {
         change_mask |= CHANGED_M * m_changed;
         change_mask |= CHANGED_T * t_changed;
         change_mask |= CHANGED_S * s_changed;
-        *update = save_state(change_mask, p);
+        p = save_state(change_mask, p);
 	}
     else{
         usleep(p->step * THOUSAND);
         timeout = 0;
     }
-    
-    return r;
+    if(r < PLC_OK){
+        p->status = r;
+    }
+    return p;
 }
 
 static plc_t allocate(plc_t plc) {
@@ -1435,12 +1454,12 @@ plc_t declare_variable(const plc_t p,
     BYTE max = 0;
     switch(var){
         case OP_INPUT:
-            max = p->ni;
+            max = p->ni*BYTESIZE;
             nick = r->di[idx].nick;
             break;
             
         case OP_OUTPUT:
-            max = p->nq;
+            max = p->nq*BYTESIZE;
             nick = r->dq[idx].nick;
             break;
             

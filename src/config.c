@@ -213,6 +213,15 @@ int get_numeric_entry(int key, const config_t conf){
     } 
 }
 
+config_t set_numeric_entry(int key, int val, config_t conf){
+    config_t c = conf;
+    entry_t e = get_entry(key, c);
+    e->e.scalar_int = val;
+    conf->map[key] = e;
+    
+    return c;
+}
+
 char * get_string_entry(int key, const config_t conf){
     
     entry_t e = get_entry(key, conf);
@@ -1056,10 +1065,7 @@ int print_config_yml(FILE * fcfg, const config_t conf) {
 }
 
 int save_config_yml(const char * filename, const config_t conf) {
-    
-//    yaml_emitter_t emitter;
-//    yaml_event_t event;
-    
+     
     FILE * fcfg;
     char path[CONF_STR];
     int r = CONF_OK;
@@ -1067,24 +1073,9 @@ int save_config_yml(const char * filename, const config_t conf) {
     memset(path, 0, CONF_STR);
     sprintf(path, "%s", filename);
 
-//    if(!yaml_emitter_initialize(&emitter)){
-//        return CONF_ERR;    
-//    }
     if ((fcfg = fopen(path, "wb"))) {
          plc_log("Save configuration to %s ...", path);
- /*        
-         yaml_emitter_set_output_file(&emitter, fcfg);
-         yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);
-         
-         r = yaml_emitter_emit(&emitter, &event);
-         
-         if(r)
-            r = emit(&emitter, conf);
-         if(r){
-            yaml_stream_end_event_initialize(&event);
-            r = yaml_emitter_emit(&emitter, &event);   
-         }
-   */ 
+ 
          print_config_yml(fcfg, conf);        
          if(r < CONF_OK)
             plc_log( "Configuration error ");
@@ -1094,7 +1085,6 @@ int save_config_yml(const char * filename, const config_t conf) {
         r = CONF_ERR;
         plc_log("Could not open file %s for write", filename);
     }
-    //yaml_emitter_delete(&emitter);
     return r;
 }
 
