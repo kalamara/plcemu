@@ -226,6 +226,11 @@ typedef struct PLC_regs{
 	struct PLC_regs * old; //pointer to previous state
 } * plc_t;
 
+
+plc_t plc_start(plc_t p);
+
+plc_t plc_stop(plc_t p);
+
 /**
  * @brief execute JMP instruction
  * @param the rung

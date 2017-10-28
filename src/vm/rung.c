@@ -96,6 +96,7 @@ void clear_rung(rung_t r) {
                 free(r->instructions[i]);
         }
         free(r->instructions);
+        free(r->code);
         r->instructions = NULL;
         r->insno = 0;
         //TODO: also free rung, return null

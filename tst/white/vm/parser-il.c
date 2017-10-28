@@ -402,6 +402,9 @@ int parse_il_line(char * line, rung_t r)
 	
 	sprintf(tmp, "%s", line);
 	
+	r->code = realloc(r->code, sizeof(r->code) + MAXSTR);
+	r->code = strcat(r->code, line);
+	
 	read_line_trunk_comments(tmp);
     trunk_label(tmp, buf, label_buf);
     trunk_whitespace(label_buf);

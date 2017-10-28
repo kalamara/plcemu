@@ -18,16 +18,10 @@
 #include "ui.h"
 #include "hardware.h"
 
-
-
 /*************GLOBALS************************************************/
 plc_t Plc;
-char Lines[MAXBUF][MAXSTR];///program lines
-int Lineno;    ///actual no of active lines
-//int UiReady=FALSE;
-BYTE Update=FALSE;
 
-int Language = LANG_LD;
+//int UiReady=FALSE;
 
 typedef enum {
     MSG_PLCERR,
@@ -325,8 +319,8 @@ plc_t init_emu(const config_t conf) {
    
     hw_config(conf);
         
-    int di = get_sequence_entry(CONFIG_DI, conf)->size / 8; 
-    int dq = get_sequence_entry(CONFIG_DQ, conf)->size / 8;
+    int di = get_sequence_entry(CONFIG_DI, conf)->size / BYTESIZE; 
+    int dq = get_sequence_entry(CONFIG_DQ, conf)->size / BYTESIZE;
     int ai = get_sequence_entry(CONFIG_AI, conf)->size;
     int aq = get_sequence_entry(CONFIG_AQ, conf)->size;
     int nt = get_sequence_entry(CONFIG_TIMER, conf)->size;
@@ -339,7 +333,7 @@ plc_t init_emu(const config_t conf) {
     plc_t p = new_plc(di, dq, ai, aq, nt, ns, nm, nr, step, hw);
     p = configure(conf, p);
     
-    Update = TRUE;
+    //Update = TRUE;
     
     //signal(conf->sigenable, sigenable);
     signal(SIGINT, sigkill);
@@ -354,8 +348,10 @@ plc_t init_emu(const config_t conf) {
 int load_program_file(const char * path, plc_t plc) {
     FILE * f;
     int r = ERR_BADFILE;
+    char program_lines[MAXBUF][MAXSTR];///program lines
     char line[MAXSTR];
     int i=0;
+    int lineno = 0;    ///actual no of active lines
     
     if(path == NULL)
         return r;
@@ -373,17 +369,17 @@ int load_program_file(const char * path, plc_t plc) {
         memset(line, 0, MAXSTR);
        
         while (fgets(line, MAXSTR, f)) {
-            memset(Lines[i], 0, MAXSTR);
-            sprintf(Lines[i++], "%s", line);
+            memset(program_lines[i], 0, MAXSTR);
+            sprintf(program_lines[i++], "%s", line);
         }
-        Lineno = i;
+        lineno = i;
         r = PLC_OK;
     } 
     if(r > PLC_ERR){
         if(lang == LANG_IL){
-            r = parse_il_program(Lines, plc);
+            r = parse_il_program(program_lines, plc);
         }else{ 
-            r = parse_ld_program(Lines, plc);   
+            r = parse_ld_program(program_lines, plc);   
         }
     }
     return r;
@@ -686,18 +682,7 @@ int main(int argc, char **argv)
         command = ui_update(command);
         Plc = apply_command(command, Plc);
         Plc = plc_func(Plc);
-        /*
-        //more = 1;
-        if(errcode >= PLC_OK && Plc->status > 0){  
-            Plc = plc_func(Plc);
-            if(errcode < 0){
-                print_error(errcode);
-                Plc->status = 0;
-            }
-        }*/
-        
     }
-    
     disable_bus();
     clear_config(conf);
     close_log();

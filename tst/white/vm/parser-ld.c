@@ -396,8 +396,12 @@ int generate_code(unsigned int length,
                   plc_t p) {
     int rv = PLC_OK;
     rung_t r = mk_rung(p);
+    r->code = (char *)malloc(length * MAXSTR);
+    memset(r->code, 0, length * MAXSTR);
     int i = 0; 
     for(; i < length && rv == PLC_OK; i++){
+       
+	    r->code = strcat(r->code, program[i]->buf);
         if(program[i]->stmt != NULL
         && program[i]->stmt->tag == TAG_ASSIGNMENT)
             rv = gen_ass(program[i]->stmt, r);
