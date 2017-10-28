@@ -5,6 +5,7 @@
  *@file ui.h
  *@brief main header
 */
+#define CLI_COM 0 //commands always go to first payload entry
 
 enum
 {

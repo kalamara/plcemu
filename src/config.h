@@ -32,6 +32,7 @@ typedef struct param {
     struct param * next;
 } * param_t;
 
+/*FIXME: make a hashmap out of this */
 #define MAX_PARAM 256
 typedef param_t * param_table_t;
 
@@ -204,6 +205,14 @@ char * get_string_entry(int key, const config_t conf);
  * @brief get sequence config entry by key
  */
 sequence_t get_sequence_entry(int key, const config_t conf);
+
+/**
+ * @brief get variable by name
+ * @param the name
+ * @param sequence of variables
+ * @return found variable or NULL
+ */
+variable_t get_variable(const char * name, const sequence_t seq);
 
 /**
  * @brief get recursive map config entry by key

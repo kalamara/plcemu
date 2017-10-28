@@ -85,7 +85,7 @@ const char * IlErrors[N_IE] =
 //literals
 //MOD
 
-/***************************INSTRUCTION LIST*********************************/
+/***************************INSTRUCTION LIST***************************/
 
 /***LEX**/
 
@@ -441,11 +441,13 @@ int parse_il_line(char * line, rung_t r)
 	return PLC_OK ;
 }
 /****************entry point**************************/
-int parse_il_program(char lines[][MAXSTR], plc_t p)
+plc_t parse_il_program(const char * name, 
+                       const char lines[][MAXSTR], 
+                       plc_t p)
 {
     int rv = PLC_OK;
     unsigned int i = 0;
-    rung_t r = mk_rung(p);
+    rung_t r = mk_rung(name, p);
     while(rv == PLC_OK 
     && i < MAXBUF
     && lines[i][0] != 0){
@@ -477,10 +479,11 @@ int parse_il_program(char lines[][MAXSTR], plc_t p)
         }
     }
     rv = intern(r);
-    if(rv < PLC_OK)
+    if(rv < PLC_OK){
         plc_log("Labels are messed up");
-    
-    return rv;
+    }
+    p->status = rv;
+    return p;
 }
 
 /***CHECK**/

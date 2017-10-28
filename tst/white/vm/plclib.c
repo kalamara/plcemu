@@ -905,24 +905,25 @@ int instruct(plc_t p, rung_t r, unsigned int *pc)
     return error;
 }
 
-rung_t mk_rung(plc_t p) {
+rung_t mk_rung(const char * name, plc_t p) {
     rung_t r = (rung_t)malloc(sizeof(struct rung));
     memset(r, 0, sizeof(struct rung));
-   
+    r->id = strdup(name);
     if(p->rungs == NULL){//lazy allocation
        p->rungs = (rung_t *)malloc(MAXRUNG*sizeof(rung_t));
        memset(p->rungs, 0, MAXRUNG*sizeof(rung_t));
     }
     p->rungs[p->rungno++] = r;
+    
     return r;
 }
 
-int get_rung(const plc_t p, const unsigned int idx, rung_t *r) {
+rung_t get_rung(const plc_t p, const unsigned int idx) {
     if(p==NULL
-    || idx >= p->rungno)
-        return PLC_ERR;
-    *r = p->rungs[idx];       
-    return PLC_OK;
+    || idx >= p->rungno){ 
+        return NULL;
+    } 
+    return p->rungs[idx];
 }
 
 /*****************realtime loop************************************/
@@ -1122,31 +1123,25 @@ BYTE check_pulses(plc_t p) {
 
 plc_t save_state(BYTE mask,
                 plc_t p) {
-//    BYTE update = FALSE;
     if (mask & CHANGED_I) {// Input changed!
         memcpy(p->old->inputs, p->inputs, p->ni);
         plc_log("%s", "input updated"); 
-//        update = TRUE;
     }
     if (mask & CHANGED_O) {// Output changed!"
         memcpy(p->old->outputs, p->outputs, p->nq);
         plc_log("%s", "output updated"); 
-//        update = TRUE;
     }
     if (mask & CHANGED_M) {
         memcpy(p->old->m, p->m, p->nm * sizeof(struct mvar));
         plc_log("%s", "regs updated"); 
-//        update = TRUE;
     }
     if (mask & CHANGED_T) {
         memcpy(p->old->t, p->t, p->nt * sizeof(struct timer));
         plc_log("%s", "timers updated"); 
-//        update = TRUE;
     }
     if (mask & CHANGED_S) {
         memcpy(p->old->s, p->s, p->ns * sizeof(struct blink));
         plc_log("%s", "pulses updated"); 
-//        update = TRUE;
     }
     p->update = mask;
     return p;
@@ -1162,7 +1157,6 @@ void write_response(plc_t p) {
         p->response = PLC_OK;
     close(rfd);
 }
-
 
 BYTE manage_timers(plc_t p) {
     int i=0;
@@ -1202,17 +1196,47 @@ BYTE manage_blinkers(plc_t p) {
     return s_changed;
 }
 
-//manage serial comm
-void manage_com(plc_t p) {
-    BYTE com[2];
-    if (read(p->com[0].fd, com, 2)){
-        if (com[0] == 0)
-            com[0] = 0;	//NOP
-        else
-            p->command = com[0] - ASCIISTART;
-        //plc_log("LAST command:%d, %s", p->command,
-          //     com_nick[com[0] - ASCIISTART]);
+plc_t plc_load_program_file(const char * path, plc_t plc) {
+    FILE * f;
+    int r = ERR_BADFILE;
+    char program_lines[MAXBUF][MAXSTR];///program lines
+    char line[MAXSTR];
+    int i=0;
+    int lineno = 0;    ///actual no of active lines
+    
+    if(path == NULL){
+    
+        return plc;
     }
+    char * ext = strrchr(path, '.');
+    int lang = PLC_ERR;
+    
+    if(ext != NULL){
+        if(strcmp(ext, ".il") == 0){
+            lang = LANG_IL;
+        }else if(strcmp(ext, ".ld") == 0) {
+            lang = LANG_LD;
+        }
+    }          
+    if (lang > PLC_ERR && (f = fopen(path, "r"))) {
+        memset(line, 0, MAXSTR);
+       
+        while (fgets(line, MAXSTR, f)) {
+            memset(program_lines[i], 0, MAXSTR);
+            sprintf(program_lines[i++], "%s\n", line);
+        }
+        lineno = i;
+        r = PLC_OK;
+    } 
+    if(r > PLC_ERR){
+        if(lang == LANG_IL){
+            r = parse_il_program(path, program_lines, plc);
+        }else{ 
+            r = parse_ld_program(path, program_lines, plc);   
+        }
+    }
+    plc->status = r;
+    return plc;
 }
 
 plc_t plc_start(plc_t p){
@@ -1278,11 +1302,7 @@ plc_t plc_func(plc_t p) {
 //plc_log("Poll time approx:%d microseconds",dt.tv_usec);
 //dt = time(input) + time(poll)
         
-        if (written)
-            manage_com(p);
-		else if (written == 0)
-			p->command = 0;
-		else{
+        if (written<0){
 		    r = PLC_ERR;
             plc_log("PIPE ERROR\n");
 			p->command = 0;

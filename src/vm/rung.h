@@ -24,6 +24,7 @@ typedef struct opcode{
  */
 typedef struct rung{
   instruction_t * instructions;
+  char * id;
   char * code; ///original code for visual representation
   unsigned int insno;///actual no of active lines
   struct rung * next; ///linked list of rungs

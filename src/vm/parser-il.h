@@ -119,11 +119,14 @@ int parse_il_line(char * line, rung_t r);
  
 /**
   * @brief parse IL program
+  * @param a unique program identifier
   * @param the program as an allocated buffer of allocated strings
   * @param the plc to store the generated microcode to
-  * @return ok or error code  
+  * @return plc with updated status  
   */
-int parse_il_program(char lines[][MAXSTR], plc_t p);
+plc_t parse_il_program(const char* name, 
+                       const char lines[][MAXSTR], 
+                       plc_t p);
 
 
 #endif //_PARSER-IL_H

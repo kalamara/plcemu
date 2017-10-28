@@ -65,13 +65,6 @@ int parse_ld_line(ld_line_t line);
 int minmin(const int *arr, int min, int max);
 
 /**
- * @brief LD main task
- * @param pointer to PLC registers
- * @return
- */
-int LD_task(plc_t p);
-
-/**
   * @brief construct array of ld lines and initialize with text lines
   * @param the pre allocated text lines
   * @param the number of lines
@@ -137,9 +130,11 @@ int find_next_node(const ld_line_t * program,
   * @brief parse LD program
   * @param the program as an allocated buffer of allocated strings
   * @param the plc to store the generated microcode to
-  * @return ok or error code
+  * @return plc with updated status
   */
-int parse_ld_program(char lines[][MAXSTR], plc_t p);
+plc_t parse_ld_program(const char * name, 
+                       const char lines[][MAXSTR], 
+                       plc_t p);
 
 
 //ld_line_t * mk_lines(char lines[MAXBUF][MAXSTR]);

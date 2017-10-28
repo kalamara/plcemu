@@ -333,8 +333,8 @@ plc_t init_emu(const config_t conf) {
     plc_t p = new_plc(di, dq, ai, aq, nt, ns, nm, nr, step, hw);
     p = configure(conf, p);
     
-    //Update = TRUE;
-    
+    p->update = TRUE;
+
     //signal(conf->sigenable, sigenable);
     signal(SIGINT, sigkill);
     signal(SIGTERM, sigkill);
@@ -343,46 +343,6 @@ plc_t init_emu(const config_t conf) {
     
     open_pipe(get_string_entry(CONFIG_HW, conf), p);
     return p;
-}
-
-int load_program_file(const char * path, plc_t plc) {
-    FILE * f;
-    int r = ERR_BADFILE;
-    char program_lines[MAXBUF][MAXSTR];///program lines
-    char line[MAXSTR];
-    int i=0;
-    int lineno = 0;    ///actual no of active lines
-    
-    if(path == NULL)
-        return r;
-    char * ext = strrchr(path, '.');
-    int lang = PLC_ERR;
-    
-    if(ext != NULL){
-        if(strcmp(ext, ".il") == 0){
-            lang = LANG_IL;
-        }else if(strcmp(ext, ".ld") == 0) {
-            lang = LANG_LD;
-        }
-    }          
-    if (lang > PLC_ERR && (f = fopen(path, "r"))) {
-        memset(line, 0, MAXSTR);
-       
-        while (fgets(line, MAXSTR, f)) {
-            memset(program_lines[i], 0, MAXSTR);
-            sprintf(program_lines[i++], "%s", line);
-        }
-        lineno = i;
-        r = PLC_OK;
-    } 
-    if(r > PLC_ERR){
-        if(lang == LANG_IL){
-            r = parse_il_program(program_lines, plc);
-        }else{ 
-            r = parse_ld_program(program_lines, plc);   
-        }
-    }
-    return r;
 }
 
 const char * Usage = "Usage: plcemu [-c config file] \n \
@@ -430,7 +390,7 @@ config_t init_config(){
     config_t conf = new_config(N_CONFIG_VARIABLES);
    
     config_t uspace = new_config(N_USPACE_VARS);
-        
+            
     uspace = update_entry(
         USPACE_BASE,
 	    new_entry_int(50176, "BASE"),
@@ -521,18 +481,8 @@ config_t init_config(){
         CONFIG_SIM,
         new_entry_map(sim, "SIM"),
         conf);
-        
-     conf = update_entry(
-        CONFIG_PROGRAM_IL,
-        new_entry_str("", "IL"),
-        conf);   
-    
-    conf = update_entry(
-        CONFIG_PROGRAM_LD,
-        new_entry_str("", "LD"),
-        conf);         
+
    /*******************************************/
-   
     conf = update_entry(
         CONFIG_TIMER,
         new_entry_seq(new_sequence(4), "TIMERS"),
@@ -573,23 +523,40 @@ config_t init_config(){
         new_entry_seq(new_sequence(8), "AQ"),
         conf);
 
+    conf = update_entry(
+        CONFIG_PROGRAM,
+        new_entry_seq(new_sequence(2), "PROGRAM"),
+        conf);
+
     return conf;
 }
 
 config_t get_state(const plc_t plc, const config_t state){
     config_t r = state;
     //set status
-    r = set_numeric_entry(CLI_COM, plc->status, r);
+    r = set_numeric_entry(0, plc->status, r);
     //assign values
     //show forced
     //add program
+    sequence_t programs = get_sequence_entry(CONFIG_PROGRAM, r);
+    int i = 0;
+    
+    for(;i < plc->rungno; i++){
+        param_t code = get_param("CODE",programs->vars[i].params);
+        if(code == NULL){ 
+            programs->vars[i].params = append_param(
+                                        programs->vars[i].params,
+                                        "CODE",
+                                        plc->rungs[i]->code);
+        } 
+    }
     return r;
 }
 
 config_t copy_sequences(const config_t conf, config_t com){
     
-    int i = CLI_AI;
-    for(; i < N_CLI_ARGS; i++){
+    int i = CONFIG_PROGRAM;
+    for(; i < N_CONFIG_VARIABLES; i++){
         com = update_entry(i,
             copy_entry(get_entry(i, conf)),
             com);
@@ -598,7 +565,7 @@ config_t copy_sequences(const config_t conf, config_t com){
 }
 
 plc_t apply_command(const config_t com, plc_t plc){
-    switch(get_numeric_entry(CLI_COM, com)){
+    switch(get_numeric_entry(0, com)){
         case COM_START:
         
             plc = plc_start(plc);
@@ -617,7 +584,7 @@ plc_t apply_command(const config_t com, plc_t plc){
 int main(int argc, char **argv)
 {
     int errcode = PLC_OK;
-//    int more = 0;
+    int prog = 0;
     char * confstr = "config.yml";
     config_t conf = init_config();
     
@@ -661,9 +628,12 @@ int main(int argc, char **argv)
     }
 //initialize PLC
     Plc = init_emu(conf);
-    
-    load_program_file(get_string_entry(CONFIG_PROGRAM_IL,conf), Plc);   
-    load_program_file(get_string_entry(CONFIG_PROGRAM_LD,conf), Plc);
+    sequence_t programs = get_sequence_entry(CONFIG_PROGRAM, conf);
+    for(; programs && prog < programs->size; prog++){
+        if(programs->vars[prog].name){
+            Plc = plc_load_program_file(programs->vars[prog].name, Plc);
+        }
+    }
 //start hardware
     enable_bus();
 //start UI
@@ -673,7 +643,7 @@ int main(int argc, char **argv)
     config_t command = copy_sequences(conf, ui_init_command());
     config_t state = copy_sequences(conf, ui_init_state());
         
-    while (get_numeric_entry(CLI_COM, command)!=COM_QUIT) {
+    while (get_numeric_entry(0, command)!=COM_QUIT) {
        if(Plc->update){
            state = get_state(Plc, state);
            ui_draw(state);
@@ -683,6 +653,7 @@ int main(int argc, char **argv)
         Plc = apply_command(command, Plc);
         Plc = plc_func(Plc);
     }
+    sigkill();
     disable_bus();
     clear_config(conf);
     close_log();

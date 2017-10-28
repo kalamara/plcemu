@@ -323,6 +323,10 @@ void ut_get(){
             CU_ASSERT_STRING_EQUAL(max, "1.0");
         }        
     }
+    
+    variable_t v = get_variable("var1", seq);
+    max = get_param_val("MAX", v->params);
+    CU_ASSERT_STRING_EQUAL(max, "1.0")
 }    
 
 void ut_copy(){

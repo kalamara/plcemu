@@ -229,11 +229,11 @@ void ut_parse_ld_program()
     
     char lines[MAXBUF][MAXSTR];
     memset(lines, 0, MAXBUF * MAXSTR); 
+    plc_t r = parse_ld_program("", lines, NULL);
     
-    int result = parse_ld_program(lines, NULL);
-    CU_ASSERT(result == PLC_ERR);
+    CU_ASSERT_PTR_NULL(r);
     
-    result = vertical_parse(0, 0, NULL);
+    int result = vertical_parse(0, 0, NULL);
     CU_ASSERT(result == PLC_ERR);
     
     sprintf(lines[0], "%s\n", " i0/1--+---[Q0/0       ");
@@ -263,9 +263,15 @@ void ut_parse_ld_program()
     
     destroy_program(3, program);
 
-    result = parse_ld_program(lines, &p);
-    CU_ASSERT(result == PLC_OK);
+    r = parse_ld_program("1or3.ld", lines, &p);
+    CU_ASSERT(p.status == PLC_OK);
+    CU_ASSERT_STRING_EQUAL(p.rungs[0]->id, "1or3.ld");
+    char code[3*MAXBUF];
+    memset(code, 0, 3*MAXBUF);
+    sprintf(code, "%s%s%s", lines[0], lines[1], lines[2]);  
+    //printf("%s\n", p.rungs[0]->code);
     
+    CU_ASSERT_STRING_EQUAL(p.rungs[0]->code, code);  
     char dump[MAXSTR * MAXBUF];
     memset(dump, 0, MAXBUF * MAXSTR);
     dump_rung(p.rungs[0], dump);
@@ -283,7 +289,7 @@ void ut_parse_ld_program()
     sprintf(lines[3], "%s\n", "  ");
     sprintf(lines[4], "%s\n", " i0/4--+   ");
     sprintf(lines[5], "%s\n", " i0/5--+-(Q0/1            ");
-    result = parse_ld_program(lines, &p);
+    result = parse_ld_program("many_ors.ld", lines, &p)->status;
     
     CU_ASSERT(result == PLC_OK);
     

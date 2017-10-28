@@ -391,11 +391,12 @@ void destroy_program(unsigned int length, ld_line_t * program) {
     free(program);
 }
 
-int generate_code(unsigned int length, 
+plc_t generate_code(unsigned int length,
+                  const char * name, 
                   const ld_line_t * program,
                   plc_t p) {
     int rv = PLC_OK;
-    rung_t r = mk_rung(p);
+    rung_t r = mk_rung(name, p);
     r->code = (char *)malloc(length * MAXSTR);
     memset(r->code, 0, length * MAXSTR);
     int i = 0; 
@@ -407,15 +408,20 @@ int generate_code(unsigned int length,
             rv = gen_ass(program[i]->stmt, r);
             //clear_tree(program[i]->stmt);    
     }
-    return rv;
+    p->status = rv;
+    
+    return p;
 }
 
 /***************************entry point*******************************/
-int parse_ld_program(char lines[][MAXSTR], plc_t p) {
+plc_t parse_ld_program(const char * name, 
+                       const char lines[][MAXSTR], 
+                       plc_t p) {
     int rv = PLC_OK;
-    if(p == NULL)
-        return PLC_ERR;
-        
+    if(p == NULL){
+    
+        return NULL;
+    }    
     unsigned int len = program_length(lines, MAXBUF); 
     ld_line_t * program = construct_program(lines, len);
     
@@ -423,14 +429,24 @@ int parse_ld_program(char lines[][MAXSTR], plc_t p) {
     while(rv >= PLC_OK 
        && node >= 0) {
         rv = horizontal_parse(len, program);
-        if(rv >= PLC_OK)
+        if(rv >= PLC_OK){
+        
             node = find_next_node(program, node, len);
-        if(node >= 0)
+        }
+        if(node >= 0){
+        
             rv = vertical_parse(node, len, program);
-    }  
-    rv = generate_code(len, program, p);
+        }
+    }
+    if(rv < PLC_OK){  
+    
+        p->status = rv;
+    } else {
+    
+        p = generate_code(len, name, program, p);
+    }
     destroy_program(len, program);
-    return rv;
+    return p;
 }
 
 

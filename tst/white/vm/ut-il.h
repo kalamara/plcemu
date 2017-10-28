@@ -568,7 +568,7 @@ Knuth's online variance:
    struct PLC_regs p;
    init_mock_plc(&p);
    
-   result = parse_il_program(lines, &p);
+   result = parse_il_program("knuth.il", lines, &p)->status;
    
    CU_ASSERT(result == PLC_OK);
    
@@ -847,13 +847,14 @@ function gcd(a, b)
    struct PLC_regs p;
    init_mock_plc(&p);
    
-   result = parse_il_program(lines, &p);
+   result = parse_il_program("gcd.il", lines, &p)->status;
    
    CU_ASSERT(result == PLC_OK);
    
    char dump[MAXSTR * MAXBUF];
    memset(dump, 0, MAXBUF * MAXSTR);
    dump_rung(p.rungs[0], dump);
+   CU_ASSERT_STRING_EQUAL(p.rungs[0]->id, "gcd.il");
    //printf("%s", dump); 
    
    const char * expected = 

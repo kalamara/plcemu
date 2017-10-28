@@ -57,9 +57,9 @@ typedef enum{
     CONFIG_USPACE,
     CONFIG_COMEDI,
     CONFIG_SIM,
-    CONFIG_PROGRAM_IL,
-    CONFIG_PROGRAM_LD,
+    
      //(runtime updatable) sequences,
+    CONFIG_PROGRAM,
     CONFIG_AI,
     CONFIG_AQ,
     CONFIG_DI,
@@ -70,10 +70,11 @@ typedef enum{
     CONFIG_PULSE, 
     N_CONFIG_VARIABLES
 } CONFIG_VARIABLES;
-
+/*
 typedef enum{
     CLI_COM,
-    CLI_AI = CONFIG_AI,
+    CLI_PROGRAM = CONFIG_PROGRAM,
+    CLI_AI,
     CLI_AQ,
     CLI_DI,
     CLI_DQ,
@@ -83,7 +84,7 @@ typedef enum{
     CLI_PULSE, 
     N_CLI_ARGS
 } CLI_ARGS;
-
+*/
 //int plc_load_file(const char * path);
 //int plc_save_file(const char * path);
 #endif //_PLCEMU_H_

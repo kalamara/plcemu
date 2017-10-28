@@ -226,10 +226,27 @@ typedef struct PLC_regs{
 	struct PLC_regs * old; //pointer to previous state
 } * plc_t;
 
-
+/**
+ * @brief start PLC 
+ * @param the plc
+ * @return plc with updated status
+ */
 plc_t plc_start(plc_t p);
 
+/**
+ * @brief stop PLC 
+ * @param the plc
+ * @return plc with updated status
+ */
 plc_t plc_stop(plc_t p);
+
+/**
+ * @brief load a PLC program
+ * @param the local filename (path relative to config file) 
+ * @param the plc
+ * @return plc with updated status
+ */
+plc_t plc_load_program_file(const char * path, plc_t plc);
 
 /**
  * @brief execute JMP instruction
@@ -443,19 +460,20 @@ int instruct(plc_t p, rung_t r, unsigned int *pc);
 
 /**
  * @brief add a new rung to a plc
+ * @param a unique identifier
  * @param the plc
  * @return reference to the new rung
  */
-rung_t mk_rung( plc_t p);
+rung_t mk_rung(const char * name, plc_t p);
 
 /**
  * @brief get rung reference from plc
  * @param p a plc
  * @param r the rung reference
  * @param idx the index
- * @return OK or error
+ * @return reference to rung or NULL
  */
-int get_rung( const plc_t p, unsigned int idx, rung_t *r);
+rung_t get_rung( const plc_t p, unsigned int idx);
 
 /**
  * @brief task to execute IL rung
@@ -671,7 +689,6 @@ plc_t new_plc(
 plc_t copy_plc(const plc_t plc); 
 
 /*configurators*/
-//plc_t declare_input(const plc_t p,  BYTE idx, const char* val);
 
 /**
  * @brief assign name to a plc register variable

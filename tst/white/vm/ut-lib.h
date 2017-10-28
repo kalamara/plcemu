@@ -41,7 +41,6 @@ void init_mock_plc(plc_t plc)
     plc->m = (mvar_t) malloc(plc->nm * sizeof(struct mvar));
     plc->mr = (mreal_t) malloc(plc->nmr * sizeof(struct mreal));
    
-   
     memset(plc->inputs, 0, plc->ni);
 	memset(plc->outputs, 0, plc->nq);
 	memset(plc->real_in, 0, plc->nai*sizeof(uint64_t));

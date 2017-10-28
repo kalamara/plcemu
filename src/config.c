@@ -245,6 +245,20 @@ sequence_t get_sequence_entry(int key, const config_t conf){
     }    
 }
 
+variable_t get_variable(const char * name, const sequence_t seq){
+    if(seq != NULL){
+        int i = 0;
+        for(; i < seq->size; i++){
+            if(seq->vars[i].name != NULL &&
+                !strcmp(seq->vars[i].name, name)){
+                    
+                return &(seq->vars[i]);            
+            }
+        }
+    }
+    return NULL;
+}
+
 config_t get_recursive_entry(int key, const config_t conf){
     entry_t e = get_entry(key, conf);
     if(e && e->type_tag == ENTRY_MAP){
@@ -994,8 +1008,7 @@ int emit(yaml_emitter_t *emitter, const config_t conf) {
     int r = CONF_OK;     
    
     yaml_event_t evt;
-    char val[CONF_STR];
-    memset(val,0,CONF_STR);
+
     //doc start
     yaml_document_start_event_initialize(&evt, NULL, NULL, NULL, CONF_F); 
 	yaml_emitter_emit(emitter, &evt); 		

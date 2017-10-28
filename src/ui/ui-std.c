@@ -80,12 +80,12 @@ void ui_draw(config_t state)
 }
 
 config_t ui_init_command(){
-    config_t com = new_config(N_CLI_ARGS);
+    config_t com = new_config(N_CONFIG_VARIABLES);
     return update_entry(CLI_COM, new_entry_int(0, "COMMAND"), com);
 }
 
 config_t ui_init_state(){
-    config_t stat = new_config(N_CLI_ARGS);
+    config_t stat = new_config(N_CONFIG_VARIABLES);
     return update_entry(CLI_COM, new_entry_int(0, "STATUS"), stat);
 }
 
@@ -94,6 +94,7 @@ int ui_init(const config_t conf)
  //   init_help();
 
     Cli_buf = (char*)malloc(MAXBUF);
+    memset(Cli_buf, 0, MAXBUF);
     int rc = pthread_create(&Reader, NULL, read_cli, (void *) Cli_buf);
     
     return rc;
