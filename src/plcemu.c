@@ -531,17 +531,55 @@ config_t init_config(){
     return conf;
 }
 
+config_t get_dio_values(const plc_t plc, 
+                        const config_t state, 
+                        BYTE type){
+    config_t ret = state;
+    sequence_t dios = get_sequence_entry(type, ret);
+    if(dios == NULL ||
+        type != CONFIG_DI && type != CONFIG_DQ) {
+        
+        return state;
+    } 
+    variable_t viter = dios->vars;
+    int i = 0;
+    BYTE val = 0;
+    while(i < dios->size){
+        if(viter != NULL) {
+           
+            if(type == CONFIG_DI){
+                val = plc->di[i].I;
+            } else if(type == CONFIG_DQ){
+                val = plc->dq[i].Q;    
+            } 
+            viter->params = update_param(
+                                viter->params,
+                                "VALUE",
+                                 val?"TRUE":"FALSE");	        
+	    }
+	    viter = &(dios->vars)[++i];
+    }
+    return ret;
+}
+
 config_t get_state(const plc_t plc, const config_t state){
     config_t r = state;
+    int i = 0;
     //set status
     r = set_numeric_entry(0, plc->status, r);
-    //assign values
+    //assign values    
+    if(plc->update & CHANGED_I){
+        r = get_dio_values(plc, r, CONFIG_DI);
+    }
+    if(plc->update & CHANGED_O){
+        r = get_dio_values(plc, r, CONFIG_DQ);
+    }
+    
     //show forced
     //add program
     sequence_t programs = get_sequence_entry(CONFIG_PROGRAM, r);
-    int i = 0;
     
-    for(;i < plc->rungno; i++){
+    for(i = 0;i < plc->rungno; i++){
         param_t code = get_param("CODE",programs->vars[i].params);
         if(code == NULL){ 
             programs->vars[i].params = append_param(

@@ -86,11 +86,13 @@ void ui_draw(config_t state)
 
 config_t ui_init_command(){
     config_t com = new_config(N_CONFIG_VARIABLES);
+    
     return update_entry(CLI_COM, new_entry_int(0, "COMMAND"), com);
 }
 
 config_t ui_init_state(){
     config_t stat = new_config(N_CONFIG_VARIABLES);
+    
     return update_entry(CLI_COM, new_entry_int(0, "STATUS"), stat);
 }
 

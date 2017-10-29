@@ -225,7 +225,7 @@ config_t get_recursive_entry(int key, const config_t conf);
 int get_key(const char * value, const config_t conf);
 
 /**
- * @brief get param key by literal value
+ * @brief get param val by literal key value
  */
 char * get_param_val(const char * key, const param_t params);
 
