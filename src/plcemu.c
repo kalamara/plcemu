@@ -332,7 +332,7 @@ plc_t init_emu(const config_t conf) {
     
     plc_t p = new_plc(di, dq, ai, aq, nt, ns, nm, nr, step, hw);
     p = configure(conf, p);
-    
+    p->status = 0;
     p->update = TRUE;
 
     //signal(conf->sigenable, sigenable);
@@ -642,9 +642,9 @@ int main(int argc, char **argv)
     //UiReady=more;
     config_t command = copy_sequences(conf, ui_init_command());
     config_t state = copy_sequences(conf, ui_init_state());
-        
+    Plc = plc_start(Plc);    
     while (get_numeric_entry(0, command)!=COM_QUIT) {
-       if(Plc->update){
+       if(Plc->update != 0){
            state = get_state(Plc, state);
            ui_draw(state);
            Plc->update = 0;

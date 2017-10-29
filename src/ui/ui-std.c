@@ -42,13 +42,18 @@ void print_help()
 void * read_cli(void *buf) {
     
     size_t len = sizeof(buf);
+   
     memset(buf, 0, len);
     
-    int n = getline((char **)&buf, &len, stdin);
-    
-    return NULL;
+    size_t l = 0;
+    char * b = NULL;
+    int n = getline((char **)&b, &l, stdin);
+    if(n >=0){
+        sprintf(buf, "%s", b);
+        free(b);
+    }
+    return buf;
 }
-
 
 char lasttime[TINYSTR] = "";
 void time_header()
@@ -91,8 +96,6 @@ config_t ui_init_state(){
 
 int ui_init(const config_t conf)
 {
- //   init_help();
-
     Cli_buf = (char*)malloc(MAXBUF);
     memset(Cli_buf, 0, MAXBUF);
     int rc = pthread_create(&Reader, NULL, read_cli, (void *) Cli_buf);
@@ -122,7 +125,7 @@ config_t parse_cli(const char * input, config_t command){
 config_t ui_update(config_t command)
 {
     //time_header();
-    if(Cli_buf[0]){
+    if(Cli_buf != NULL && Cli_buf[0]){
         config_t c = parse_cli(Cli_buf, command);
         pthread_join(Reader, NULL);
         pthread_create(&Reader, NULL, read_cli, (void *) Cli_buf);
