@@ -444,11 +444,11 @@ plc_t parse_ld_program(const char * name,
     } else {
     
         p = generate_code(len, name, program, p);
-       /* 
+        
         char dump[MAXBUF];
         memset(dump, 0, MAXBUF);
         dump_rung(p->rungs[0], dump);
-        plc_log(dump);*/
+        plc_log(dump);
     }
     destroy_program(len, program);
     return p;

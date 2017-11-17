@@ -241,6 +241,27 @@ plc_t plc_start(plc_t p);
 plc_t plc_stop(plc_t p);
 
 /**
+  * @brief parse IL program
+  * @param a unique program identifier
+  * @param the program as an allocated buffer of allocated strings
+  * @param the plc to store the generated microcode to
+  * @return plc with updated status  
+  */
+plc_t parse_il_program(const char* name, 
+                       const char lines[][MAXSTR], 
+                       plc_t p);
+                       
+/**
+  * @brief parse LD program
+  * @param the program as an allocated buffer of allocated strings
+  * @param the plc to store the generated microcode to
+  * @return plc with updated status
+  */
+plc_t parse_ld_program(const char * name, 
+                       const char lines[][MAXSTR], 
+                       plc_t p);                       
+
+/**
  * @brief load a PLC program
  * @param the local filename (path relative to config file) 
  * @param the plc

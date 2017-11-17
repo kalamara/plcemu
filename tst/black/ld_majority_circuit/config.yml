@@ -13,7 +13,7 @@ USPACE:
 
 #COMEDI interface:
 COMEDI: 
-    FILE:     0,           #device and subdevice nodes of comedi driver.
+    FILE:     0           #device and subdevice nodes of comedi driver.
     SUBDEV: 
         IN: 0
         OUT: 1
@@ -26,17 +26,25 @@ SIM:
 
 #PROGRAM    
 DI:
-    - 4
+    - 16
     - INDEX: 0
+      BYTE:  0	
+      BIT:   0
       ID:    A    
     - INDEX: 1
+      BYTE:  0
+      BIT:   1 
       ID:    B    
     - INDEX: 2
+      BYTE:  0
+      BIT:   2
       ID:    C        
  
 DQ:
-    - 4
+    - 16
     - INDEX: 0
+      BYTE:  0
+      BIT:   0
       ID:    RESULT
 
 TIMERS:
@@ -48,14 +56,12 @@ TIMERS:
 
 PULSES:
     - 2
-    - INDEX: 1    
-      RESOLUTION: 100    
  
-    
-
 # triple majority circuit
 # https://en.wikipedia.org/wiki/Triple_modular_redundancy
-
-LD: "triple_majority.ld"
-
+PROGRAM:
+    - 2 
+    - INDEX: 0
+      ID: triple_majority.ld 
+        
 

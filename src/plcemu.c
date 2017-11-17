@@ -122,7 +122,6 @@ plc_t configure_readonly(int operand,
     return plc;               
 }
 
-
 plc_t configure_di(const config_t conf, plc_t plc){
  
     sequence_t seq = get_sequence_entry(CONFIG_DI, conf);
@@ -194,7 +193,7 @@ plc_t configure_aq(const config_t conf, plc_t plc){
 
 plc_t configure_counters(const config_t conf, plc_t plc){
 
-    sequence_t seq = get_sequence_entry(CONFIG_MVAR, conf);
+    sequence_t seq = get_sequence_entry(CONFIG_MREG, conf);
     
     if(seq) {
         plc_t p = plc;
@@ -220,7 +219,7 @@ plc_t configure_counters(const config_t conf, plc_t plc){
 
 plc_t configure_reals(const config_t conf, plc_t plc){
 
-    sequence_t seq = get_sequence_entry(CONFIG_MREG, conf);
+    sequence_t seq = get_sequence_entry(CONFIG_MVAR, conf);
     
     if(seq) {
         plc_t p = plc;
@@ -319,8 +318,8 @@ plc_t init_emu(const config_t conf) {
    
     hw_config(conf);
         
-    int di = get_sequence_entry(CONFIG_DI, conf)->size / BYTESIZE; 
-    int dq = get_sequence_entry(CONFIG_DQ, conf)->size / BYTESIZE;
+    int di = get_sequence_entry(CONFIG_DI, conf)->size / BYTESIZE + 1; 
+    int dq = get_sequence_entry(CONFIG_DQ, conf)->size / BYTESIZE + 1;
     int ai = get_sequence_entry(CONFIG_AI, conf)->size;
     int aq = get_sequence_entry(CONFIG_AQ, conf)->size;
     int nt = get_sequence_entry(CONFIG_TIMER, conf)->size;
@@ -536,8 +535,9 @@ config_t get_dio_values(const plc_t plc,
                         BYTE type){
     config_t ret = state;
     sequence_t dios = get_sequence_entry(type, ret);
-    if(dios == NULL ||
-        type != CONFIG_DI && type != CONFIG_DQ) {
+    if(dios == NULL || (
+        type != CONFIG_DI &&
+        type != CONFIG_DQ)) {
         
         return state;
     } 
@@ -551,18 +551,110 @@ config_t get_dio_values(const plc_t plc,
                 val = plc->di[i].I;
             } else if(type == CONFIG_DQ){
                 val = plc->dq[i].Q;    
-            } 
+            }
             viter->params = update_param(
                                 viter->params,
-                                "VALUE",
+                                "STATE",
                                  val?"TRUE":"FALSE");	        
+	        
 	    }
 	    viter = &(dios->vars)[++i];
     }
     return ret;
 }
 
-config_t get_state(const plc_t plc, const config_t state){
+config_t get_reg_values(const plc_t plc, 
+                        const config_t state){
+    config_t ret = state;
+    sequence_t regs = get_sequence_entry(CONFIG_MREG, ret);
+    if(regs == NULL){
+       
+        return state;
+    } 
+    variable_t viter = regs->vars;
+    int i = 0;
+    uint64_t val = 0;
+    while(i < regs->size){
+        if(viter != NULL) {
+           
+            val = plc->m[i].V;    
+            char vs[TINYBUF];
+            memset(vs,0, TINYBUF);
+            sprintf(vs,"%ld", val); 
+            viter->params = update_param(
+                                viter->params,
+                                "VALUE",
+                                 vs);	        
+	    }
+	    viter = &(regs->vars)[++i];
+    }
+    return ret;
+}
+
+config_t get_timer_values(const plc_t plc, 
+                          const config_t state){
+    config_t ret = state;
+    sequence_t timers = get_sequence_entry(CONFIG_TIMER, ret);
+    if(timers == NULL){
+       
+        return state;
+    } 
+    variable_t viter = timers->vars;
+    int i = 0;
+    long val = 0;
+    BYTE out = 0;
+    while(i < timers->size){
+        if(viter != NULL) {
+           
+            val = plc->t[i].V;
+            out = plc->t[i].Q;    
+            char vs[TINYBUF];
+            memset(vs,0, TINYBUF);
+            sprintf(vs,"%ld",val); 
+            viter->params = update_param(
+                                viter->params,
+                                "VALUE",
+                                 vs);
+            viter->params = update_param(
+                                viter->params,
+                                "OUT",
+                                out?"TRUE":"FALSE");
+                                             	        
+	    }
+	    viter = &(timers->vars)[++i];
+    }
+    return ret;
+}
+
+
+config_t get_pulse_values(const plc_t plc, 
+                          const config_t state){
+    config_t ret = state;
+    sequence_t pulses = get_sequence_entry(CONFIG_PULSE, ret);
+    if(pulses == NULL){
+       
+        return state;
+    } 
+    variable_t viter = pulses->vars;
+    int i = 0;
+    BYTE out = 0;
+    while(i < pulses->size){
+        if(viter != NULL) {
+        
+            out = plc->s[i].Q;    
+            viter->params = update_param(
+                                viter->params,
+                                "OUT",
+                                out?"TRUE":"FALSE");
+                                             	        
+	    }
+	    viter = &(pulses->vars)[++i];
+    }
+    return ret;
+}
+
+config_t get_state(const plc_t plc, 
+                   const config_t state){
     config_t r = state;
     int i = 0;
     //set status
@@ -570,9 +662,24 @@ config_t get_state(const plc_t plc, const config_t state){
     //assign values    
     if(plc->update & CHANGED_I){
         r = get_dio_values(plc, r, CONFIG_DI);
+        //analog
     }
     if(plc->update & CHANGED_O){
         r = get_dio_values(plc, r, CONFIG_DQ);
+        //analog
+    }
+    if(plc->update & CHANGED_M){
+    //registers
+        r = get_reg_values(plc, r);
+    //reals
+    }
+    if(plc->update & CHANGED_T){
+    //timers
+        r = get_timer_values(plc, r);
+    }
+    if(plc->update & CHANGED_S){
+    //pulses
+        r = get_pulse_values(plc, r);
     }
     
     //show forced
@@ -676,7 +783,7 @@ int main(int argc, char **argv)
     enable_bus();
 //start UI
     
-    ui_init(conf);
+    //ui_init(conf);
     //UiReady=more;
     config_t command = copy_sequences(conf, ui_init_command());
     config_t state = copy_sequences(conf, ui_init_state());

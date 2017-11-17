@@ -126,15 +126,6 @@ int find_next_node(const ld_line_t * program,
                    unsigned int start, 
                    unsigned int lines);
 
-/**
-  * @brief parse LD program
-  * @param the program as an allocated buffer of allocated strings
-  * @param the plc to store the generated microcode to
-  * @return plc with updated status
-  */
-plc_t parse_ld_program(const char * name, 
-                       const char lines[][MAXSTR], 
-                       plc_t p);
 
 
 //ld_line_t * mk_lines(char lines[MAXBUF][MAXSTR]);

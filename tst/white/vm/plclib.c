@@ -294,36 +294,42 @@ int handle_set( const instruction_t op,
                 plc_t p ) {
     int r = PLC_OK;
     if(op==NULL
-    || p==NULL)
+    || p==NULL){
+    
         return PLC_ERR;
-        
-    if(op->operation != IL_SET)
+    }    
+    if(op->operation != IL_SET){
+    
         return ERR_BADOPERATOR; //sanity
-        
+    }    
     if(op->modifier == IL_COND
-    && acc.u == FALSE)
+    && acc.u == FALSE){
+    
         return r;
-            
+    }        
     switch (op->operand){
+    
         case OP_CONTACT:	//set output %QX.Y
-            if(!is_bit) //only gets called when bit is defined
+            if(!is_bit) {//only gets called when bit is defined
                 r = ERR_BADOPERAND;
-            else 
+            } else {
                 r = set(p, 
                         BOOL_DQ, 
                         (op->byte) * BYTESIZE + op->bit);
+            }
             break;
             
         case OP_START:	//bits are irrelevant
-                r = set(p, BOOL_TIMER, op->byte);
+            r = set(p, BOOL_TIMER, op->byte);
             break;
             
         case OP_PULSEIN:	//same here
-                r = set(p, BOOL_COUNTER, op->byte);
+            r = set(p, BOOL_COUNTER, op->byte);
             break;
             
         default:
             r = ERR_BADOPERAND;
+            break;
     }
     return r;
 }
@@ -852,12 +858,11 @@ int instruct(plc_t p, rung_t r, unsigned int *pc)
     type = get_type(op);
     if(type == PLC_ERR)
         return ERR_BADOPERAND;
-    
-    /*char dump[MAXSTR] = "";
+    /*
+    char dump[MAXSTR] = "";
     dump_instruction(op, dump);
     plc_log("%d.%s", *pc, dump);
     */
-    
 	switch (op->operation){
 //IL OPCODES: no operand
 	case IL_POP: //POP
@@ -891,6 +896,7 @@ int instruct(plc_t p, rung_t r, unsigned int *pc)
 		break;
     case IL_LD:	//LD
         error = handle_ld( op, &(r->acc), p);
+        
 		break;
 	case IL_ST:	//ST: output
 		//if negate, negate acc
@@ -1230,12 +1236,13 @@ plc_t plc_load_program_file(const char * path, plc_t plc) {
     } 
     if(r > PLC_ERR){
         if(lang == LANG_IL){
-            r = parse_il_program(path, program_lines, plc);
+            plc = parse_il_program(path, program_lines, plc);
         }else{ 
-            r = parse_ld_program(path, program_lines, plc);   
+            plc = parse_ld_program(path, program_lines, plc);   
         }
+    } else {
+        plc->status = r;
     }
-    plc->status = r;
     return plc;
 }
 

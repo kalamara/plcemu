@@ -1,7 +1,7 @@
 # Makefile for PLCEMU
 # (c) 2014
 
-AM_CFLAGS=-Wall -I./src -I./src/vm -I./src/ui -I./src/hw
+AM_CFLAGS=-g -O0 -Wall -I./src -I./src/vm -I./src/ui -I./src/hw
 
 
 bin_PROGRAMS=plcemu 

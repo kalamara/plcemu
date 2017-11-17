@@ -78,24 +78,24 @@ typedef enum{
 typedef enum{
 ///operands
     OP_INPUT = 20,  ///i
-    OP_REAL_INPUT,  ///if
-    OP_FALLING, 	///f
-    OP_RISING,      ///r
-    OP_MEMORY,  	///m
-    OP_REAL_MEMORY, ///mf
-    OP_COMMAND,     ///c
-    OP_BLINKOUT,    ///b
-    OP_TIMEOUT,     ///t
-    OP_OUTPUT,   	///q
-    OP_REAL_OUTPUT, ///qf
+    OP_REAL_INPUT,  ///if 21
+    OP_FALLING, 	///f  22
+    OP_RISING,      ///r  23
+    OP_MEMORY,  	///m  24
+    OP_REAL_MEMORY, ///mf 25 
+    OP_COMMAND,     ///c  26
+    OP_BLINKOUT,    ///b  27
+    OP_TIMEOUT,     ///t  28
+    OP_OUTPUT,   	///q  29
+    OP_REAL_OUTPUT, ///qf 30
     ///coils 
-    OP_CONTACT,     ///Q
-    OP_REAL_CONTACT,///QF
-    OP_START,       ///T
-    OP_PULSEIN,     ///M
-    OP_REAL_MEMIN,  ///MF
-    OP_WRITE,       ///W
-    OP_END,         ///0
+    OP_CONTACT,     ///Q  31
+    OP_REAL_CONTACT,///QF 32
+    OP_START,       ///T  33
+    OP_PULSEIN,     ///M  34 
+    OP_REAL_MEMIN,  ///MF 35
+    OP_WRITE,       ///W  36
+    OP_END,         ///0  37
     N_OPERANDS
 }IL_OPERANDS;
 
