@@ -800,7 +800,7 @@ static void emit_variable(const variable_t var, yaml_emitter_t *emitter) {
     			        YAML_BLOCK_MAPPING_STYLE);
     	 	    
         yaml_emitter_emit(emitter, &evt);
-    		//log_yml_event(evt);
+    		
     		            
         yaml_scalar_event_initialize(
                         	&evt,
@@ -860,7 +860,7 @@ static void emit_variable(const variable_t var, yaml_emitter_t *emitter) {
                     		CONF_T, 
                     		YAML_PLAIN_SCALAR_STYLE); 
             yaml_emitter_emit(emitter, &evt);
-                    			
+ //fixme: mulitiline                   			
             yaml_scalar_event_initialize(
                         	&evt,
                     	    NULL,
@@ -869,7 +869,8 @@ static void emit_variable(const variable_t var, yaml_emitter_t *emitter) {
                     		strlen(it->value),
                     		CONF_T,
                     		CONF_T, 
-                    		YAML_PLAIN_SCALAR_STYLE); 	
+                    		YAML_PLAIN_SCALAR_STYLE); 
+            //log_yml_event(evt);        			
             yaml_emitter_emit(emitter, &evt);
             it = it->next; 
         }    
@@ -981,14 +982,13 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
 			CONF_T, 
 			YAML_PLAIN_SCALAR_STYLE); 	
 		
-			yaml_emitter_emit(emitter, &evt);
-			//log_yml_event(evt); 		
+			yaml_emitter_emit(emitter, &evt);		
 			//emit values as map
 			viter = entry->e.seq->vars;
     		
     		i = 0;
 			while(i < entry->e.seq->size){
-			    if(viter != NULL) {
+			    if(viter) {
 				   emit_variable(viter, emitter);
 				}
 				viter = &(entry->e.seq->vars)[++i];
@@ -1027,7 +1027,7 @@ int emit(yaml_emitter_t *emitter, const config_t conf) {
     entry_t iter = conf->map[0];
     int i = 0;
     while(i < conf->size) {
-        if(iter != NULL){
+        if(iter){
     	    emit_entry(iter, emitter);
     	}
     	iter = conf->map[++i];

@@ -1236,8 +1236,10 @@ plc_t plc_load_program_file(const char * path, plc_t plc) {
     } 
     if(r > PLC_ERR){
         if(lang == LANG_IL){
+            plc_log("Loading IL code from %s...", path);
             plc = parse_il_program(path, program_lines, plc);
         }else{ 
+            plc_log("Loading LD code from %s...", path);
             plc = parse_ld_program(path, program_lines, plc);   
         }
     } else {

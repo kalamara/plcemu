@@ -271,7 +271,7 @@ void ut_parse_ld_program()
     sprintf(code, "%s%s%s", lines[0], lines[1], lines[2]);  
     //printf("%s\n", p.rungs[0]->code);
     
-    CU_ASSERT_STRING_EQUAL(p.rungs[0]->code, code);  
+    CU_ASSERT_STRING_EQUAL(p.rungs[0]->code->line, lines[0]);  
     char dump[MAXSTR * MAXBUF];
     memset(dump, 0, MAXBUF * MAXSTR);
     dump_rung(p.rungs[0], dump);

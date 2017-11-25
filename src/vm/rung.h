@@ -19,13 +19,18 @@ typedef struct opcode{
     struct opcode * next;
 } * opcode_t;
 
+typedef struct codeline {
+    char * line;
+    struct codeline * next;
+} * codeline_t; 
+
 /**
  * @brief The instruction list executable rung
  */
 typedef struct rung{
   instruction_t * instructions;
   char * id;
-  char * code; ///original code for visual representation
+  codeline_t code; ///original code for visual representation
   unsigned int insno;///actual no of active lines
   struct rung * next; ///linked list of rungs
   opcode_t stack; ///head of stack
@@ -86,6 +91,14 @@ int get( const rung_t r,
  * @return OK or error
  */
 int append( const instruction_t i, rung_t r);
+
+/**
+ * @brief append codeline string to rung code
+ * @param l a code line
+ * @param code the existing code lines
+ * @return rung code including new line
+ */
+codeline_t append_line( const char * l, codeline_t code);
 
 /**
  * @brief clear rung from instructions and free memory

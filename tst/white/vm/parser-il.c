@@ -219,10 +219,12 @@ void read_line_trunk_comments(char* line)
 }
 #define IS_WHITESPACE(x) (x == ' ' || x == '\t' || x == '\n' || x == '\r')
 
-void trunk_whitespace(char* line)
+char * trunk_whitespace(char* line)
 {   
-    if(line == NULL)
-        return;
+    if(line == NULL){
+    
+        return NULL;
+    }
     int n = strlen(line);
     char * buf = (char *)malloc(n + 1);
     memset(buf, 0, n + 1);
@@ -244,6 +246,8 @@ void trunk_whitespace(char* line)
     memset(line, 0, n);
     sprintf(line, "%s", buf);
     free(buf);
+    
+    return line;
 }
 
 void trunk_label(const char* line,  
@@ -402,8 +406,7 @@ int parse_il_line(char * line, rung_t r)
 	
 	sprintf(tmp, "%s", line);
 	
-	r->code = realloc(r->code, sizeof(r->code) + MAXSTR);
-	r->code = strcat(r->code, line);
+	r->code = append_line(trunk_whitespace(line), r->code);
 	
 	read_line_trunk_comments(tmp);
     trunk_label(tmp, buf, label_buf);

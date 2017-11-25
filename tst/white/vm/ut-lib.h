@@ -2679,8 +2679,33 @@ void ut_rung()
     CU_ASSERT(r.instructions == NULL);
 }
 
-void ut_stack()
-{
+void ut_codeline(){
+   
+    //append null to null should have no effect
+    codeline_t res = append_line(NULL, NULL);
+    CU_ASSERT_PTR_NULL(res);
+    
+    char * line = "lol";
+    //append to null should create a new list
+    res = append_line(line, NULL);
+    CU_ASSERT_STRING_EQUAL(res->line, "lol");
+    
+    //append null to list should have no effect
+    res = append_line(NULL, res);
+    CU_ASSERT_STRING_EQUAL(res->line, "lol");
+    CU_ASSERT_PTR_NULL(res->next);
+    
+    //append to list should increase list
+    res = append_line("lala", res);
+    CU_ASSERT_STRING_EQUAL(res->line, "lol");
+    CU_ASSERT_STRING_EQUAL(res->next->line, "lala");
+
+    CU_ASSERT_PTR_NULL(res->next->next);
+    
+}
+
+void ut_stack(){
+
     struct rung r;
     memset(&r, 0, sizeof(struct rung));    
     //opcode_t stack = NULL;

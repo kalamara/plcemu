@@ -687,13 +687,21 @@ config_t get_state(const plc_t plc,
     sequence_t programs = get_sequence_entry(CONFIG_PROGRAM, r);
     
     for(i = 0;i < plc->rungno; i++){
-        param_t code = get_param("CODE",programs->vars[i].params);
-        if(code == NULL){ 
-            programs->vars[i].params = append_param(
+        codeline_t liter = plc->rungs[i]->code;
+        int lineno = 0;
+        char label[8] = "";
+        while(liter){
+            sprintf(label, "LINE %d", ++lineno);
+            
+            param_t code = get_param(label,programs->vars[i].params);
+            if(code == NULL){ 
+                programs->vars[i].params = append_param(
                                         programs->vars[i].params,
-                                        "CODE",
-                                        plc->rungs[i]->code);
-        } 
+                                        label,
+                                        liter->line);
+            }
+            liter = liter->next;    
+        }      
     }
     return r;
 }
@@ -783,7 +791,7 @@ int main(int argc, char **argv)
     enable_bus();
 //start UI
     
-    //ui_init(conf);
+    ui_init(conf);
     //UiReady=more;
     config_t command = copy_sequences(conf, ui_init_command());
     config_t state = copy_sequences(conf, ui_init_state());

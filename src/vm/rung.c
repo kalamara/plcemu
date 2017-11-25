@@ -87,6 +87,29 @@ int append(const instruction_t i, rung_t r) {
     return PLC_OK;
 }
 
+codeline_t append_line( const char * l, codeline_t code){
+    if(l == NULL){
+        
+        return code;    
+    }
+    codeline_t r = (codeline_t)malloc(sizeof(struct codeline));
+    memset(r,0,sizeof(struct codeline));
+    r->line = strdup(l);
+    
+    if(code != NULL){
+    
+        codeline_t i = code;
+        while(i->next != NULL){
+        
+            i = i->next;
+        }
+        i->next = r;
+        
+        return code;
+    }
+    return r;  
+}
+
 void clear_rung(rung_t r) { 
     int i = 0;
     if( r!=NULL

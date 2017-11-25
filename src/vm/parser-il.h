@@ -62,8 +62,9 @@ void trunk_label(const char * line,
 /**
  * @brief trunkate all whitespaces left and right
  * @param the line to trunkate whitespaces from
+ * @return trunkated line
  */
-void trunk_whitespace(char* line);                 
+char * trunk_whitespace(char * line);                 
 
 /**
  * @brief find first ' ','!','('. store modifier (0 if not found)
