@@ -53,7 +53,7 @@ AQ:
    MIN:        0.0
    MAX:        10.0
 
-IL:       "knuth.il"
+PROGRAM:       "knuth.il"
 
 
 

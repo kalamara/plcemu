@@ -1,22 +1,24 @@
-STEP:         10             #time cycle in milliseconds
-PIPE:         plcpipe        #UNIX path of named pipe polled for commands
+STEP:         10        #time cycle in milliseconds
+PIPE:         plcpipe   #UNIX path of named pipe polled for commands
 
 #hardware
-HW:         STDI/O           #just a text tag that appears in a footer
+HW:         STDI/O      #just a text tag that appears in a footer
 
 #user space interface:
 USPACE: 
-    BASE:         50176             #hardware address base
-    WR:        4                #write offset
+    BASE:      50176            #hardware address base
+    WR:        4               #write offset
     RD:        0                #read offset
+
 
 #COMEDI interface:
 COMEDI: 
-    FILE:     0            #device and subdevice nodes of comedi driver.
+    FILE:     0           #device and subdevice nodes of comedi driver.
     SUBDEV: 
         IN: 0
         OUT: 1
     
+
 #SIMULATION IO
 SIM: 
     INPUT:   sim.in
@@ -24,47 +26,33 @@ SIM:
 
 #PROGRAM    
 DI:
-    - 2
+    - 16
     - INDEX: 0
+      BYTE: 0
       ID: A
     - INDEX: 1
+      BYTE: 0
       ID: B
     
 DQ: 
     - 2
     - INDEX: 0
+      BYTE: 0
       ID: OUTPUT
         
 
 MREG:
-    - 2
+    - 4
     - INDEX: 0
       ID: RESULT
       VALUE: 64   
      
     - INDEX: 1
       ID: TEMP
-          
-IL: "gcd.il"    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+PROGRAM:
+    - 2 
+    - INDEX: 0
+      ID: "gcd.il"
 
 
 

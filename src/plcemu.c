@@ -576,6 +576,45 @@ config_t get_dio_values(const plc_t plc,
     return ret;
 }
 
+config_t get_aio_values(const plc_t plc, 
+                        const config_t state, 
+                        BYTE type){
+    config_t ret = state;
+    sequence_t aios = get_sequence_entry(type, ret);
+    if(aios == NULL || (
+        type != CONFIG_AI &&
+        type != CONFIG_AQ &&
+        type != CONFIG_MVAR)) {
+        
+        return state;
+    } 
+    variable_t viter = aios->vars;
+    int i = 0;
+    double val = 0;
+    char valbuf[TINYBUF] = "";
+    while(i < aios->size){
+        if(viter != NULL) {
+           
+            if(type == CONFIG_AI){
+                val = plc->ai[i].V;
+            } else if(type == CONFIG_AQ){
+                val = plc->aq[i].V;    
+            } else if(type == CONFIG_MVAR){
+                val = plc->mr[i].V;    
+            }
+            sprintf(valbuf, "%f", val);
+            viter->params = update_param(
+                                viter->params,
+                                "VALUE",
+                                 valbuf);	        
+	        
+	    }
+	    viter = &(aios->vars)[++i];
+    }
+    return ret;
+}
+
+
 config_t get_reg_values(const plc_t plc, 
                         const config_t state){
     config_t ret = state;
@@ -676,15 +715,18 @@ config_t get_state(const plc_t plc,
     if(plc->update & CHANGED_I){
         r = get_dio_values(plc, r, CONFIG_DI);
         //analog
+        r = get_aio_values(plc, r, CONFIG_AI);
     }
     if(plc->update & CHANGED_O){
         r = get_dio_values(plc, r, CONFIG_DQ);
         //analog
+        r = get_aio_values(plc, r, CONFIG_AQ);
     }
     if(plc->update & CHANGED_M){
     //registers
         r = get_reg_values(plc, r);
     //reals
+        r = get_aio_values(plc, r, CONFIG_MVAR);
     }
     if(plc->update & CHANGED_T){
     //timers
@@ -697,24 +739,26 @@ config_t get_state(const plc_t plc,
     
     //show forced
     //add program
-    sequence_t programs = get_sequence_entry(CONFIG_PROGRAM, r);
+    if( plc->update & CHANGED_STATUS) {
+        sequence_t programs = get_sequence_entry(CONFIG_PROGRAM, r);
     
-    for(i = 0;i < plc->rungno; i++){
-        codeline_t liter = plc->rungs[i]->code;
-        int lineno = 0;
-        char label[8] = "";
-        while(liter){
-            sprintf(label, "LINE %d", ++lineno);
+        for(i = 0;i < plc->rungno; i++){
+            codeline_t liter = plc->rungs[i]->code;
+            int lineno = 0;
+            char label[8] = "";
+            while(liter){
+                sprintf(label, "LINE %d", ++lineno);
             
-            param_t code = get_param(label,programs->vars[i].params);
-            if(code == NULL){ 
-                programs->vars[i].params = append_param(
+                param_t code = get_param(label,programs->vars[i].params);
+                if(code == NULL){ 
+                    programs->vars[i].params = append_param(
                                         programs->vars[i].params,
                                         label,
                                         liter->line);
-            }
-            liter = liter->next;    
-        }      
+                }
+                liter = liter->next;    
+            }      
+        }
     }
     return r;
 }
