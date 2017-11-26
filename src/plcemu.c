@@ -75,12 +75,25 @@ void sigkill() {
 }
 
 plc_t declare_names(int operand,
-                    const variable_t var,                         
+                    const variable_t var,                      
                     plc_t plc){
-    char * name = NULL;
 
-    if((name = var->name)){
-        return declare_variable(plc, operand, var->index, name); 
+    char * name = var->name;
+    if(name){
+        unsigned char index = var->index;
+        char * byte = get_param_val("BYTE", var->params);
+        if(byte){
+            int idx = atoi(byte) * BYTESIZE;
+            char * bit = get_param_val("BIT", var->params);
+            if(bit){
+                idx += atoi(bit);
+            } 
+       
+            if(idx>=0 && idx < 256){
+                index = (unsigned char)idx;
+            }
+        }
+        return declare_variable(plc, operand, index, name); 
     } else return plc;
 } 
 
