@@ -4,7 +4,7 @@
 #include <strings.h>
 #include <sys/stat.h>
 #include <time.h>
-#include <pthread.h>
+#include <zmq.h>
 
 #include "data.h"
 #include "instruction.h"
@@ -19,7 +19,6 @@
 int Enable = TRUE;
 int More = TRUE;
 char * Cli_buf = NULL; //only reader thread writes here
-pthread_t Reader;
 
 void ui_display_message(char * msgstr)
 {
@@ -56,6 +55,7 @@ void * read_cli(void *buf) {
 }
 
 char lasttime[TINYSTR] = "";
+
 void time_header()
 {
 	char t[TINYSTR], *p;
@@ -71,38 +71,13 @@ void time_header()
     {
         //sprintf(buf, "%s","\033[2J"); // Clear screen
         //strcat(str,buf);
-        sprintf(buf," PLC-EMUlator v%4.2f %14s\n ", PRINTABLE_VERSION, p);
+        sprintf(buf,
+                " PLC-EMUlator v%4.2f %14s\n ", 
+                PRINTABLE_VERSION, p);
         strcat(str,buf);
         sprintf(lasttime, "%s", t);
         ui_display_message(str);
      }
-}
-
-void ui_draw(config_t state)
-{
-    print_config_yml(stdout, state);
-    time_header();
-}
-
-config_t ui_init_command(){
-    config_t com = new_config(N_CONFIG_VARIABLES);
-    
-    return update_entry(CLI_COM, new_entry_int(0, "COMMAND"), com);
-}
-
-config_t ui_init_state(){
-    config_t stat = new_config(N_CONFIG_VARIABLES);
-    
-    return update_entry(CLI_COM, new_entry_int(0, "STATUS"), stat);
-}
-
-int ui_init(const config_t conf)
-{
-    Cli_buf = (char*)malloc(MAXBUF);
-    memset(Cli_buf, 0, MAXBUF);
-    int rc = pthread_create(&Reader, NULL, read_cli, (void *) Cli_buf);
-    
-    return rc;
 }
 
 config_t parse_cli(const char * input, config_t command){
@@ -124,26 +99,24 @@ config_t parse_cli(const char * input, config_t command){
     return command;
 }
 
-config_t ui_update(config_t command)
-{
-    //time_header();
-    if(Cli_buf != NULL && Cli_buf[0]){
-        config_t c = parse_cli(Cli_buf, command);
-        pthread_join(Reader, NULL);
-        pthread_create(&Reader, NULL, read_cli, (void *) Cli_buf);
-        return c;
-    }
-    return command;
-}
+//  UI client
 
-void ui_end()
+int main (void)
 {
-    More = FALSE;
-    
-    return;
-}
+    printf ("Connecting to PLC EMU...\n");
+    void *context = zmq_ctx_new ();
+    void *requester = zmq_socket (context, ZMQ_REQ);
+    zmq_connect (requester, "tcp://localhost:5555");
 
-void ui_toggle_enabled()
-{
-    Enable = Enable ? 0 : 1;
+    int request_nbr;
+    /*for (request_nbr = 0; request_nbr != 10; request_nbr++) {
+        char buffer [10];
+        printf ("Sending Hello %d...\n", request_nbr);
+        zmq_send (requester, "Hello", 5, 0);
+        zmq_recv (requester, buffer, 10, 0);
+        printf ("Received World %d\n", request_nbr);
+    }*/
+    zmq_close (requester);
+    zmq_ctx_destroy (context);
+    return 0;
 }

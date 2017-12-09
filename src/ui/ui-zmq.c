@@ -4,7 +4,7 @@
 #include <strings.h>
 #include <sys/stat.h>
 #include <time.h>
-#include <pthread.h>
+#include <zmq.h>
 
 #include "data.h"
 #include "instruction.h"
@@ -19,13 +19,12 @@
 int Enable = TRUE;
 int More = TRUE;
 char * Cli_buf = NULL; //only reader thread writes here
-pthread_t Reader;
 
 void ui_display_message(char * msgstr)
 {
     printf("%s\n", msgstr);
 }
-
+/*
 void print_help()
 {
 	FILE * f;
@@ -47,15 +46,16 @@ void * read_cli(void *buf) {
     
     size_t l = 0;
     char * b = NULL;
-    int n = getline((char **)&b, &l, stdin);
+  //  int n = getline((char **)&b, &l, stdin);
     if(n >=0){
         sprintf(buf, "%s", b);
         free(b);
     }
     return buf;
 }
-
+*/
 char lasttime[TINYSTR] = "";
+
 void time_header()
 {
 	char t[TINYSTR], *p;
@@ -71,7 +71,9 @@ void time_header()
     {
         //sprintf(buf, "%s","\033[2J"); // Clear screen
         //strcat(str,buf);
-        sprintf(buf," PLC-EMUlator v%4.2f %14s\n ", PRINTABLE_VERSION, p);
+        sprintf(buf,
+                " PLC-EMUlator v%4.2f %14s\n ", 
+                PRINTABLE_VERSION, p);
         strcat(str,buf);
         sprintf(lasttime, "%s", t);
         ui_display_message(str);
@@ -81,12 +83,13 @@ void time_header()
 void ui_draw(config_t state)
 {
     print_config_yml(stdout, state);
+//send state for printing
     time_header();
 }
 
 config_t ui_init_command(){
     config_t com = new_config(N_CONFIG_VARIABLES);
-    
+
     return update_entry(CLI_COM, new_entry_int(0, "COMMAND"), com);
 }
 
@@ -100,11 +103,13 @@ int ui_init(const config_t conf)
 {
     Cli_buf = (char*)malloc(MAXBUF);
     memset(Cli_buf, 0, MAXBUF);
-    int rc = pthread_create(&Reader, NULL, read_cli, (void *) Cli_buf);
-    
+    //int rc = pthread_create(&Reader, NULL, read_cli, (void *) Cli_buf);
+    void *context = zmq_ctx_new ();
+    void *responder = zmq_socket (context, ZMQ_REP);
+    int rc = zmq_bind (responder, "tcp://*:5555");
     return rc;
 }
-
+/*
 config_t parse_cli(const char * input, config_t command){
     if(!strncasecmp(input, "HELP" , 4)){
         print_help();
@@ -119,20 +124,25 @@ config_t parse_cli(const char * input, config_t command){
 
         command = set_numeric_entry(CLI_COM, COM_STOP, command);
     }
-    //plc_log("CLI: %s", input);
+    plc_log("CLI: %s", input);
     
     return command;
 }
-
+*/
 config_t ui_update(config_t command)
 {
     //time_header();
-    if(Cli_buf != NULL && Cli_buf[0]){
+ //peek socket for messages
+ 
+ //deserialize command
+ 
+    /*if(Cli_buf != NULL && Cli_buf[0]){
         config_t c = parse_cli(Cli_buf, command);
         pthread_join(Reader, NULL);
         pthread_create(&Reader, NULL, read_cli, (void *) Cli_buf);
         return c;
-    }
+    }*/
+    
     return command;
 }
 

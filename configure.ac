@@ -2,13 +2,14 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.68])
-AC_INIT(plcemu, 2.0, kalamara@users.sourceforge.net)
+AC_INIT(plcemu, 2.1, kalamara@users.sourceforge.net)
 AM_INIT_AUTOMAKE
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_SRCDIR([src/plcemu.c])
 
 # Checks for programs.
 AC_PROG_CC
+AC_PROG_LIBTOOL
 # Checks for libraries.
 LT_INIT
 
@@ -16,17 +17,21 @@ LT_INIT
 
 # a function in `-lm':
 AC_CHECK_LIB(m, floor)
-# a function in `-lncurses':
-AC_CHECK_LIB(ncurses, init_pair)
+
 #  a function in `-lcomedi':
 AC_CHECK_LIB(comedi, comedi_close)
+
 #  a function in `-lyaml':
 AC_CHECK_LIB(yaml, yaml_parser_initialize)
+
 #  a function in `-lpthread':
 AC_CHECK_LIB(pthread, pthread_create)
 
+#  a function in `-lzmq':
+AC_CHECK_LIB(zmq, zmq_socket);;
+
 # Checks for header files.
-AC_CHECK_HEADERS([fcntl.h stdlib.h string.h pthread.h yaml.h comedi.h])
+AC_CHECK_HEADERS([fcntl.h stdlib.h string.h pthread.h yaml.h comedi.h zmq.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 #AC_CHECK_HEADER_STDBOOL
@@ -58,6 +63,7 @@ AC_ARG_ENABLE([ui],
 [  --enable-ui   user interface],
 [case "${enableval}" in
   yes) ui=true ;;
+
   no)  ui=false ;;
   *) AC_MSG_ERROR([bad value ${enableval} for --enable-ui]) ;;
 esac],[ui=false])
