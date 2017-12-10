@@ -5,11 +5,69 @@
 #define ADVANTECH_HISTORICAL_BASE 50176
 #define CONF_OK 0
 #define CONF_ERR -1
-#define CONF_STR 1024 //string length
+#define CONF_STR 2048 //string length
 #define CONF_MAX_SEQ 256 //max sequence elements
 #define CONF_NUM 24 //number digits 
 #define CONF_F 0
 #define CONF_T 1
+
+typedef enum{
+    MAP_ROOT,
+    MAP_USPACE,
+    MAP_COMEDI,
+    MAP_COMEDI_SUBDEV,
+    MAP_SIM,
+    MAP_VARIABLE,
+    N_MAPPINGS    
+}CONFIG_MAPPINGS;
+
+typedef enum{
+    USPACE_BASE,
+    USPACE_WR,
+    USPACE_RD,
+    N_USPACE_VARS
+}USPACE_VARS;
+
+typedef enum{
+    SUBDEV_IN,
+    SUBDEV_OUT,
+    SUBDEV_ADC,
+    SUBDEV_DAC,
+    N_SUBDEV_VARS
+}SUBDEV_VARS;
+
+typedef enum{
+    COMEDI_FILE,
+    COMEDI_SUBDEV,
+    N_COMEDI_VARS
+}COMEDI_VARS; 
+
+typedef enum {
+    SIM_INPUT,
+    SIM_OUTPUT,
+    N_SIM_VARS
+}SIM_VARS;
+
+typedef enum{
+    CONFIG_STEP,
+    CONFIG_PIPE,
+    CONFIG_HW,
+    CONFIG_USPACE,
+    CONFIG_COMEDI,
+    CONFIG_SIM,
+    
+     //(runtime updatable) sequences,
+    CONFIG_PROGRAM,
+    CONFIG_AI,
+    CONFIG_AQ,
+    CONFIG_DI,
+    CONFIG_DQ,
+    CONFIG_MVAR,
+    CONFIG_MREG,
+    CONFIG_TIMER,
+    CONFIG_PULSE, 
+    N_CONFIG_VARIABLES
+} CONFIG_VARIABLES;
 
 typedef enum {
     STORE_KEY,
@@ -332,6 +390,11 @@ char * serialize_config(const config_t conf);
  */          
 config_t deserialize_config(const char * buf, 
                             const config_t conf);         
+ 
+//TEMP: init configuration 
+config_t init_config();
+ 
+config_t copy_sequences(const config_t conf, config_t com);
  
 #endif //_CONFIG_H_
 

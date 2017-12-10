@@ -28,7 +28,7 @@ AC_CHECK_LIB(yaml, yaml_parser_initialize)
 AC_CHECK_LIB(pthread, pthread_create)
 
 #  a function in `-lzmq':
-AC_CHECK_LIB(zmq, zmq_socket);;
+AC_CHECK_LIB(zmq, zmq_socket)
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h stdlib.h string.h pthread.h yaml.h comedi.h zmq.h])

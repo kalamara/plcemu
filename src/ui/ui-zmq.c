@@ -18,7 +18,7 @@
 
 int Enable = TRUE;
 int More = TRUE;
-char * Cli_buf = NULL; 
+char * Ui_buf = NULL; 
 void * Zmq_context = NULL;
 void * Zmq_responder = NULL;
 
@@ -26,36 +26,7 @@ void ui_display_message(char * msgstr)
 {
     printf("%s\n", msgstr);
 }
-/*
-void print_help()
-{
-	FILE * f;
-    char line[MAXSTR];
-    if ((f = fopen("./help", "r"))){
-		while (fgets(line, MEDSTR, f)){
-         //read help file
-            printf("%s", line);
-        }
-		fclose(f);
-	}
-}
 
-void * read_cli(void *buf) {
-    
-    size_t len = sizeof(buf);
-   
-    memset(buf, 0, len);
-    
-    size_t l = 0;
-    char * b = NULL;
-  //  int n = getline((char **)&b, &l, stdin);
-    if(n >=0){
-        sprintf(buf, "%s", b);
-        free(b);
-    }
-    return buf;
-}
-*/
 char lasttime[TINYSTR] = "";
 
 void time_header()
@@ -84,8 +55,10 @@ void time_header()
 
 void ui_draw(config_t state)
 {
-    print_config_yml(stdout, state);
 //send state for printing
+    char * state_buf = serialize_config(state);
+    zmq_send (Zmq_responder, state_buf, strlen(state_buf),ZMQ_DONTWAIT);
+    free(state_buf);
     time_header();
 }
 
@@ -103,50 +76,24 @@ config_t ui_init_state(){
 
 int ui_init(const config_t conf)
 {
-    Cli_buf = (char*)malloc(MAXBUF);
-    memset(Cli_buf, 0, MAXBUF);
-    //int rc = pthread_create(&Reader, NULL, read_cli, (void *) Cli_buf);
+    Ui_buf = (char*)malloc(CONF_STR);
+    memset(Ui_buf, 0, CONF_STR);
     Zmq_context = zmq_ctx_new ();
-    Zmq_responder = zmq_socket (context, ZMQ_REP);
-    int rc = zmq_bind (responder, "tcp://*:5555");
+    Zmq_responder = zmq_socket (Zmq_context, ZMQ_REP);
+    int rc = zmq_bind (Zmq_responder, "tcp://*:5555");
     return rc;
 }
-/*
-config_t parse_cli(const char * input, config_t command){
-    if(!strncasecmp(input, "HELP" , 4)){
-        print_help();
-        command = set_numeric_entry(CLI_COM, COM_HELP, command);
-    } else if(!strncasecmp(input, "QUIT" , 4)){
-    
-        command = set_numeric_entry(CLI_COM, COM_QUIT, command);
-    } else if(!strncasecmp(input, "START" , 5)){
-    
-        command = set_numeric_entry(CLI_COM, COM_START, command);
-    } else if(!strncasecmp(input, "STOP" , 4)){
 
-        command = set_numeric_entry(CLI_COM, COM_STOP, command);
-    }
-    plc_log("CLI: %s", input);
-    
-    return command;
-}
-*/
 config_t ui_update(config_t command)
 {
-   
     //time_header();
  //peek socket for messages
-    int rc = zmq_recv (Zmq_responder, Cli_buf, MAXBUF, ZMQ_DONTWAIT);
-     
- //deserialize command
- 
-    /*if(Cli_buf != NULL && Cli_buf[0]){
-        config_t c = parse_cli(Cli_buf, command);
-        pthread_join(Reader, NULL);
-        pthread_create(&Reader, NULL, read_cli, (void *) Cli_buf);
-        return c;
-    }*/
-    
+    int rc = zmq_recv (Zmq_responder, Ui_buf, CONF_STR, ZMQ_DONTWAIT);
+    if(rc > 0){
+            printf ("Received %s\n", Ui_buf); 
+            command = deserialize_config(Ui_buf, command);
+    }         
+ //deserialize command 
     return command;
 }
 

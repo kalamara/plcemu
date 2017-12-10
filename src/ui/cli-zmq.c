@@ -16,15 +16,8 @@
 
 /*************GLOBALS************************************************/
 
-int Enable = TRUE;
-int More = TRUE;
 char * Cli_buf = NULL; 
-
-void ui_display_message(char * msgstr)
-{
-    printf("%s\n", msgstr);
-}
-
+char * Response_buf = NULL;
 void print_help()
 {
 	FILE * f;
@@ -54,32 +47,6 @@ void * read_cli(void *buf) {
     return buf;
 }
 
-char lasttime[TINYSTR] = "";
-
-void time_header()
-{
-	char t[TINYSTR], *p;
-	char str[MEDSTR] = "";
-	char buf[SMALLSTR] = "";
-	time_t now;
-
-	time(&now);
-	strcpy(t, ctime(&now));
-	t[19] = '\0';
-	p = t + 10;
-	if(strcmp(t, lasttime))
-    {
-        //sprintf(buf, "%s","\033[2J"); // Clear screen
-        //strcat(str,buf);
-        sprintf(buf,
-                " PLC-EMUlator v%4.2f %14s\n ", 
-                PRINTABLE_VERSION, p);
-        strcat(str,buf);
-        sprintf(lasttime, "%s", t);
-        ui_display_message(str);
-     }
-}
-
 config_t parse_cli(const char * input, config_t command){
     if(!strncasecmp(input, "HELP" , 4)){
         print_help();
@@ -101,31 +68,38 @@ config_t parse_cli(const char * input, config_t command){
 
 //  UI client
 
-
-
 int main (void)
 {
-    printf ("Connecting to PLC EMU...\n");
+    
+    Cli_buf = (char*)malloc(CONF_STR);
+    Response_buf = (char*)malloc(CONF_STR);
+    memset(Cli_buf, 0, CONF_STR);
+    config_t def = init_config();
+    config_t command = copy_sequences(def, ui_init_command());
     void *context = zmq_ctx_new ();
     void *requester = zmq_socket (context, ZMQ_REQ);
+    printf ("Connecting to PLC EMU...\n");
     zmq_connect (requester, "tcp://localhost:5555");
-    Cli_buf = (char*)malloc(MAXBUF);
-    memset(Cli_buf, 0, MAXBUF);
     
     for(;;){
-        Cli_buf = read_cli(CLi_buf);
+        zmq_recv (requester, 
+                    Response_buf, 
+                    CONF_STR, 
+                    ZMQ_DONTWAIT); 
+        printf("Got %s...\n", Response_buf);
+        Cli_buf = read_cli(Cli_buf);
+        command = parse_cli(Cli_buf, command);
+        char * serialized = serialize_config(command);
+        printf("Sending %s...\n", serialized);
+        zmq_send (requester, 
+                  serialized, 
+                  strlen(serialized),
+                  ZMQ_DONTWAIT);
+                             
+        free(serialized);
     }
-    
-    /*int request_nbr;
-    for (request_nbr = 0; request_nbr != 10; request_nbr++) {
-        char buffer [10];
-        printf ("Sending Hello %d...\n", request_nbr);
-        zmq_send (requester, "Hello", 5, 0);
-        zmq_recv (requester, buffer, 10, 0);
-        printf ("Received World %d\n", request_nbr);
-    }*/
-    
     zmq_close (requester);
     zmq_ctx_destroy (context);
+    
     return 0;
 }

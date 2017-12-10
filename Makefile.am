@@ -5,9 +5,6 @@ AM_CFLAGS=-g -O0 -Wall -I./src -I./src/vm -I./src/ui -I./src/hw
 
 bin_PROGRAMS=plcemu 
 
-lib_LTLIBRARIES=libyacf.la
-libyacf_la_SOURCES= src/config.c src/config.h \
-                    src/util.c src/util.h 
 
 plcemu_SOURCES= src/plcemu.c src/plcemu.h \
                 src/vm/plclib.c src/vm/plclib.h \
@@ -19,16 +16,19 @@ plcemu_SOURCES= src/plcemu.c src/plcemu.h \
                 src/vm/instruction.c src/vm/instruction.h \
                 src/vm/rung.c src/vm/rung.h \
                 src/hw/hardware.h \
+                src/config.c src/config.h \
+                src/util.c src/util.h \
                 src/ui/ui.h \
                 src/project.h src/project.c
-plcemu_LDFLAGS=-lyacf
 
 #ZMQ server for GUI
 if UI
 plcemu_SOURCES+= src/ui/ui-zmq.c
 bin_PROGRAMS+=cli
-cli_SOURCES=src/ui/cli-zmq.c
-cli_LDFLAGS=-lyacf
+cli_SOURCES=src/ui/cli-zmq.c \
+            src/ui/ui-zmq.c \
+            src/config.c src/config.h \
+            src/util.c src/util.h 
 else
 plcemu_SOURCES+= src/ui/ui-std.c
 endif

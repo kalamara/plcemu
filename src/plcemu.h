@@ -12,7 +12,7 @@
 #define TERMHGT 24
 
 #define KEY_TAB		9
-
+/*
 typedef enum{
     MAP_ROOT,
     MAP_USPACE,
@@ -70,7 +70,7 @@ typedef enum{
     CONFIG_PULSE, 
     N_CONFIG_VARIABLES
 } CONFIG_VARIABLES;
-/*
+
 typedef enum{
     CLI_COM,
     CLI_PROGRAM = CONFIG_PROGRAM,
