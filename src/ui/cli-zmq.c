@@ -18,7 +18,7 @@
 
 int Enable = TRUE;
 int More = TRUE;
-char * Cli_buf = NULL; //only reader thread writes here
+char * Cli_buf = NULL; 
 
 void ui_display_message(char * msgstr)
 {
@@ -101,21 +101,30 @@ config_t parse_cli(const char * input, config_t command){
 
 //  UI client
 
+
+
 int main (void)
 {
     printf ("Connecting to PLC EMU...\n");
     void *context = zmq_ctx_new ();
     void *requester = zmq_socket (context, ZMQ_REQ);
     zmq_connect (requester, "tcp://localhost:5555");
-
-    int request_nbr;
-    /*for (request_nbr = 0; request_nbr != 10; request_nbr++) {
+    Cli_buf = (char*)malloc(MAXBUF);
+    memset(Cli_buf, 0, MAXBUF);
+    
+    for(;;){
+        Cli_buf = read_cli(CLi_buf);
+    }
+    
+    /*int request_nbr;
+    for (request_nbr = 0; request_nbr != 10; request_nbr++) {
         char buffer [10];
         printf ("Sending Hello %d...\n", request_nbr);
         zmq_send (requester, "Hello", 5, 0);
         zmq_recv (requester, buffer, 10, 0);
         printf ("Received World %d\n", request_nbr);
     }*/
+    
     zmq_close (requester);
     zmq_ctx_destroy (context);
     return 0;

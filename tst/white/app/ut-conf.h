@@ -119,25 +119,20 @@ void ut_process()
     config_t conf = process(PLC_ERR, NULL, NULL);
     CU_ASSERT(conf == NULL);
     
-    conf = init_config();
-    conf = process(PLC_ERR, NULL, conf);
+    config_t def = init_config();
+    conf = process(PLC_ERR, NULL, def);
     CU_ASSERT(conf->err == PLC_ERR);
     
     conf->err = PLC_OK;
-    
-    yaml_parser_t parser;
-    conf = process(PLC_ERR, &parser, conf);
+    conf = deserialize_config(NULL, def);
+
     CU_ASSERT(conf->err == PLC_ERR);
     conf->err = PLC_OK;
-    
-    memset(&parser, 0, sizeof(parser));
-    yaml_parser_initialize(&parser);
-    
-    yaml_parser_set_input_string(&parser, "STEP: 100", 9); 
-    conf = process(PLC_ERR, &parser, conf);
+   
+    conf = deserialize_config("STEP: 100", def);
     CU_ASSERT(conf->err == PLC_OK);
     
-    entry_t got = get_entry(CONFIG_STEP, conf);
+    entry_t got = get_entry(CONFIG_STEP, def);
     CU_ASSERT(got->e.scalar_int == 100);
     
     char * input = 
@@ -146,13 +141,9 @@ SIM: \n\
     INPUT:   simin.txt \n\
     OUTPUT:  simout.txt \n\
 ";
-    memset(&parser, 0, sizeof(parser));
-    yaml_parser_initialize(&parser);
-    yaml_parser_set_input_string(&parser, input, strlen(input)); 
-
-    conf = process(PLC_ERR, &parser, conf);
+    conf = deserialize_config(input, def);
     CU_ASSERT(conf->err == PLC_OK);
-    
+   
     got = get_entry(
             SIM_INPUT, 
             get_entry(
@@ -174,16 +165,10 @@ COMEDI: \n\
         ADC:  7 \n\
         DAC:  8 \n\
 ";  
-    memset(&parser, 0, sizeof(parser));
-    yaml_parser_initialize(&parser);
-    yaml_parser_set_input_string(
-    &parser, 
-    (yaml_char_t * )input, 
-    strlen(input)); 
 
-    conf = process(PLC_ERR, &parser, conf);
+    conf = deserialize_config(input, def);
     CU_ASSERT(conf->err == PLC_OK);
-    
+   
     got = get_entry(
             SUBDEV_IN, 
             get_entry(
@@ -202,49 +187,24 @@ AI:  \n\
    VALUE  :    5.0\n\
    MIN    :    0.0\n\
    MAX    :   24.0\n";
-    memset(&parser, 0, sizeof(parser));      
-    yaml_parser_initialize(&parser);
-    yaml_parser_set_input_string(&parser, input, strlen(input)); 
-
-    conf = process(PLC_ERR, &parser, conf);
+ 
+    conf = deserialize_config(input, def);
     CU_ASSERT(conf->err == PLC_OK);
     
     got = get_entry(CONFIG_AI,conf);
     CU_ASSERT(got->type_tag == ENTRY_SEQ);
     CU_ASSERT(got->e.seq->size == 5);
-    CU_ASSERT_STRING_EQUAL(
-    get_param_val("MAX",
-        get_entry(CONFIG_AI, conf)->e.seq->vars[1].params), 
-    "24.0");
-               
-    yaml_parser_delete(&parser);
+    char * max = get_param_val("MAX",
+        got->e.seq->vars[1].params);
+    CU_ASSERT_STRING_EQUAL(max, "24.0");
 }
 
 void ut_save(){
     config_t conf = init_config();
     conf = store_seq_value(CONFIG_AI, 0, "MAX", "1.0", conf);
     conf = store_seq_value(CONFIG_AI, 0, "ID", "var1", conf);
-    yaml_emitter_t emitter;
-    yaml_emitter_initialize(&emitter);
-    yaml_event_t event;
-    BYTE output[MAXSTR];
-    memset(output,0, MAXSTR);
-    size_t written;
-    
-    yaml_emitter_set_output_string(
-        &emitter,
-  	    output,
-		MAXSTR,
-		&written);
-		
-	yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);
-	yaml_emitter_emit(&emitter, &event);
-	
-	int r = emit(&emitter, conf);
-	
-	yaml_stream_end_event_initialize(&event);
-	yaml_emitter_emit(&emitter, &event); 		
-    
+
+    char * output = serialize_config( conf);    
     char * expected = "\
 ---\n\
 STEP: 1\n\
@@ -288,7 +248,6 @@ PULSES:\n\
     
 	CU_ASSERT_STRING_EQUAL(output,expected);
 	//printf("%s\n", output);
-    CU_ASSERT(r == PLC_OK);
 }
 
 void ut_get(){

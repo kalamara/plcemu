@@ -105,27 +105,6 @@ config_t copy_config(config_t other);
 config_t clear_config(config_t c);
 
 /**
- * @brief entry point: load text file into configuration
- * @param filename (full path)
- * @param the configuration
- * @return new config
- */
-config_t load_config_yml(const char * filename, config_t conf);
-
-/**
- * @brief print 
- */
-int print_config_yml(FILE * fcfg, const config_t conf);
-
-/**
- * @brief entry point: save configuration to text file 
- * @param filename (full path)
- * @param the configuration
- * @return OK or ERR
- */
-int save_config_yml(const char * filename, const config_t conf);
-
-/**
  * @brief new numeric entry
  * @param numeric value
  * @param entry map key
@@ -308,9 +287,51 @@ config_t process(int sequence,
  * @param the configuration where the parsed values are stored
  * @return OK or ERR
  */
- 
 int emit(yaml_emitter_t *emitter,
          const config_t conf);
+
+
+/**
+ * @brief entry point: load text file into configuration
+ * @param filename (full path)
+ * @param the configuration
+ * @return new config
+ */
+config_t load_config_yml(const char * filename, config_t conf);
+
+
+/**
+ * @brief entry point: save configuration to text file 
+ * @param filename (full path)
+ * @param the configuration
+ * @return OK or ERR
+ */
+int save_config_yml(const char * filename, const config_t conf);
+
+/**
+ * @brief print configuration to a file
+ * @param the open file
+ * @param the configuration where the parsed values are stored
+ * @return OK or ERR
+ */        
+int print_config_yml(FILE * f, const config_t conf);  
+
+/**
+ * @brief serialize configuration to a string
+ * @param the configuration where the parsed values are stored
+ * @return string allocated with CONF_STR size  
+ * must be consequently free'd.
+ */          
+char * serialize_config(const config_t conf);
+
+/**
+ * @brief deserialize string to a config
+ * @param a string
+ * @param a config that defines the structure
+ * @return the configuration where the parsed values are stored, or NULL
+ */          
+config_t deserialize_config(const char * buf, 
+                            const config_t conf);         
  
 #endif //_CONFIG_H_
 

@@ -253,7 +253,7 @@ int parse_ld_line(ld_line_t line) {
 				line->cursor++;
 				line->stmt = NULL;//clear_tree(line->stmt);
 				break;
-		     case LD_NOT:
+		    case LD_NOT:
 				n_mode = TRUE;	//normally closed mode
             case LD_AND:
 				line->cursor++;

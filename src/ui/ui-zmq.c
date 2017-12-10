@@ -18,7 +18,9 @@
 
 int Enable = TRUE;
 int More = TRUE;
-char * Cli_buf = NULL; //only reader thread writes here
+char * Cli_buf = NULL; 
+void * Zmq_context = NULL;
+void * Zmq_responder = NULL;
 
 void ui_display_message(char * msgstr)
 {
@@ -104,8 +106,8 @@ int ui_init(const config_t conf)
     Cli_buf = (char*)malloc(MAXBUF);
     memset(Cli_buf, 0, MAXBUF);
     //int rc = pthread_create(&Reader, NULL, read_cli, (void *) Cli_buf);
-    void *context = zmq_ctx_new ();
-    void *responder = zmq_socket (context, ZMQ_REP);
+    Zmq_context = zmq_ctx_new ();
+    Zmq_responder = zmq_socket (context, ZMQ_REP);
     int rc = zmq_bind (responder, "tcp://*:5555");
     return rc;
 }
@@ -131,9 +133,11 @@ config_t parse_cli(const char * input, config_t command){
 */
 config_t ui_update(config_t command)
 {
+   
     //time_header();
  //peek socket for messages
- 
+    int rc = zmq_recv (Zmq_responder, Cli_buf, MAXBUF, ZMQ_DONTWAIT);
+     
  //deserialize command
  
     /*if(Cli_buf != NULL && Cli_buf[0]){

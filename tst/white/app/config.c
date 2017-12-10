@@ -745,44 +745,12 @@ config_t process(int sequence,
              plc_log("Could not parse event:");
              log_yml_event(event);
          }            
-         //log_yml_event(event);                                  
-         //yaml_event_delete(&event);   
+         log_yml_event(event);                                  
+         yaml_event_delete(&event);   
      }
-     
      return config;
 }
-             
-config_t load_config_yml(const char * filename, config_t conf) {
-    yaml_parser_t parser;
-    
-    FILE * fcfg;
-    char path[CONF_STR];
-
-    memset(path, 0, CONF_STR);
-    sprintf(path, "%s", filename);
-    
-    memset(&parser, 0, sizeof(parser));
-    
-    config_t r = conf;
-    
-    if (!yaml_parser_initialize(&parser)) {
-    
-        yaml_parser_error(parser);    
-    }
-    if ((fcfg = fopen(path, "r"))) {
-        plc_log("Looking for configuration from %s ...", path);
-        yaml_parser_set_input_file(&parser, fcfg);
-        r = process(CONF_ERR, &parser, conf);
-        if(r->err < CONF_OK)
-            plc_log( "Configuration error ");
-        fclose(fcfg);
-    } else {
-        r->err = CONF_ERR;
-        plc_log("Could not open file %s", filename);
-    }
-    yaml_parser_delete(&parser);
-    return r;
-}
+            
 
 static void emit_variable(const variable_t var, yaml_emitter_t *emitter) {
     yaml_event_t evt;
@@ -1010,17 +978,19 @@ int emit(yaml_emitter_t *emitter, const config_t conf) {
     yaml_event_t evt;
 
     //doc start
-    yaml_document_start_event_initialize(&evt, NULL, NULL, NULL, CONF_F); 
+    yaml_document_start_event_initialize(&evt, 
+                                        NULL, 
+                                        NULL, 
+                                        NULL, 
+                                        CONF_F); 
 	yaml_emitter_emit(emitter, &evt); 		
    // log_yml_event(evt);
     
-    yaml_mapping_start_event_initialize(
-    	&evt,
-    	NULL,
-    	NULL,
-    	CONF_F,
-    	YAML_BLOCK_MAPPING_STYLE);
-    	 	    
+    yaml_mapping_start_event_initialize(&evt,
+    	                                NULL,
+    	                                NULL,
+    	                                CONF_F,
+    	                                YAML_BLOCK_MAPPING_STYLE);
     yaml_emitter_emit(emitter, &evt);
    // log_yml_event(evt);
 
@@ -1046,6 +1016,23 @@ int emit(yaml_emitter_t *emitter, const config_t conf) {
     return r;
 }
 
+int print_config_to_emitter(yaml_emitter_t emitter, 
+                            const config_t conf){
+    yaml_event_t event;
+    
+    int r = CONF_OK;
+    yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);
+    r = yaml_emitter_emit(&emitter, &event);
+    if(r){
+            r = emit(&emitter, conf);
+    }
+    if(r){
+            yaml_stream_end_event_initialize(&event);    
+            r = yaml_emitter_emit(&emitter, &event);   
+    }
+    return r;            
+}
+
 int print_config_yml(FILE * fcfg, const config_t conf) {
     
     yaml_emitter_t emitter;
@@ -1059,21 +1046,10 @@ int print_config_yml(FILE * fcfg, const config_t conf) {
     if (fcfg) {
          
          yaml_emitter_set_output_file(&emitter, fcfg);
-         yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);
-         
-         r = yaml_emitter_emit(&emitter, &event);
-         
-         if(r){
-          
-            r = emit(&emitter, conf);
-         }
-         if(r){
-            yaml_stream_end_event_initialize(&event);
-          
-            r = yaml_emitter_emit(&emitter, &event);   
-         }            
     }
+    r = print_config_to_emitter(emitter, conf); 
     yaml_emitter_delete(&emitter);
+    
     return r;
 }
 
@@ -1101,4 +1077,79 @@ int save_config_yml(const char * filename, const config_t conf) {
     return r;
 }
 
+config_t load_config_yml(const char * filename, config_t conf) {
+    yaml_parser_t parser;
+    
+    FILE * fcfg;
+    char path[CONF_STR];
+
+    memset(path, 0, CONF_STR);
+    sprintf(path, "%s", filename);
+    
+    memset(&parser, 0, sizeof(parser));
+    
+    config_t r = conf;
+    
+    if (!yaml_parser_initialize(&parser)) {
+    
+        yaml_parser_error(parser);    
+    }
+    if ((fcfg = fopen(path, "r"))) {
+        plc_log("Looking for configuration from %s ...", path);
+        yaml_parser_set_input_file(&parser, fcfg);
+        r = process(CONF_ERR, &parser, conf);
+        if(r->err < CONF_OK)
+            plc_log( "Configuration error ");
+        fclose(fcfg);
+    } else {
+        r->err = CONF_ERR;
+        plc_log("Could not open file %s", filename);
+    }
+    yaml_parser_delete(&parser);
+    return r;
+}
+
+char * serialize_config(const config_t conf) {
+    
+    yaml_emitter_t emitter;
+    size_t written;
+    
+    if(!yaml_emitter_initialize(&emitter)){
+        
+        return NULL;    
+    }
+    char * buf = (char *)malloc(CONF_STR);       
+    yaml_emitter_set_output_string(&emitter,
+  	                               buf,
+		                           CONF_STR,
+		                           &written);
+    print_config_to_emitter(emitter, conf); 
+    yaml_emitter_delete(&emitter);    
+    
+    return buf;
+}
+
+config_t deserialize_config(const char * buf, const config_t conf) {
+    yaml_parser_t parser;
+    memset(&parser, 0, sizeof(parser));    
+    config_t r = conf;
+    
+    if (!yaml_parser_initialize(&parser)) {
+        yaml_parser_error(parser); 
+        
+        return r;   
+    }
+    if(buf != NULL){
+        yaml_parser_set_input_string(&parser, buf, strlen(buf));
+        r = process(CONF_ERR, &parser, conf);
+    } else {
+        r->err = CONF_ERR;
+    }    
+    if(r->err < CONF_OK){
+            plc_log( "Configuration error ");
+    } 
+    yaml_parser_delete(&parser);
+    
+    return r;
+}
 
