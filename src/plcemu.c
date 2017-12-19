@@ -531,7 +531,6 @@ config_t get_timer_values(const plc_t plc,
     return ret;
 }
 
-
 config_t get_pulse_values(const plc_t plc, 
                           const config_t state){
     config_t ret = state;
@@ -615,18 +614,7 @@ config_t get_state(const plc_t plc,
     }
     return r;
 }
-/*
-config_t copy_sequences(const config_t conf, config_t com){
-    
-    int i = CONFIG_PROGRAM;
-    for(; i < N_CONFIG_VARIABLES; i++){
-        com = update_entry(i,
-            copy_entry(get_entry(i, conf)),
-            com);
-    }
-    return com;
-}
-*/
+
 plc_t apply_command(const config_t com, plc_t plc){
     switch(get_numeric_entry(0, com)){
         case COM_START:
