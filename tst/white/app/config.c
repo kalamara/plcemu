@@ -5,10 +5,10 @@
 char * strdup_r(char * dest, const char * src) {
 //strdup with realloc
 
-    char * r = (!dest)?(char *)malloc(sizeof(src)):realloc(
-                                            (void*)dest, sizeof(src));
+    char * r = (!dest)?(char *)malloc(strlen(src)):realloc(
+                                            (void*)dest, strlen(src));
         
-    memset(r, 0, sizeof(src));
+    memset(r, 0, strlen(src));
     sprintf(r, "%s", src);
     
     return r;
