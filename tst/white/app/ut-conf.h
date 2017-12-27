@@ -224,6 +224,8 @@ COMEDI:\n\
 SIM:\n\
   INPUT: sim.in\n\
   OUTPUT: sim.out\n\
+PROGRAM:\n\
+- 2\n\
 AI:\n\
 - 8\n\
 - INDEX: 0\n\

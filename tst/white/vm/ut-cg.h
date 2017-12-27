@@ -289,7 +289,7 @@ void ut_gen_ass()
     ass = mk_assignment(id1, NULL, 0);
     result = gen_ass(ass, &ru);
     CU_ASSERT(result == ERR_BADCOIL);
-    clear_tree(ass);
+    //clear_tree(ass);
    
     //ERROR: right part not an identifier or expression
     ass = mk_assignment(id1, NULL, LD_COIL);

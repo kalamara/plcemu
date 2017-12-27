@@ -112,7 +112,9 @@ config_t ui_update(config_t command)
 void ui_end()
 {
     More = FALSE;
-    
+    zmq_close (Zmq_publisher);
+    zmq_close (Zmq_responder);
+    zmq_ctx_destroy (Zmq_context);
     return;
 }
 

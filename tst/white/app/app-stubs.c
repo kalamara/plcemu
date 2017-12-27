@@ -15,7 +15,7 @@ void plc_log(const char * msg, ...)
     va_end(arg);
     printf("%s\n",msgstr);
 }
-
+/*
 config_t init_config(){
  //TODO: in a c++ implementation this all can be done automatically 
  //using a hashmap
@@ -113,7 +113,6 @@ config_t init_config(){
         CONFIG_SIM,
         new_entry_map(sim, "SIM"),
         conf);
-   /*******************************************/
    
     conf = update_entry(
         CONFIG_TIMER,
@@ -156,4 +155,4 @@ config_t init_config(){
         conf);
 
     return conf;
-}
+}*/

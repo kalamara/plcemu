@@ -1009,10 +1009,11 @@ int is_input_forced(const plc_t p, BYTE i) {
 }
 
 int is_output_forced(const plc_t p, BYTE i) {
-    if(i < p->naq)
+    if(i < p->naq){
         return p->mask_ai[i] < p->ai[i].max
             && p->mask_ai[i] > p->ai[i].min;
-        return PLC_ERR;
+    }
+    return PLC_ERR;
 }
 
 
@@ -1208,7 +1209,6 @@ plc_t plc_load_program_file(const char * path, plc_t plc) {
     char program_lines[MAXBUF][MAXSTR];///program lines
     char line[MAXSTR];
     int i=0;
-    int lineno = 0;    ///actual no of active lines
     
     if(path == NULL){
     
@@ -1231,7 +1231,6 @@ plc_t plc_load_program_file(const char * path, plc_t plc) {
             memset(program_lines[i], 0, MAXSTR);
             sprintf(program_lines[i++], "%s\n", line);
         }
-        lineno = i;
         r = PLC_OK;
     } 
     if(r > PLC_ERR){

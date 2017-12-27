@@ -269,9 +269,9 @@ void ut_parse_ld_program()
     char code[3*MAXBUF];
     memset(code, 0, 3*MAXBUF);
     sprintf(code, "%s%s%s", lines[0], lines[1], lines[2]);  
-    //printf("%s\n", p.rungs[0]->code);
-    
-    CU_ASSERT_STRING_EQUAL(p.rungs[0]->code->line, lines[0]);  
+    //printf("--------->%s\n<-----", p.rungs[0]->code->line);
+    //should truncate whitespaces
+    CU_ASSERT_STRING_EQUAL(p.rungs[0]->code->line, "i0/1--+---[Q0/0");  
     char dump[MAXSTR * MAXBUF];
     memset(dump, 0, MAXBUF * MAXSTR);
     dump_rung(p.rungs[0], dump);

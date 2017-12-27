@@ -13,12 +13,12 @@ char * strdup_r(char * dest, const char * src) {
     
     return r;
 }
-
+/*
 static void yaml_config_error(yaml_parser_t parser){
 
     //print line
 }
-
+*/
 static void yaml_parser_error(yaml_parser_t parser){
 
      switch (parser.error)
@@ -745,7 +745,7 @@ config_t process(int sequence,
              plc_log("Could not parse event:");
              log_yml_event(event);
          }            
-         log_yml_event(event);                                  
+         //log_yml_event(event);                                  
          yaml_event_delete(&event);   
      }
      return config;
@@ -774,7 +774,7 @@ static void emit_variable(const variable_t var, yaml_emitter_t *emitter) {
                         	&evt,
                     	    NULL,
                     		NULL,
-                    		"INDEX",
+                    		(yaml_char_t *)"INDEX",
                     		5,
                     		CONF_T,
                     		CONF_T, 
@@ -786,7 +786,7 @@ static void emit_variable(const variable_t var, yaml_emitter_t *emitter) {
                         	&evt,
                     	    NULL,
                     		NULL,  
-                    		(unsigned char *)idx,
+                    		(yaml_char_t *)idx,
                     		strlen(idx),
                     		CONF_T,
                     		CONF_T, 
@@ -798,7 +798,7 @@ static void emit_variable(const variable_t var, yaml_emitter_t *emitter) {
                         	&evt,
                     	    NULL,
                     		NULL,
-                    		"ID",
+                    		(yaml_char_t *)"ID",
                     		2,
                     		CONF_T,
                     		CONF_T, 
@@ -809,7 +809,7 @@ static void emit_variable(const variable_t var, yaml_emitter_t *emitter) {
                         	&evt,
                     	    NULL,
                     		NULL,
-                    		(unsigned char *)var->name,
+                    		(yaml_char_t *)var->name,
                     		strlen(var->name),
                     		CONF_T,
                     		CONF_T, 
@@ -822,7 +822,7 @@ static void emit_variable(const variable_t var, yaml_emitter_t *emitter) {
                         	&evt,
                     	    NULL,
                     		NULL,
-                    		(unsigned char *)it->key,
+                    		(yaml_char_t *)it->key,
                     		strlen(it->key),
                     		CONF_T,
                     		CONF_T, 
@@ -833,7 +833,7 @@ static void emit_variable(const variable_t var, yaml_emitter_t *emitter) {
                         	&evt,
                     	    NULL,
                     		NULL,
-                    		(unsigned char *)it->value,
+                    		(yaml_char_t *)it->value,
                     		strlen(it->value),
                     		CONF_T,
                     		CONF_T, 
@@ -856,7 +856,7 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
     	&evt,
 	    NULL,
 		NULL,
-		(unsigned char *)entry->name,
+		(yaml_char_t *)entry->name,
 		strlen(entry->name),
 		CONF_T,
 		CONF_T, 
@@ -877,7 +877,7 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
     		&evt,
 	    	NULL,
          	NULL,
-			(unsigned char *)entry->e.scalar_str,
+			(yaml_char_t *)entry->e.scalar_str,
 			strlen(entry->e.scalar_str),
 			CONF_T,
 			CONF_T, 
@@ -894,7 +894,7 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
     		&evt,
 	    	NULL,
 			NULL,
-			(unsigned char *)buf,
+			(yaml_char_t *)buf,
 			strlen(buf),
 			CONF_T,
 			CONF_T, 
@@ -944,7 +944,7 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
     		&evt,
 	    	NULL,
 			NULL,
-			(unsigned char *)buf,
+			(yaml_char_t *)buf,
 			strlen(buf),
 			CONF_T,
 			CONF_T, 
@@ -1036,7 +1036,7 @@ int print_config_to_emitter(yaml_emitter_t emitter,
 int print_config_yml(FILE * fcfg, const config_t conf) {
     
     yaml_emitter_t emitter;
-    yaml_event_t event;
+    //yaml_event_t event;
     
     int r = CONF_OK;
     
@@ -1119,10 +1119,11 @@ char * serialize_config(const config_t conf) {
         return NULL;    
     }
     char * buf = (char *)malloc(CONF_STR);       
-    yaml_emitter_set_output_string(&emitter,
-  	                               buf,
-		                           CONF_STR,
-		                           &written);
+    yaml_emitter_set_output_string(
+        &emitter,
+  	    ( yaml_char_t *) buf,
+        CONF_STR,
+        &written);
     print_config_to_emitter(emitter, conf); 
     yaml_emitter_delete(&emitter);    
     
@@ -1140,7 +1141,10 @@ config_t deserialize_config(const char * buf, const config_t conf) {
         return r;   
     }
     if(buf != NULL){
-        yaml_parser_set_input_string(&parser, buf, strlen(buf));
+        yaml_parser_set_input_string(
+            &parser, 
+            ( yaml_char_t *)buf, 
+            strlen(buf));
         r = process(CONF_ERR, &parser, conf);
     } else {
         r->err = CONF_ERR;
@@ -1152,4 +1156,163 @@ config_t deserialize_config(const char * buf, const config_t conf) {
     
     return r;
 }
+
+config_t init_config(){
+ //TODO: in a c++ implementation this all can be done automatically 
+ //using a hashmap
+    config_t conf = new_config(N_CONFIG_VARIABLES);
+   
+    config_t uspace = new_config(N_USPACE_VARS);
+            
+    uspace = update_entry(
+        USPACE_BASE,
+	    new_entry_int(50176, "BASE"),
+	    uspace);
+	
+	uspace = update_entry(
+	    USPACE_WR, 
+	    new_entry_int(0, "WR"),
+	    uspace);
+	    
+	uspace = update_entry(
+	    USPACE_RD, 
+	    new_entry_int(8, "RD"),
+	    uspace);
+	
+	config_t subdev = new_config(N_SUBDEV_VARS);
+	
+    subdev = update_entry(
+        SUBDEV_IN,
+	    new_entry_int(0, "IN"),
+	    subdev);
+	    
+	subdev = update_entry(
+	    SUBDEV_OUT,
+	    new_entry_int(1, "OUT"),
+	    subdev);
+	    
+    subdev = update_entry(
+        SUBDEV_ADC, 
+	    new_entry_int(2, "ADC"),
+	    subdev);
+	    
+	subdev = update_entry(
+	    SUBDEV_DAC, 
+	    new_entry_int(3, "DAC"),
+	    subdev);
+	
+	config_t comedi = new_config(N_COMEDI_VARS);
+	
+	comedi = update_entry(
+	    COMEDI_FILE,
+	    new_entry_int(0, "FILE"),
+	    comedi);
+	    
+	comedi = update_entry(
+	    COMEDI_SUBDEV, 
+	    new_entry_map(subdev, "SUBDEV"),
+	    comedi);
+    
+    config_t sim = new_config(N_SIM_VARS);
+    
+    sim = update_entry(
+        SIM_INPUT,
+        new_entry_str("sim.in", "INPUT"), 
+        sim);
+        
+    sim = update_entry(
+        SIM_OUTPUT,
+        new_entry_str("sim.out", "OUTPUT"),
+        sim);    
+
+    conf = update_entry(
+        CONFIG_STEP,
+        new_entry_int(1, "STEP"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_PIPE,
+        new_entry_str("plcpipe", "PIPE"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_HW,
+        new_entry_str("STDI/O", "HW"),
+        conf);
+        
+    conf = update_entry(
+        CONFIG_USPACE,
+        new_entry_map(uspace, "USPACE"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_COMEDI,
+        new_entry_map(comedi, "COMEDI"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_SIM,
+        new_entry_map(sim, "SIM"),
+        conf);
+
+   /*******************************************/
+    conf = update_entry(
+        CONFIG_TIMER,
+        new_entry_seq(new_sequence(4), "TIMERS"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_PULSE,
+        new_entry_seq(new_sequence(4), "PULSES"),
+        conf);
+        
+    conf = update_entry(
+        CONFIG_MREG,
+        new_entry_seq(new_sequence(4), "MREG"),
+        conf);
+        
+    conf = update_entry(
+        CONFIG_MVAR,
+        new_entry_seq(new_sequence(4), "MVAR"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_DI,
+        new_entry_seq(new_sequence(8), "DI"),
+        conf);
+ 
+    conf = update_entry(
+        CONFIG_DQ,
+        new_entry_seq(new_sequence(8), "DQ"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_AI,
+        new_entry_seq(new_sequence(8), "AI"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_AQ,
+        new_entry_seq(new_sequence(8), "AQ"),
+        conf);
+
+    conf = update_entry(
+        CONFIG_PROGRAM,
+        new_entry_seq(new_sequence(2), "PROGRAM"),
+        conf);
+
+    return conf;
+}
+
+config_t copy_sequences(const config_t conf, config_t com){
+    
+    int i = CONFIG_PROGRAM;
+    for(; i < N_CONFIG_VARIABLES; i++){
+        com = update_entry(i,
+            copy_entry(get_entry(i, conf)),
+            com);
+    }
+    return com;
+}
+
 
