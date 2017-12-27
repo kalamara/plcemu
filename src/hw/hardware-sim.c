@@ -149,11 +149,12 @@ void dio_read(unsigned int n, BYTE* bit)
     unsigned int b, position;
     position = n / BYTESIZE;
     BYTE i = 0;
-    if(strlen(BufIn) > position)
+    if(strlen(BufIn) > position){
     /*read a byte from input stream*/
         i = BufIn[position];
-	b = (i >> n % BYTESIZE) % 2;
-	*bit = (BYTE) b;
+    }
+    b = (i >> n % BYTESIZE) % 2;
+    *bit = (BYTE) b;
 }
 
 void dio_write(const unsigned char *buf,  int n,  int bit)

@@ -13,12 +13,12 @@ char * strdup_r(char * dest, const char * src) {
     
     return r;
 }
-
+/*
 static void yaml_config_error(yaml_parser_t parser){
 
     //print line
 }
-
+*/
 static void yaml_parser_error(yaml_parser_t parser){
 
      switch (parser.error)
@@ -774,7 +774,7 @@ static void emit_variable(const variable_t var, yaml_emitter_t *emitter) {
                         	&evt,
                     	    NULL,
                     		NULL,
-                    		"INDEX",
+                    		(yaml_char_t *)"INDEX",
                     		5,
                     		CONF_T,
                     		CONF_T, 
@@ -786,7 +786,7 @@ static void emit_variable(const variable_t var, yaml_emitter_t *emitter) {
                         	&evt,
                     	    NULL,
                     		NULL,  
-                    		(unsigned char *)idx,
+                    		(yaml_char_t *)idx,
                     		strlen(idx),
                     		CONF_T,
                     		CONF_T, 
@@ -798,7 +798,7 @@ static void emit_variable(const variable_t var, yaml_emitter_t *emitter) {
                         	&evt,
                     	    NULL,
                     		NULL,
-                    		"ID",
+                    		(yaml_char_t *)"ID",
                     		2,
                     		CONF_T,
                     		CONF_T, 
@@ -809,7 +809,7 @@ static void emit_variable(const variable_t var, yaml_emitter_t *emitter) {
                         	&evt,
                     	    NULL,
                     		NULL,
-                    		(unsigned char *)var->name,
+                    		(yaml_char_t *)var->name,
                     		strlen(var->name),
                     		CONF_T,
                     		CONF_T, 
@@ -822,7 +822,7 @@ static void emit_variable(const variable_t var, yaml_emitter_t *emitter) {
                         	&evt,
                     	    NULL,
                     		NULL,
-                    		(unsigned char *)it->key,
+                    		(yaml_char_t *)it->key,
                     		strlen(it->key),
                     		CONF_T,
                     		CONF_T, 
@@ -833,7 +833,7 @@ static void emit_variable(const variable_t var, yaml_emitter_t *emitter) {
                         	&evt,
                     	    NULL,
                     		NULL,
-                    		(unsigned char *)it->value,
+                    		(yaml_char_t *)it->value,
                     		strlen(it->value),
                     		CONF_T,
                     		CONF_T, 
@@ -856,7 +856,7 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
     	&evt,
 	    NULL,
 		NULL,
-		(unsigned char *)entry->name,
+		(yaml_char_t *)entry->name,
 		strlen(entry->name),
 		CONF_T,
 		CONF_T, 
@@ -877,7 +877,7 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
     		&evt,
 	    	NULL,
          	NULL,
-			(unsigned char *)entry->e.scalar_str,
+			(yaml_char_t *)entry->e.scalar_str,
 			strlen(entry->e.scalar_str),
 			CONF_T,
 			CONF_T, 
@@ -894,7 +894,7 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
     		&evt,
 	    	NULL,
 			NULL,
-			(unsigned char *)buf,
+			(yaml_char_t *)buf,
 			strlen(buf),
 			CONF_T,
 			CONF_T, 
@@ -944,7 +944,7 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
     		&evt,
 	    	NULL,
 			NULL,
-			(unsigned char *)buf,
+			(yaml_char_t *)buf,
 			strlen(buf),
 			CONF_T,
 			CONF_T, 
@@ -1036,7 +1036,7 @@ int print_config_to_emitter(yaml_emitter_t emitter,
 int print_config_yml(FILE * fcfg, const config_t conf) {
     
     yaml_emitter_t emitter;
-    yaml_event_t event;
+    //yaml_event_t event;
     
     int r = CONF_OK;
     
@@ -1119,10 +1119,11 @@ char * serialize_config(const config_t conf) {
         return NULL;    
     }
     char * buf = (char *)malloc(CONF_STR);       
-    yaml_emitter_set_output_string(&emitter,
-  	                               buf,
-		                           CONF_STR,
-		                           &written);
+    yaml_emitter_set_output_string(
+        &emitter,
+  	    ( yaml_char_t *) buf,
+        CONF_STR,
+        &written);
     print_config_to_emitter(emitter, conf); 
     yaml_emitter_delete(&emitter);    
     
@@ -1140,7 +1141,10 @@ config_t deserialize_config(const char * buf, const config_t conf) {
         return r;   
     }
     if(buf != NULL){
-        yaml_parser_set_input_string(&parser, buf, strlen(buf));
+        yaml_parser_set_input_string(
+            &parser, 
+            ( yaml_char_t *)buf, 
+            strlen(buf));
         r = process(CONF_ERR, &parser, conf);
     } else {
         r->err = CONF_ERR;

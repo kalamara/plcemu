@@ -21,6 +21,7 @@ int More = TRUE;
 char * Ui_buf = NULL; 
 void * Zmq_context = NULL;
 void * Zmq_responder = NULL;
+void * Zmq_publisher = NULL;
 
 void ui_display_message(char * msgstr)
 {
@@ -40,24 +41,26 @@ void time_header()
 	strcpy(t, ctime(&now));
 	t[19] = '\0';
 	p = t + 10;
-	if(strcmp(t, lasttime))
-    {
+	if(strcmp(t, lasttime)){
         //sprintf(buf, "%s","\033[2J"); // Clear screen
         //strcat(str,buf);
-        sprintf(buf,
+                sprintf(buf,
                 " PLC-EMUlator v%4.2f %14s\n ", 
                 PRINTABLE_VERSION, p);
-        strcat(str,buf);
-        sprintf(lasttime, "%s", t);
-        ui_display_message(str);
-     }
+                strcat(str,buf);
+                sprintf(lasttime, "%s", t);
+                ui_display_message(str);
+        }
 }
 
 void ui_draw(config_t state)
 {
 //send state for printing
     char * state_buf = serialize_config(state);
-    zmq_send (Zmq_responder, state_buf, strlen(state_buf),ZMQ_DONTWAIT);
+    zmq_send (Zmq_publisher, 
+                state_buf, 
+                strlen(state_buf),
+                ZMQ_DONTWAIT);
     free(state_buf);
     time_header();
 }
@@ -79,8 +82,14 @@ int ui_init(const config_t conf)
     Ui_buf = (char*)malloc(CONF_STR);
     memset(Ui_buf, 0, CONF_STR);
     Zmq_context = zmq_ctx_new ();
+    
     Zmq_responder = zmq_socket (Zmq_context, ZMQ_REP);
     int rc = zmq_bind (Zmq_responder, "tcp://*:5555");
+    
+    Zmq_publisher = zmq_socket (Zmq_context, ZMQ_PUB);
+    if(rc >= 0){  
+        rc = zmq_bind (Zmq_publisher, "tcp://*:5556");
+    }
     return rc;
 }
 
@@ -88,10 +97,13 @@ config_t ui_update(config_t command)
 {
     //time_header();
  //peek socket for messages
-    int rc = zmq_recv (Zmq_responder, Ui_buf, CONF_STR, ZMQ_DONTWAIT);
+    int rc = zmq_recv (Zmq_responder, 
+                        Ui_buf, 
+                        CONF_STR, 
+                        ZMQ_DONTWAIT);
     if(rc > 0){
-            printf ("Received %s\n", Ui_buf); 
-            command = deserialize_config(Ui_buf, command);
+        printf ("Received %s\n", Ui_buf); 
+        command = deserialize_config(Ui_buf, command);
     }         
  //deserialize command 
     return command;

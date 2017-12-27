@@ -70,7 +70,7 @@ int minmin(const int *arr, int min, int max);
   * @param the number of lines
   * @return newly allocated array
   */ 
-ld_line_t * construct_program(char lines[][MAXSTR], 
+ld_line_t * construct_program(const char lines[][MAXSTR], 
                               unsigned int length);
 
 /**

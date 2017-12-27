@@ -382,7 +382,7 @@ int find_arguments(const char* buf,
 }
 
 /***PARSE & GENERATE CODE**/
-int parse_il_line(char * line, rung_t r)
+int parse_il_line(const char * line, rung_t r)
 { //    line format:[label:]<operator>[<modifier>[%<operand><byte>[/<bit>]]|<label>][;comment]
 	char tmp[MAXSTR];
 	char buf[MAXSTR];
@@ -406,7 +406,7 @@ int parse_il_line(char * line, rung_t r)
 	
 	sprintf(tmp, "%s", line);
 	
-	r->code = append_line(trunk_whitespace(line), r->code);
+	r->code = append_line(trunk_whitespace(tmp), r->code);
 	
 	read_line_trunk_comments(tmp);
     trunk_label(tmp, buf, label_buf);
@@ -432,15 +432,15 @@ int parse_il_line(char * line, rung_t r)
 	op.byte = byte;
 	op.bit = bit;
 	
-	if(check_modifier(&op)<0)
+	if(check_modifier(&op)<0){
         return ERR_BADOPERATOR;
-
-    if(check_operand(&op)<0)
+    }
+    if(check_operand(&op)<0){
         return ERR_BADOPERAND;
-	
-	if(op.operation != IL_NOP)
+	}
+	if(op.operation != IL_NOP){
 	    append(&op, r);
-	
+	}
 	return PLC_OK ;
 }
 /****************entry point**************************/
@@ -454,7 +454,7 @@ plc_t parse_il_program(const char * name,
     while(rv == PLC_OK 
     && i < MAXBUF
     && lines[i][0] != 0){
-        char * line = lines[i++];
+        const char * line = lines[i++];
         rv = parse_il_line(line, r);
         switch(rv){
             case PLC_ERR:

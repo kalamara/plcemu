@@ -1,5 +1,6 @@
 #include <ctype.h>
 
+#include "util.h"
 #include "plcemu.h"
 #include "data.h"
 #include "instruction.h"
@@ -351,7 +352,7 @@ int vertical_parse(unsigned int start,
     return rv;
 }                   
 
-unsigned int program_length(char lines[][MAXSTR], 
+static unsigned int program_length(const char lines[][MAXSTR], 
                             unsigned int max) {
     int i = 0; 
     for(; i < max; i++){
@@ -363,7 +364,7 @@ unsigned int program_length(char lines[][MAXSTR],
     return i;
 }
 
-ld_line_t * construct_program(char lines[][MAXSTR], 
+ld_line_t * construct_program(const char lines[][MAXSTR], 
                               unsigned int length) {
     ld_line_t * program = (ld_line_t *)malloc(length*sizeof(ld_line_t));
     memset(program, 0, length*sizeof(ld_line_t));
@@ -374,7 +375,7 @@ ld_line_t * construct_program(char lines[][MAXSTR],
             ld_line_t line  = (ld_line_t)malloc(sizeof(struct ld_line)); 
             line->cursor = 0;
             line->status = STATUS_UNRESOLVED;
-            line->buf = lines[i];
+            line->buf = strdup(lines[i]);
             line->stmt = NULL;
             program[i] = line;
         }

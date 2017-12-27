@@ -116,7 +116,7 @@ int find_arguments(const char* buf,
  * @param the rung to generate micorcode in
  * @return OK or error
  */
-int parse_il_line(char * line, rung_t r);
+int parse_il_line(const char * line, rung_t r);
  
 
 

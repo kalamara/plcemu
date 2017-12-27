@@ -597,7 +597,7 @@ config_t get_state(const plc_t plc,
         for(i = 0;i < plc->rungno; i++){
             codeline_t liter = plc->rungs[i]->code;
             int lineno = 0;
-            char label[8] = "";
+            char label[SMALLBUF] = "";
             while(liter){
                 sprintf(label, "LINE %d", ++lineno);
             
@@ -634,7 +634,7 @@ plc_t apply_command(const config_t com, plc_t plc){
  
 int main(int argc, char **argv)
 {
-    int errcode = PLC_OK;
+    //int errcode = PLC_OK;
     int prog = 0;
     char * confstr = "config.yml";
     config_t conf = init_config();
