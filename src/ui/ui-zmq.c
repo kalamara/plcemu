@@ -60,7 +60,7 @@ void ui_draw(config_t state)
     zmq_send (Zmq_publisher, 
                 state_buf, 
                 strlen(state_buf),
-                ZMQ_DONTWAIT);
+                0);//ZMQ_DONTWAIT);
     free(state_buf);
     time_header();
 }
@@ -87,9 +87,9 @@ int ui_init(const config_t conf)
     int rc = zmq_bind (Zmq_responder, "tcp://*:5555");
     
     Zmq_publisher = zmq_socket (Zmq_context, ZMQ_PUB);
-    if(rc >= 0){  
-        rc = zmq_bind (Zmq_publisher, "tcp://*:5556");
-    }
+ 
+    rc = zmq_bind (Zmq_publisher, "tcp://*:5556");
+    
     return rc;
 }
 
@@ -103,6 +103,10 @@ config_t ui_update(config_t command)
                         ZMQ_DONTWAIT);
     if(rc > 0){
         printf ("Received %s\n", Ui_buf); 
+        zmq_send (Zmq_responder, 
+                "OK", 
+                strlen("OK"),
+                0);
         command = deserialize_config(Ui_buf, command);
     }         
  //deserialize command 
