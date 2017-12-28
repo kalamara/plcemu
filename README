@@ -1,26 +1,54 @@
 PLC-EMU is a Programmable Logic Controller EMUlator for automation applications on linux with digital/analog IO cards, with C functions, Ladder Diagrams,or IEC61131-compliant Instruction List/Structured Text. It is a cheap and open alternative to PLCs. 
-[[project_screenshots]]
-[[project_admins]]
 
-[TOC]
+### Table of contents
+[OVERVIEW](#OVERVIEW)   
+[DEPENDENCIES](#DEPENDENCIES)   
+[Hardware](#Hardware)   
+[Comedi](#Comedi)   
+[User space](#Userspace)   
+[Simulation](#Simulation)   
+[YAML](#YAML)   
+[Messaging](#Messaging )   
+[Unit testing](#Unittesting )  
+[CAPABILITIES](#CAPABILITIES)  
+[INSTALLATION](#INSTALLATION)   
+[CONFIGURATION](#CONFIGURATION)   
+[PROGRAMMING](#PROGRAMMING)  
+[Ladder Diagram](#LadderDiagram )    
+[Instruction List](#InstructionList )   
+[INTERFACE](#INTERFACE)    
+[Command Line](#CommandLine )    
+[Distributed UI](#DistributedUI )  
+[ISSUES](#ISSUES)  
 
+<a name="OVERVIEW"/> 
 
-#1. OVERVIEW
+# OVERVIEW
 
 PLC-EMU stands for Programmable Logic Controller EMUlator. This means PLC-EMU is a tool for emulating PLCs on a Linux box, using I/O cards. This way you can build a cheap alternative to PLC's, for use with automation applications. 
 
+<a name="DEPENDENCIES"/> 
 
-#2. DEPENDENCIES/RECOMMENDATIONS
+# DEPENDENCIES
 
+<a name="Hardware"/> 
+
+## Hardware
 First of all, you need to install one or more digital I/O cards. 
 
 PLC-EMU works in two modes: through comedi, and in user space.
 
 Additionally, File Simulation mode is supported in case no hardware is available.
 
+<a name="Comedi"/> 
+
+### Comedi
 In Comedi mode, all you need to do is install and set up the apropriate Comedi driver for your card, and copy the setup values to PLC-EMU's config file.
 Consult www.comedi.org for a list of compatible cards, and instructions on comedi.
 
+<a name="Userspace"/> 
+
+### User space
 In user-space mode, you need to know the base IO address space of your cards, 
 and which area of it the card uses for reading (read offset) and writing (write 
 offset). For pci cards, run 
@@ -29,11 +57,34 @@ offset). For pci cards, run
 
 to find out the base address. The rest should be found in the cards' manual.
 
+<a name="Simulation"/> 
+
+### Simulation
 In File Simulation mode, PLC-emu can be configured to read input bytes from 
 an ASCII text file and send outputs to another text file.
 
+<a name="YAML"/> 
 
-#3. CAPABILITIES
+## YAML
+PLC-EMU configuration files are in YAML format, and so PLC-EMU v. 2 onwards depends on libYAML.
+See the official project page https://github.com/yaml/libyaml for details.
+
+<a name="Messaging"/> 
+
+## Messaging 
+From version 2 onwards there are extensions for network distribution. Serialization of all network messages is done in YAML format, and the messaging layer is implemented using ZeroMQ. 
+Although networking extensions are disabled by default, to enable networking ZeroMQ is required.
+See http://zeromq.org/ for details.
+
+<a name="Unittesting"/> 
+
+## Unit testing
+The PLC core library comes with a harness of hundreds of unit tests, however these tests require CUnit to run.
+See http://cunit.sourceforge.net/
+
+<a name="CAPABILITIES"/> 
+
+# CAPABILITIES
 
 PLC's are real time controllers whose function is to periodically read inputs, run several real time 
 tasks, and control outputs, in a steady time period, which in commercial PLC's 
@@ -53,11 +104,13 @@ of a user-defined number of memory variables which you may use in your programs.
 It also supports Timer and Blinking Timer (Pulse) registers, whose number and function 
 can as well be configured by the user.
 
-#4. INSTALLATION 
+<a name="INSTALLATION"/> 
 
-Download the tarball from www.sourceforge.net/projects/plcemu
+# INSTALLATION 
+Checkout a snapshot from github, or alternatively
+download the tarball from www.sourceforge.net/projects/plcemu and unzip the source files in a directory. 
 
-Unzip the source files in a directory and run in superuser mode
+Then run in superuser mode
 
 >./configure;
 >make;
@@ -78,44 +131,53 @@ If you don't have actual hardware, run configure with the option
 
 for text simulation mode.
 
-If you want to work with a stdout (printf) based user interface, you can configure with the option
+If you want to enable the distributed user interface, you can configure with the option
 
->/.configure --disable-ui 
-#5. CONFIGURATION
+>/.configure --enable-ui 
+
+<a name="Hardware"/> 
+
+# CONFIGURATION
 
 Edit a config.yml file, which holds configuration variables and 
 their values in yml format. 
 
 An example config.yml as included:
 
-STEP:         10        #time cycle in milliseconds
-PIPE:         plcpipe   #UNIX path of named pipe polled for commands
+    STEP:         10        #time cycle in milliseconds
+    PIPE:         plcpipe   #UNIX path of named pipe polled for commands
 
-#hardware
-HW:         STDI/O      #just a text tag that appears in a footer
+    #hardware
+    HW:         STDI/O      #just a text tag that appears in a footer
 
-#user space interface:
-USPACE: 
+    #user space interface:
+    USPACE: 
     BASE:      50176            #hardware address base
     WR:        4               #write offset
     RD:        0                #read offset
 
 
-#COMEDI interface:
-COMEDI: 
+    #COMEDI interface:
+    COMEDI: 
     FILE:     0           #device and subdevice nodes of comedi driver.
     SUBDEV: 
         IN: 0
         OUT: 1
     
 
-#SIMULATION IO
-SIM: 
+    #SIMULATION IO
+    SIM: 
     INPUT:   sim.in
     OUTPUT:  sim.out
 
-#PROGRAM    
-DI:
+    #PROGRAM   
+    PROGRAM:
+    - 2 
+    - INDEX: 0
+      ID: "gcd.il"
+    
+    #Digital Inputs
+    DI:
     - 16
     - INDEX: 0
       BYTE: 0
@@ -124,14 +186,15 @@ DI:
       BYTE: 0
       ID: B
     
-DQ: 
+    #Digital outputs
+    DQ: 
     - 2
     - INDEX: 0
       BYTE: 0
       ID: OUTPUT
         
-
-MREG:
+    #Memory registers (integers)
+    MREG:
     - 4
     - INDEX: 0
       ID: RESULT
@@ -139,22 +202,68 @@ MREG:
      
     - INDEX: 1
       ID: TEMP
-PROGRAM:
-    - 2 
-    - INDEX: 0
-      ID: "gcd.il"
+
+    #Memory variables (real numbers) 
+    MVAR:
+    - 6
+    - INDEX :     0    
+      ID    :     N
+      VALUE :     1.0
+    - INDEX :     1    
+      ID    : MEAN
+    - INDEX :     2    
+      ID    : M2
+    - INDEX :     3    
+      ID    : DELTA
+    - INDEX :     4    
+      ID    : ONE
+      VALUE :      1.0
+   
+    #Timers
+    TIMERS:
+    - 2  
+    - INDEX: 1
+      RESOLUTION: 10
+      PRESET: 10
+    
+    #Blinking timers        
+    PULSES:
+    - 2
 
 
-#6. PROGRAMMING
+Everything up to the PROGRAM tag, is system configuration.
+
+The sequences from the PROGRAM tag onwards represent the logic blocks of the PLC. 
+ 
+The number after the block name represents the size of the block sequence, ie. how many block instances are allocated.
+
+The key - value pairs after the size are the blocks' parameters.
+
+INDEX represents the position of the specific block in the sequence, eg. input 5 would have INDEX: 5  
+
+ID is a unique string identifier for the specific block. 
+
+The rest are block - specific parameters.
+
+These parameters can be edited in runtime.
+
+
+<a name="PROGRAMMING"/> 
+
+# PROGRAMMING
 
 You can edit a text file with a task in LD or IL in your favorite text editor and then load it into PLC-EMU (see below).
 
-###Ladder Diagram
+<a name="LadderDiagram"/> 
+
+### Ladder Diagram
 .ld files are in Ladder diagram format.
 The version of LD PLC-EMU supports, consists of the following operators and 
 operands.
 
-Operators
+<a name="Operators"/>
+
+#### Operators
 These are the accepted symbols that can exist along with the operands.
 
 '-' propagates a boolean state horizontally, from left to right. 
@@ -179,7 +288,9 @@ like a logical "OR" .
 
 Blank characters interrupt lines, so be careful.
 
-Input operands 
+<a name="Inputoperands"/>
+
+#### Input operands 
 These can appear anywhere in a line before a '(', followed by a valid 
 non negative index. Valid values of indexes are dependant on the operand and
 the configuration. This means, that if you have 16 timers and 64 inputs, you
@@ -203,7 +314,9 @@ Accepted symbols (case sensitive) are:
 
 'c' true, if serial input byte equals following index
 
-Output operands
+<a name="Outputoperands"/>
+
+#### Output operands
 These symbols must follow operator '(' and be followed by a valid index.
 Each output operand should appear only once.
 
@@ -215,17 +328,20 @@ Each output operand should appear only once.
 
 'W' write following number to serial output.
 
+<a name="LD Example : Triple Majority Circuit"/>
+
 ### LD Example : Triple Majority Circuit
 
-; triple majority circuit
-; https://en.wikipedia.org/wiki/Triple_modular_redundancy
+    ; triple majority circuit
+    ; https://en.wikipedia.org/wiki/Triple_modular_redundancy
 
- i0---i1----+---------(Q0
- i2---i0----+
- i1---i2----+
+     i0---i1----+---------(Q0
+     i2---i0----+
+     i1---i2----+
 
+<a name="InstructionList"/> 
 
-###Instruction List
+###  Instruction List
 
 Alternatively, you can define a IEC61131-3 compatible Instruction List program in .il files. 
 Currently, subroutines are not implemented. 
@@ -281,6 +397,8 @@ LE	    |(		    |BOOL/WORD
 LT	    |(		    |BOOL/WORD
 JMP	    |?		    |CHARACTER STRING
 
+<a name="IL Example : GCD"/> 
+
 ### IL Example : GCD
 
    ; greatest common divisor
@@ -314,11 +432,15 @@ JMP	    |?		    |CHARACTER STRING
     ST %q0 ; output gcd 
     end: LD %m3;
 
-##C "API"
+<a name="C API"/> 
+
+## C API
 
 TBD
 
-#7. INTERFACE
+<a name="INTERFACE"/> 
+
+# INTERFACE
 
 Executing plcemu from the command line
 
@@ -326,11 +448,69 @@ Executing plcemu from the command line
     Options:
     -c uses a configuration file like the one described in section 5, other than config.yml
     -h displays this help file
-    
-#8. ISSUES
+
+<a name="CommandLine"/> 
+
+## Command Line    
+The default UI for version 2.0 onwards is command line based.
+
+This is just a std prompt where the PLC's internal state in YAML format is monitored, while PLC commands can be issued. 
+
+Supported commands:
+
+   START   
+
+start plc loop
+   
+   STOP   
+
+stop plc loop
+   
+   HELP   
+
+display help message
+
+   QUIT  
+
+close the UI
+
+    EDIT <sequence><index><key: value>
+
+Edit a configuration for any input, output or other sequence block.
+The key: value pair can be any of the parameters in the configuration of the specific block.
+
+    FORCE<sequence><index><value>
+
+This will force a value on a sequence block for debugging purposes.
+
+    UNFORCE<sequence><index>
+
+Reverts the FORCE command.
+
+<a name="DistributedUI"/> 
+
+### Distributed UI
+Optionally any kind of UI and any number of UI instances can be connected over zeromq sockets, locally or remotely. 
+The UI should continuously receive the PLC state in YML format in a PUB / SUB configuration, and asynchronously send commands in a REQUEST / REPLY fashion.
+To enable remote UI, run 
+>/.configure --enable-sim 
+
+<a name="Example UI client"/> 
+
+#### Example UI client
+See cli-zmq.c for an example command line remote UI client that implements the same functionality as the default command line interface.
+
+<a name="Legacy"/> 
+
+### Legacy (ncurses)
+There are plans for reimplementing a ncurses based zeromq client with the same functionality as the legacy PLC-EMU UI. 
+Currently no ncurses dependency exists.
+
+<a name="ISSUES"/> 
+
+# ISSUES
 
 Please send feedback, questions, suggestions, requests, help(?) to:
 (kalamara AT users.sourceforge.net)
-
 
 
