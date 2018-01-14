@@ -23,38 +23,6 @@ char * Update_buf = NULL;
 
 pthread_t Reader;
 
-void print_help()
-{
-	FILE * f;
-    char line[MAXSTR];
-    if ((f = fopen("./help", "r"))){
-		while (fgets(line, MEDSTR, f)){
-         //read help file
-            printf("%s", line);
-        }
-		fclose(f);
-	}
-}
-
-config_t parse_cli(const char * input, config_t command){
-    if(!strncasecmp(input, "HELP" , 4)){
-        print_help();
-        command = set_numeric_entry(CLI_COM, COM_HELP, command);
-    } else if(!strncasecmp(input, "QUIT" , 4)){
-    
-        command = set_numeric_entry(CLI_COM, COM_QUIT, command);
-    } else if(!strncasecmp(input, "START" , 5)){
-    
-        command = set_numeric_entry(CLI_COM, COM_START, command);
-    } else if(!strncasecmp(input, "STOP" , 4)){
-
-        command = set_numeric_entry(CLI_COM, COM_STOP, command);
-    }
-    //plc_log("CLI: %s", input);
-    
-    return command;
-}
-
 void * read_cli(void * sock) {
     
     size_t l = 0;
@@ -62,7 +30,7 @@ void * read_cli(void * sock) {
     
     config_t command = copy_sequences(init_config(), ui_init_command());
     while(getline((char **)&b, &l, stdin)>=0){
-        command = parse_cli(b, command);
+        command = cli_parse(b, command);
         char * serialized = serialize_config(command);
         printf("Sending... \n%s\n", serialized);
         zmq_send (sock, 
@@ -107,21 +75,6 @@ int main (void)
                     ZMQ_DONTWAIT)>=0){ 
             printf("Update:\n %s\n", Update_buf);
         }
-        /*
-        Cli_buf = read_cli(Cli_buf);
-        command = parse_cli(Cli_buf, command);
-        char * serialized = serialize_config(command);
-        printf("Sending %s...\n", serialized);
-        zmq_send (requester, 
-                  serialized, 
-                  strlen(serialized),
-                  0);
-        zmq_recv (requester, 
-                    Response_buf, 
-                    CONF_STR, 
-                    0); 
-                             
-        free(serialized);*/
     }
     zmq_close (subscriber);
     zmq_close (requester);

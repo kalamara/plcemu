@@ -28,31 +28,6 @@ void ui_display_message(char * msgstr)
     printf("%s\n", msgstr);
 }
 
-char lasttime[TINYSTR] = "";
-
-void time_header()
-{
-	char t[TINYSTR], *p;
-	char str[MEDSTR] = "";
-	char buf[SMALLSTR] = "";
-	time_t now;
-
-	time(&now);
-	strcpy(t, ctime(&now));
-	t[19] = '\0';
-	p = t + 10;
-	if(strcmp(t, lasttime)){
-        //sprintf(buf, "%s","\033[2J"); // Clear screen
-        //strcat(str,buf);
-                sprintf(buf,
-                " PLC-EMUlator v%4.2f %14s\n ", 
-                PRINTABLE_VERSION, p);
-                strcat(str,buf);
-                sprintf(lasttime, "%s", t);
-                ui_display_message(str);
-        }
-}
-
 void ui_draw(config_t state)
 {
 //send state for printing
@@ -62,7 +37,7 @@ void ui_draw(config_t state)
                 strlen(state_buf),
                 0);//ZMQ_DONTWAIT);
     free(state_buf);
-    time_header();
+    cli_header();
 }
 
 config_t ui_init_command(){
@@ -126,3 +101,4 @@ void ui_toggle_enabled()
 {
     Enable = Enable ? 0 : 1;
 }
+
