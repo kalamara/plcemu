@@ -37,7 +37,6 @@ void ui_draw(config_t state)
                 strlen(state_buf),
                 0);//ZMQ_DONTWAIT);
     free(state_buf);
-    cli_header();
 }
 
 config_t ui_init_command(){
