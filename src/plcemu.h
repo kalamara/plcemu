@@ -5,7 +5,7 @@
  *@brief main header
 */
 
-#define PRINTABLE_VERSION 2.0
+#define PRINTABLE_VERSION 2.01
 //analog I/O
 
 #define TERMLEN 80

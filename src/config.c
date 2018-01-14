@@ -107,7 +107,7 @@ entry_t new_entry_str(char * str, char * name) {
 	entry_t r = (entry_t)malloc(sizeof(struct entry));
 	r->type_tag = ENTRY_STR;
 	r->name = name;
-	r->e.scalar_str = (char *)malloc(sizeof(str));
+	r->e.scalar_str = (char *)malloc(strlen(str));
     sprintf(r->e.scalar_str, "%s", str);
 	return r;
 }
@@ -417,7 +417,7 @@ sequence_t copy_sequence(sequence_t other){
 }
 
 config_t clear_config(config_t c){
-
+//TODO: recurse over all the tree and free everything
     return (config_t)NULL;
 }
 

@@ -217,6 +217,29 @@ void read_line_trunk_comments(char* line)
     for(i = idx; line != NULL && i < MAXSTR; i++)
         line[i] = 0; //trunc comments
 }
+
+void trunk_label(const char* line,  
+                char* buf, 
+                char* label_buf)
+{
+    int i = 0;
+    if(line == NULL
+    || buf == NULL
+    || label_buf == NULL)
+        return;
+        
+    char* str = strrchr(line, ':');
+    if (str){
+        while (line + i + 1 != str + 1){
+            label_buf[i] = line[i];
+            i++;
+        }
+        strcpy(buf, str + 1);
+    }
+    else
+        strcpy(buf, line);   
+}
+
 #define IS_WHITESPACE(x) (x == ' ' || x == '\t' || x == '\n' || x == '\r')
 
 char * trunk_whitespace(char* line)
@@ -250,27 +273,6 @@ char * trunk_whitespace(char* line)
     return line;
 }
 
-void trunk_label(const char* line,  
-                char* buf, 
-                char* label_buf)
-{
-    int i = 0;
-    if(line == NULL
-    || buf == NULL
-    || label_buf == NULL)
-        return;
-        
-    char* str = strrchr(line, ':');
-    if (str){
-        while (line + i + 1 != str + 1){
-            label_buf[i] = line[i];
-            i++;
-        }
-        strcpy(buf, str + 1);
-    }
-    else
-        strcpy(buf, line);   
-}
 
 BYTE read_modifier(const char* buf, char** pos)
 {

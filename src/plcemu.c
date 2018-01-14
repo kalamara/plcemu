@@ -20,7 +20,7 @@
 
 /*************GLOBALS************************************************/
 plc_t Plc;
-
+config_t Conf;
 //int UiReady=FALSE;
 
 typedef enum {
@@ -616,6 +616,10 @@ config_t get_state(const plc_t plc,
 }
 
 plc_t apply_command(const config_t com, plc_t plc){
+    char * confstr = "config.yml";
+    char * cvalue = NULL;
+
+           
     switch(get_numeric_entry(0, com)){
         case COM_START:
         
@@ -627,6 +631,33 @@ plc_t apply_command(const config_t com, plc_t plc){
             plc = plc_stop(plc);
             break;
         
+        case COM_LOAD:
+            plc = plc_stop(plc);
+            Conf = init_config();
+            cvalue = get_string_entry(1, com);
+            if(cvalue == NULL ||
+            cvalue[0] == 0){
+                cvalue = confstr;
+            }
+            if ((load_config_yml(cvalue, Conf))->err < PLC_OK) {
+                plc_log("Invalid configuration file %s\n", cvalue);
+            } else {
+                plc = init_emu(Conf);
+            }    
+            break;
+            
+        case COM_SAVE:
+        
+            plc = plc_stop(plc);
+            cvalue = get_string_entry(1, com);
+            if(cvalue == NULL){
+                cvalue = confstr;
+            }
+            if ((save_config_yml(cvalue, Conf)) < PLC_OK) {
+                plc_log("Invalid configuration file %s\n", cvalue);
+            }
+            break;    
+        
         default: break;
     }
     return plc;
@@ -637,7 +668,7 @@ int main(int argc, char **argv)
     //int errcode = PLC_OK;
     int prog = 0;
     char * confstr = "config.yml";
-    config_t conf = init_config();
+    Conf = init_config();
     
     char * cvalue = NULL;
     opterr = 0;
@@ -673,13 +704,13 @@ int main(int argc, char **argv)
     if(cvalue == NULL)
        cvalue = confstr;
        
-    if ((load_config_yml(cvalue, conf))->err < PLC_OK) {
+    if ((load_config_yml(cvalue, Conf))->err < PLC_OK) {
         plc_log("Invalid configuration file %s\n", cvalue);
         return PLC_ERR;
     }
 //initialize PLC
-    Plc = init_emu(conf);
-    sequence_t programs = get_sequence_entry(CONFIG_PROGRAM, conf);
+    Plc = init_emu(Conf);
+    sequence_t programs = get_sequence_entry(CONFIG_PROGRAM, Conf);
     for(; programs && prog < programs->size; prog++){
         if(programs->vars[prog].name){
             Plc = plc_load_program_file(programs->vars[prog].name, Plc);
@@ -689,10 +720,10 @@ int main(int argc, char **argv)
     enable_bus();
 //start UI
     
-    ui_init(conf);
+    ui_init(Conf);
     //UiReady=more;
-    config_t command = copy_sequences(conf, ui_init_command());
-    config_t state = copy_sequences(conf, ui_init_state());
+    config_t command = copy_sequences(Conf, ui_init_command());
+    config_t state = copy_sequences(Conf, ui_init_state());
     Plc = plc_start(Plc);    
     while (get_numeric_entry(0, command)!=COM_QUIT) {
        if(Plc->update != 0){
@@ -706,7 +737,7 @@ int main(int argc, char **argv)
     }
     sigkill();
     disable_bus();
-    clear_config(conf);
+    clear_config(Conf);
     close_log();
     ui_end();
     return 0;

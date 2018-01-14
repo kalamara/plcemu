@@ -87,13 +87,13 @@ void ui_draw(config_t state)
 config_t ui_init_command(){
     config_t com = new_config(N_CONFIG_VARIABLES);
     
-    return update_entry(CLI_COM, new_entry_int(0, "COMMAND"), com);
+    return update_entry(CLI_COM, new_entry_int(COM_NONE, "COMMAND"), com);
 }
 
 config_t ui_init_state(){
     config_t stat = new_config(N_CONFIG_VARIABLES);
     
-    return update_entry(CLI_COM, new_entry_int(0, "STATUS"), stat);
+    return update_entry(CLI_COM, new_entry_int(COM_NONE, "STATUS"), stat);
 }
 
 int ui_init(const config_t conf)
@@ -105,7 +105,9 @@ int ui_init(const config_t conf)
     return rc;
 }
 
-config_t parse_cli(const char * input, config_t command){
+config_t parse_cli( char * input, config_t command){
+    char * comm = strtok(input, " \n");
+    char * filename = NULL;
     if(!strncasecmp(input, "HELP" , 4)){
         print_help();
         command = set_numeric_entry(CLI_COM, COM_HELP, command);
@@ -118,7 +120,28 @@ config_t parse_cli(const char * input, config_t command){
     } else if(!strncasecmp(input, "STOP" , 4)){
 
         command = set_numeric_entry(CLI_COM, COM_STOP, command);
+    } else if(!strncasecmp(input, "LOAD" , 4)){
+    
+        command = set_numeric_entry(CLI_COM, COM_LOAD, command);
+        //parse rest
+        filename = strtok(NULL, " \n");
+        if(filename != NULL){
+            command = update_entry(CLI_ARG, 
+                new_entry_str(filename, "FILE"), 
+                command);
+        }
+        
+    } else if(!strncasecmp(input, "SAVE" , 4)){
+        //parse rest
+        command = set_numeric_entry(CLI_COM, COM_SAVE, command);
+        filename = strtok(NULL, " ");
+        if(filename != NULL){
+            command = update_entry(CLI_COM + 1, 
+                new_entry_str(filename, "FILE"),
+                command);
+        }
     }
+    
     //plc_log("CLI: %s", input);
     
     return command;
@@ -126,7 +149,10 @@ config_t parse_cli(const char * input, config_t command){
 
 config_t ui_update(config_t command)
 {
+    
     //time_header();
+    command = set_numeric_entry(CLI_COM, COM_NONE, command);
+    
     if(Cli_buf != NULL && Cli_buf[0]){
         config_t c = parse_cli(Cli_buf, command);
         pthread_join(Reader, NULL);

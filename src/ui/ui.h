@@ -6,7 +6,7 @@
  *@brief main header
 */
 #define CLI_COM 0 //commands always go to first payload entry
-
+#define CLI_ARG 1 //optional arguments start at second payload entry
 enum
 {
     PAGE_MAIN = 1,
