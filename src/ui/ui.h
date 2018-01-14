@@ -8,33 +8,6 @@
 #define CLI_COM 0 //commands always go to first payload entry
 #define CLI_ARG 1 //optional arguments start at second payload entry
 
-/*
-enum
-{
-    PAGE_MAIN = 1,
-    PAGE_EXIT,
-    PAGE_EDIT,
-    PAGE_FILE,
-    PAGE_EDITMODE,
-    PAGE_HELP,
-    N_PAGES
-}PAGES;
-
-typedef enum
-{///winows
-    WIN_DI,        ///digital input
-    WIN_AI,        ///analog input
-    WIN_DQ,        ///digital output
-    WIN_AQ,        ///analog output
-    WIN_MEMORY,   ///pulse of counter
-    WIN_REAL,     ///floating point variable
-    WIN_TIMER,     ///output of timer
-    WIN_BLINKER,   ///output of blinker
-    WIN_PROGRAM,
-    N_WIN
-}WINDOWS;
-*/
-
 typedef enum
 {///CLI commands
     COM_NONE,
@@ -49,11 +22,7 @@ typedef enum
     COM_QUIT,
     N_COM
 } COMMANDS;
-/*
-extern plc_t Plc;
-extern char Lines[MAXBUF][MAXSTR];///ladder lines
-extern int Lineno;	///actual no of active lines
-*/
+
 /*****************generic user interface*****************************************/
 
 /**

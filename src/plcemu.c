@@ -658,6 +658,9 @@ plc_t apply_command(const config_t com, plc_t plc){
             }
             break;    
         
+        case COM_FORCE:
+        case COM_UNFORCE:
+        case COM_EDIT:        
         default: break;
     }
     return plc;
