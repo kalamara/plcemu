@@ -25,17 +25,7 @@ typedef enum
 
 /*****************generic user interface*****************************************/
 
-/**
- * @brief initialize a command configuration
- * @return new command configuration
- */
-config_t ui_init_command();
 
-/**
- * @brief initialize plc state configuration
- * @return new plc state
- */
-config_t ui_init_state();
 
 /**
  * @brief display a message to user
@@ -74,6 +64,20 @@ void ui_end();
 void ui_toggle_enabled();
 
 /***************command line helpers******************************************/
+
+/**
+ * @brief initialize a command configuration
+ * @param system configuration, carries logical block sequences
+ * @return new command configuration
+ */
+config_t cli_init_command(config_t conf);
+
+/**
+ * @brief initialize plc state configuration
+ * @param system configuration, carries logical block sequences
+ * @return new plc state
+ */
+config_t cli_init_state(config_t conf);
 
 /**
  * @brief print a header with time and version

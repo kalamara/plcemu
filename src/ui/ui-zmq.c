@@ -39,18 +39,6 @@ void ui_draw(config_t state)
     free(state_buf);
 }
 
-config_t ui_init_command(){
-    config_t com = new_config(N_CONFIG_VARIABLES);
-
-    return update_entry(CLI_COM, new_entry_int(0, "COMMAND"), com);
-}
-
-config_t ui_init_state(){
-    config_t stat = new_config(N_CONFIG_VARIABLES);
-    
-    return update_entry(CLI_COM, new_entry_int(0, "STATUS"), stat);
-}
-
 int ui_init(const config_t conf)
 {
     Ui_buf = (char*)malloc(CONF_STR);

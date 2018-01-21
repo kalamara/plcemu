@@ -619,7 +619,6 @@ plc_t apply_command(const config_t com, plc_t plc){
     char * confstr = "config.yml";
     char * cvalue = NULL;
 
-           
     switch(get_numeric_entry(0, com)){
         case COM_START:
         
@@ -635,8 +634,8 @@ plc_t apply_command(const config_t com, plc_t plc){
             plc = plc_stop(plc);
             Conf = init_config();
             cvalue = get_string_entry(1, com);
-            if(cvalue == NULL ||
-            cvalue[0] == 0){
+            if( cvalue == NULL ||
+                cvalue[0] == 0){
                 cvalue = confstr;
             }
             if ((load_config_yml(cvalue, Conf))->err < PLC_OK) {
@@ -649,8 +648,9 @@ plc_t apply_command(const config_t com, plc_t plc){
         case COM_SAVE:
         
             plc = plc_stop(plc);
-            cvalue = get_string_entry(1, com);
-            if(cvalue == NULL){
+            cvalue = get_string_entry(CLI_ARG, com);
+            if( cvalue == NULL ||
+                cvalue[0] == 0){
                 cvalue = confstr;
             }
             if ((save_config_yml(cvalue, Conf)) < PLC_OK) {
@@ -659,8 +659,17 @@ plc_t apply_command(const config_t com, plc_t plc){
             break;    
         
         case COM_FORCE:
+        //get block, see if it can have a value
+        //get type of value
+        //try to convert input value to type
+        //apply force
         case COM_UNFORCE:
-        case COM_EDIT:        
+        //get block, see if it can have a value
+        //if forced, unforce
+        case COM_EDIT:
+        //get block, 
+        //see if key name applies to it
+        //update it       
         default: break;
     }
     return plc;
@@ -725,8 +734,8 @@ int main(int argc, char **argv)
     
     ui_init(Conf);
     //UiReady=more;
-    config_t command = copy_sequences(Conf, ui_init_command());
-    config_t state = copy_sequences(Conf, ui_init_state());
+    config_t command = cli_init_command(Conf);
+    config_t state = cli_init_state(Conf);
     Plc = plc_start(Plc);    
     while (get_numeric_entry(0, command)!=COM_QUIT) {
        if(Plc->update != 0){

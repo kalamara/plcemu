@@ -24,7 +24,6 @@ void print_help()
 	}
 }
 
-
 char lasttime[TINYSTR] = "";
 void cli_header()
 {
@@ -48,9 +47,31 @@ void cli_header()
      }
 }
 
+config_t cli_init_command(config_t conf){
+    config_t com = new_config(N_CONFIG_VARIABLES);
+    com = update_entry(CLI_COM, new_entry_int(COM_NONE, "COMMAND"), com);
+    return copy_sequences(conf, com);
+}
+
+config_t cli_init_state(config_t conf){
+    config_t stat = new_config(N_CONFIG_VARIABLES);
+    stat = update_entry(CLI_COM, new_entry_int(0, "STATUS"), stat);
+    return copy_sequences(conf, stat);
+}
+
 config_t cli_parse( char * input, config_t command){
-    strtok(input, " \n");
+    
     char * filename = NULL;
+    char * block = NULL;
+    char * index = NULL;
+    char * value = NULL;
+    char * key = NULL;
+    if(command == NULL
+    || input == NULL){
+        return command;
+    }
+    command = set_numeric_entry(CLI_COM, COM_NONE, command);
+    strtok(input, " \n");
     if(!strncasecmp(input, "HELP" , 4)){
         print_help();
         command = set_numeric_entry(CLI_COM, COM_HELP, command);
@@ -77,16 +98,65 @@ config_t cli_parse( char * input, config_t command){
     } else if(!strncasecmp(input, "SAVE" , 4)){
         //parse rest
         command = set_numeric_entry(CLI_COM, COM_SAVE, command);
-        filename = strtok(NULL, " ");
+        filename = strtok(NULL, " \n");
         if(filename != NULL){
-            command = update_entry(CLI_COM + 1, 
+            command = update_entry(CLI_ARG, 
                 new_entry_str(filename, "FILE"),
                 command);
         }
+    } else if(!strncasecmp(input, "FORCE" , 5)){
+        //parse rest
+        block = strtok(NULL, " \n");
+        index = strtok(NULL, " \n");
+        value = strtok(NULL, " \n");
+        if(block != NULL 
+        && index != NULL
+        && value != NULL){
+            sequence_t s = edit_seq_param(command, 
+                                        block, 
+                                        atoi(index), 
+                                        "FORCE",
+                                        value);              
+            if(s!=NULL){
+                command = set_numeric_entry(CLI_COM, COM_FORCE, command);
+            }
+        }
+    } else if(!strncasecmp(input, "UNFORCE" , 7)){
+        //parse rest
+        block = strtok(NULL, " \n");
+        index = strtok(NULL, " \n");
+        if(block != NULL 
+        && index != NULL){
+            sequence_t s = edit_seq_param(command, 
+                                        block, 
+                                        atoi(index), 
+                                        "FORCE",
+                                        "UNFORCE");              
+            if(s!=NULL){
+                command = set_numeric_entry(CLI_COM, COM_UNFORCE, command);
+            }
+        }    
+    } else if(!strncasecmp(input, "EDIT" , 4)){
+        //parse rest
+        block = strtok(NULL, " \n");
+        index = strtok(NULL, " \n");
+        key   = strtok(NULL, " \n");
+        value = strtok(NULL, " \n");
+        if(block != NULL 
+        && index != NULL
+        && key   != NULL
+        && value != NULL){
+            sequence_t s = edit_seq_param(command, 
+                                        block, 
+                                        atoi(index), 
+                                        key,
+                                        value);              
+            if(s!=NULL){
+                command = set_numeric_entry(CLI_COM, COM_EDIT, command);
+            }
+        }
     }
-    
     //plc_log("CLI: %s", input);
-    
     return command;
 }
 

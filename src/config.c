@@ -107,7 +107,7 @@ entry_t new_entry_str(char * str, char * name) {
 	entry_t r = (entry_t)malloc(sizeof(struct entry));
 	r->type_tag = ENTRY_STR;
 	r->name = name;
-	r->e.scalar_str = (char *)malloc(strlen(str));
+	r->e.scalar_str = (char *)malloc(sizeof(str));
     sprintf(r->e.scalar_str, "%s", str);
 	return r;
 }
@@ -311,6 +311,26 @@ char * get_param_val(const char * key, const param_t params){
     return it?it->value:NULL;
 }
 
+sequence_t edit_seq_param(config_t conf,                     
+                                const char * seq_name, 
+                                int i,
+                                const char * key, 
+                                const char * val){
+    int k = get_key(seq_name, conf);
+    sequence_t s = get_sequence_entry(k, conf);
+    if(s != NULL){
+        if( 0 <= i
+        &&  i < s->size){
+             param_t vp = s->vars[i].params;
+             vp = update_param(vp,
+                                key,
+                                val);
+             s->vars[i].params = vp;                  
+        }
+    }
+    return s;
+}
+
 param_t append_param(const param_t params, 
                      const char * key, 
                      const char * val){
@@ -417,7 +437,7 @@ sequence_t copy_sequence(sequence_t other){
 }
 
 config_t clear_config(config_t c){
-//TODO: recurse over all the tree and free everything
+
     return (config_t)NULL;
 }
 

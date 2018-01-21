@@ -295,10 +295,30 @@ param_t append_param(const param_t params,
                      const char * val);
 /**
  * @brief append or update param value
+ * @param param param   
+ * @param key
+ * @param value
+ * @return updated param
  */
 param_t update_param(const param_t params, 
                      const char * key, 
                      const char * val);
+
+/**
+ * @brief high level convenience function.
+ * append or update a sequence param value
+ * @param the configuration
+ * @param block sequence name
+ * @param variable index
+ * @param key
+ * @param value
+ * @return updated sequence or NULL
+ */
+sequence_t edit_seq_param(config_t conf,                     
+                                const char * seq_name, 
+                                int i,
+                                const char * key, 
+                                const char * val);
 
 /**
  * @brief store a value to a map

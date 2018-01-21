@@ -3,11 +3,11 @@ UTEST = ut-app
 
 SRCS = app-stubs.c \
 ut-app.c \
-config.c
+config.c \
+cli.c
 
-IFLAGS+=-I. -I.. -Imock/ -I../../../src/  -I../../../src/vm   
+IFLAGS+=-I. -I.. -Imock/ -I../../../src/  -I../../../src/vm -I../../../src/ui   
 
- 
 
 # These are the top-level common vars
 include ../Makefile.inc
@@ -35,6 +35,6 @@ run:
 
 
 report:	
-	../../coverage config.gcda
+	../../coverage config.gcda cli.gcda
 
 

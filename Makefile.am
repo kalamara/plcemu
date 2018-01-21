@@ -18,7 +18,7 @@ plcemu_SOURCES= src/plcemu.c src/plcemu.h \
                 src/hw/hardware.h \
                 src/config.c src/config.h \
                 src/util.c src/util.h \
-                src/ui/ui.h \
+                src/ui/ui.h src/ui/cli.c\
                 src/project.h src/project.c
 
 #ZMQ server for GUI
@@ -31,7 +31,7 @@ cli_SOURCES=src/ui/cli-zmq.c \
             src/config.c src/config.h \
             src/util.c src/util.h 
 else
-plcemu_SOURCES+= src/ui/cli.c src/ui/ui-std.c
+plcemu_SOURCES+= src/ui/ui-std.c
 endif
 #hardware modules supported
 if SIMULATION

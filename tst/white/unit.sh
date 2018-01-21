@@ -28,6 +28,9 @@ link ../../src/vm/parser-tree.c ./vm/parser-tree.c
 unlink ./vm/codegen.c
 link ../../src/vm/codegen.c ./vm/codegen.c
 
+unlink ./ui/cli.c
+link ../../src/ui/cli.c ./app/cli.c
+
 unlink ./config.c
 link ../../src/config.c ./app/config.c
 

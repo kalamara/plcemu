@@ -14,8 +14,10 @@
 #include "instruction.h"
 #include "rung.h"
 #include "plclib.h"
+#include "ui.h"
 
 #include "ut-conf.h"
+#include "ut-cli.h"
 
 #define TRUE 1
 #define FALSE 0
@@ -44,6 +46,8 @@ int clean_suite_failure (void)
 int main ()
 {
   CU_pSuite           suite_conf = NULL;
+  CU_pSuite           suite_cli = NULL;
+  
   
   /* initialize the CUnit test registry */
   if (CUE_SUCCESS != CU_initialize_registry ())
@@ -54,8 +58,12 @@ int main ()
   suite_conf = CU_add_suite ("vm configurator", 
                            init_suite_success,
                            clean_suite_success);
-  
-  if(NULL == suite_conf) 
+  suite_cli = CU_add_suite ("command line helper", 
+                           init_suite_success,
+                           clean_suite_success);
+    
+  if(NULL == suite_conf
+  || NULL == suite_cli) 
   {
     CU_cleanup_registry ();
     return CU_get_error ();
@@ -70,12 +78,18 @@ int main ()
   || ADD_TEST(suite_conf, ut_process)
   || ADD_TEST(suite_conf, ut_get)
   || ADD_TEST(suite_conf, ut_copy)
-     )
-  {
+  ){
 	CU_cleanup_registry ();
         return CU_get_error ();
   }
 
+  //cli
+  if(ADD_TEST(suite_cli, ut_cli)
+  ){
+	CU_cleanup_registry ();
+        return CU_get_error ();
+  }
+  
   /* Run all tests using the basic interface */
 
   CU_basic_set_mode (CU_BRM_VERBOSE);

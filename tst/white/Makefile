@@ -1,7 +1,7 @@
 
-.PHONY :  vm app
+.PHONY :   app 
 
-all:  app vm
+all:  app  
 	
 
 vm: 
@@ -10,8 +10,7 @@ vm:
 app: 
 	make -B -C app -f app.mk all run report
 
-
-clean: clean_vm  clean_app
+clean: clean_vm  clean_app 
 
 
 clean_vm:
@@ -19,3 +18,4 @@ clean_vm:
 	
 clean_app:
 	make -C app -f app.mk clean	
+	

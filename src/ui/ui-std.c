@@ -32,18 +32,6 @@ void ui_draw(config_t state)
     cli_header();
 }
 
-config_t ui_init_command(){
-    config_t com = new_config(N_CONFIG_VARIABLES);
-    
-    return update_entry(CLI_COM, new_entry_int(COM_NONE, "COMMAND"), com);
-}
-
-config_t ui_init_state(){
-    config_t stat = new_config(N_CONFIG_VARIABLES);
-    
-    return update_entry(CLI_COM, new_entry_int(COM_NONE, "STATUS"), stat);
-}
-
 void * read_cli(void *buf) {
     
     size_t len = sizeof(buf);
