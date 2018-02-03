@@ -7,4 +7,6 @@
 
 #define PRINTABLE_VERSION 2.1
 
+plc_t init_emu(const config_t conf);
+
 #endif //_PLCEMU_H_

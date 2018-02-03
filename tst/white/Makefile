@@ -1,7 +1,7 @@
 
-.PHONY :   app 
+.PHONY : vm app 
 
-all:  app  
+all: vm  app  
 	
 
 vm: 

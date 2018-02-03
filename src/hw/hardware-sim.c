@@ -5,7 +5,7 @@
 #include "rung.h"
 #include "plclib.h"
 #include "util.h"
-#include "plcemu.h"
+//#include "plcemu.h"
 #include "config.h"
 #include "hardware.h"
 

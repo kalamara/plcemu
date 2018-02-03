@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "plcemu.h"
+//#include "plcemu.h"
 #include "config.h"
 
 void plc_log(const char * msg, ...)

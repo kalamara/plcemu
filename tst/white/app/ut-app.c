@@ -8,7 +8,7 @@
 #include "CUnit/Console.h"
 #include "CUnit/Automated.h"
 
-#include "plcemu.h"
+//#include "plcemu.h"
 #include "config.h"
 #include "data.h"
 #include "instruction.h"
@@ -18,6 +18,7 @@
 
 #include "ut-conf.h"
 #include "ut-cli.h"
+#include "ut-app.h"
 
 #define TRUE 1
 #define FALSE 0
@@ -47,6 +48,7 @@ int main ()
 {
   CU_pSuite           suite_conf = NULL;
   CU_pSuite           suite_cli = NULL;
+  CU_pSuite           suite_app = NULL;
   
   
   /* initialize the CUnit test registry */
@@ -61,9 +63,13 @@ int main ()
   suite_cli = CU_add_suite ("command line helper", 
                            init_suite_success,
                            clean_suite_success);
+  suite_app = CU_add_suite ("main application functions", 
+                           init_suite_success,
+                           clean_suite_success);
     
   if(NULL == suite_conf
-  || NULL == suite_cli) 
+  || NULL == suite_cli
+  || NULL == suite_app) 
   {
     CU_cleanup_registry ();
     return CU_get_error ();
@@ -85,6 +91,13 @@ int main ()
 
   //cli
   if(ADD_TEST(suite_cli, ut_cli)
+  ){
+	CU_cleanup_registry ();
+        return CU_get_error ();
+  }
+  
+  //app
+  if(ADD_TEST(suite_app, ut_apply_command)
   ){
 	CU_cleanup_registry ();
         return CU_get_error ();

@@ -25,8 +25,6 @@ typedef enum
 
 /*****************generic user interface*****************************************/
 
-
-
 /**
  * @brief display a message to user
  * @param the message

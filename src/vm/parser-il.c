@@ -1,6 +1,5 @@
 #include <ctype.h>
 
-#include "plcemu.h"
 #include "data.h"
 #include "instruction.h"
 #include "rung.h"

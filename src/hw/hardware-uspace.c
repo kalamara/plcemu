@@ -1,7 +1,6 @@
 #include <sys/io.h>
 #include "plclib.h"
 #include "util.h"
-#include "plcemu.h"
 #include "hardware.h"
 
 void hw_config(const config_t conf)

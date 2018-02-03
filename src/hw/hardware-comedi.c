@@ -1,6 +1,5 @@
 #include <string.h>
 #include <comedilib.h>
-#include "plcemu.h"
 #include "util.h"
 #include "plclib.h"
 #include "config.h"

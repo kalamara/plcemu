@@ -7,7 +7,6 @@
 #include "instruction.h"
 #include "rung.h"
 #include "plclib.h"
-#include "plcemu.h"
 #include "util.h"
 
 #include "config.h"

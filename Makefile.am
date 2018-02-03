@@ -7,6 +7,7 @@ bin_PROGRAMS=plcemu
 
 
 plcemu_SOURCES= src/plcemu.c src/plcemu.h \
+                src/app.c src/app.h \
                 src/vm/plclib.c src/vm/plclib.h \
                 src/vm/parser-il.c src/vm/parser-il.h \
                 src/vm/parser-ld.c src/vm/parser-ld.h \
