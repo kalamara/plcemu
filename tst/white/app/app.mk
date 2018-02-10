@@ -6,7 +6,7 @@ ut-app.c \
 config.c \
 cli.c
 
-IFLAGS+=-I. -I.. -Imock/ -I../../../src/  -I../../../src/vm -I../../../src/ui   
+IFLAGS+=-I. -I.. -Imock/ -I../../../src/  -I../../../src/vm -I../../../src/ui -I../../../src/hw   
 
 
 # These are the top-level common vars

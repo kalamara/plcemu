@@ -9,6 +9,16 @@
 #define BOOLEAN   64
 #define NOP	0
 
+#define MAXBUF 256 
+#define MAXSTR	1024
+#define MEDSTR	256
+#define SMALLSTR 128
+#define SMALLBUF 64
+#define TINYBUF 24
+#define TINYSTR 32
+#define COMMLEN 16
+
+#define LONG_BYTES 8
 #define LWORDSIZE 64
 #define DWORDSIZE 32
 #define WORDSIZE 16

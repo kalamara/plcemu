@@ -12,7 +12,7 @@ SRCS = vm-stubs.c\
  parser-tree.c\
  codegen.c\
  
-IFLAGS+=-I. -I.. -Imock/ -I../../../src/  -I../../../src/vm   
+IFLAGS+=-I. -I.. -Imock/ -I../../../src/  -I../../../src/vm -I../../../src/hw    
 
 # These are the top-level common vars
 include ../Makefile.inc

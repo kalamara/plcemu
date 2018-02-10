@@ -7,9 +7,11 @@
 #include <pthread.h>
 
 #include "data.h"
+/*
 #include "instruction.h"
 #include "rung.h"
 #include "plclib.h"
+*/
 #include "config.h"
 #include "ui.h"
 

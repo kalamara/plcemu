@@ -1,5 +1,5 @@
 
-.PHONY : vm app 
+.PHONY : vm  app 
 
 all: vm  app  
 	

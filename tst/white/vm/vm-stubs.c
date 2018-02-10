@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+
 #include "config.h"
+#include "hardware.h"
 #include "data.h"
 #include "instruction.h"
 #include "rung.h"
@@ -29,65 +31,71 @@ int project_init()
     return 0;
 }
 
-/**stubbed hardware**/
-
-/**
- * @brief fetch all input bytes if necessary
- * @param number of inputs
- * @return error code
- */
-int io_fetch(long timeout, unsigned int bytes)
-{
-    return 0;
-}
-
-/**
- * @brief flush all output bytes if necessary
- * @param number of outputs
- * @return error code
- */
-int io_flush(unsigned int bytes)
-{
-    return 0;
-}
-
-/**
- * @brief read digital input
- * @param index
- * @param value
- */
-void dio_read(const int index ,unsigned char* value)
-{
-}
-
-/**
- * @brief write bit to digital output
- * @param value
- * @param n index
- * @param bit
- */
-void dio_write(const unsigned char *value, const int n, const int bit)
-{
-}
-
-/**
- * @brief read analog sample
- * @param the index
- * @param the raw value 
- */
-void data_read(unsigned int index, uint64_t* value)
-{
-}
-
-/**
- * @brief write analog sample
- * @param the index
- * @param the raw value 
- */
-void data_write(unsigned int index, uint64_t value)
-{
-}
-
 void compute_variance( double x){}
+
+int stub_config(const config_t conf)
+{
+        
+    return PLC_OK;    
+}
+
+int stub_enable() /* Enable bus communication */
+{
+    int r = PLC_OK;
+    
+    return r;
+}
+
+int stub_disable() /* Disable bus communication */
+{
+    return PLC_OK;
+}
+
+int stub_fetch()
+{
+    return PLC_OK;
+}
+
+int stub_flush()
+{
+    return PLC_OK;
+}
+
+void stub_dio_read(unsigned int n, BYTE* bit)
+{	
+    *bit = 0;
+}
+
+void stub_dio_write(const unsigned char *buf,  int n,  int bit)
+{	//write bit to n output
+}
+
+void stub_dio_bitfield(const unsigned char* mask, unsigned char *bits)
+{	//simultaneusly write output bits defined by mask and read all inputs
+}
+
+void stub_data_read(unsigned int index, uint64_t* value)
+{
+}
+
+void stub_data_write(unsigned int index, uint64_t value)
+{
+}
+
+struct hardware Hw_stub = {
+    HW_SIM,
+    0, //errorcode
+    "stubbed hardware",
+    stub_enable,// enable
+    stub_disable, //disable
+    stub_fetch, //fetch
+    stub_flush, //flush
+    stub_dio_read, //dio_read
+    stub_dio_write, //dio_write
+    stub_dio_bitfield, //dio_bitfield
+    stub_data_read, //data_read
+    stub_data_write, //data_write
+    stub_config, //hw_config
+};
 
 

@@ -1,4 +1,5 @@
 #include "config.h"
+#include "hardware.h"
 #include "util.h"
 #include "data.h"
 #include "instruction.h"
@@ -6,6 +7,7 @@
 #include "plclib.h"
 #include "ui.h"
 #include "plcemu.h"
+#include "app.h"
 
 static plc_t declare_names(int operand,
                     const variable_t var,                      
@@ -402,10 +404,40 @@ static config_t get_pulse_values(const plc_t plc,
     }
     return ret;
 }
+//FIXME: support for multiple interfaces
+#ifdef SIM
+#define HW_TYPE HW_SIM
+#else 
 
-plc_t configure(const config_t conf, plc_t plc){
+#ifdef COMEDI
+#define HW_TYPE HW_COMEDI
+#else
 
-    plc_t p = plc;
+#define HW_TYPE HW_USPACE
+#endif //COMEDI
+#endif //SIM
+
+app_t configure(const config_t conf, app_t app){
+
+    app_t a = app;
+    a->conf = conf;
+    hardware_t hw = get_hardware(HW_TYPE);
+    hw->status = hw->configure(conf);
+        
+    int di = get_sequence_entry(CONFIG_DI, conf)->size / BYTESIZE + 1; 
+    int dq = get_sequence_entry(CONFIG_DQ, conf)->size / BYTESIZE + 1;
+    int ai = get_sequence_entry(CONFIG_AI, conf)->size;
+    int aq = get_sequence_entry(CONFIG_AQ, conf)->size;
+    int nt = get_sequence_entry(CONFIG_TIMER, conf)->size;
+    int ns = get_sequence_entry(CONFIG_PULSE, conf)->size;
+    int nm = get_sequence_entry(CONFIG_MREG, conf)->size;
+    int nr = get_sequence_entry(CONFIG_MVAR, conf)->size;
+    int step = get_numeric_entry(CONFIG_STEP, conf);
+    
+    plc_t p = new_plc(di, dq, ai, aq, nt, ns, nm, nr, step, hw);
+
+    p->status = 0;
+    p->update = TRUE;
     
     p = configure_di(conf, p);
     p = configure_dq(conf, p);
@@ -416,7 +448,12 @@ plc_t configure(const config_t conf, plc_t plc){
     p = configure_timers(conf, p);
     p = configure_pulses(conf, p);
     
-    return p;
+    if(a->plc != NULL){
+        clear_plc(a->plc);
+    }
+    a->plc = p;
+        
+    return a;
 }
 
 config_t get_state(const plc_t plc, 
@@ -477,47 +514,46 @@ config_t get_state(const plc_t plc,
     return r;
 }
 
-plc_t apply_command(const config_t com, 
-                    config_t * conf,
-                    plc_t plc){
+app_t apply_command(const config_t com, 
+                    app_t a){
     char * confstr = "config.yml";
     char * cvalue = NULL;
 
     switch(get_numeric_entry(0, com)){
         case COM_START:
         
-            plc = plc_start(plc);
+            a->plc = plc_start(a->plc);
             break;
             
         case COM_STOP:
         
-            plc = plc_stop(plc);
+            a->plc = plc_stop(a->plc);
             break;
         
         case COM_LOAD:
-            plc = plc_stop(plc);
-            *conf = init_config();
+            a->plc = plc_stop(a->plc);
+            a->conf = init_config();
             cvalue = get_string_entry(1, com);
             if( cvalue == NULL ||
                 cvalue[0] == 0){
                 cvalue = confstr;
             }
-            if ((load_config_yml(cvalue, *conf))->err < PLC_OK) {
+            if ((load_config_yml(cvalue, a->conf))->err < PLC_OK) {
                 plc_log("Invalid configuration file %s\n", cvalue);
             } else {
-                plc = init_emu(*conf);
+                a = configure(a->conf, a);
             }    
             break;
             
         case COM_SAVE:
         
-            plc = plc_stop(plc);
+            a->plc = plc_stop(a->plc);
             cvalue = get_string_entry(CLI_ARG, com);
             if( cvalue == NULL ||
                 cvalue[0] == 0){
                 cvalue = confstr;
             }
-            if ((save_config_yml(cvalue, *conf)) < PLC_OK) {
+            if ((save_config_yml(cvalue, a->conf)) < PLC_OK) {
                 plc_log("Invalid configuration file %s\n", cvalue);
             }
             break;    
@@ -536,6 +572,6 @@ plc_t apply_command(const config_t com,
         //update it       
         default: break;
     }
-    return plc;
+    return a;
 }
  

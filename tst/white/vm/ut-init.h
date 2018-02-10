@@ -3,9 +3,9 @@
 
 void ut_construct()
 {
-    plc_t plc = new_plc(8,8,4,4,4,4,4,4,100,"simulated_hardware"); 
+    plc_t plc = new_plc(8,8,4,4,4,4,4,4,100,NULL); 
    
-    CU_ASSERT_STRING_EQUAL(plc->hw, "simulated_hardware");
+    CU_ASSERT_PTR_NULL(plc->hw);
     //printf("hw: %s\n", plc.hw);
     CU_ASSERT(plc->ni == 8);
     CU_ASSERT(plc->di[63].I == 0);
@@ -81,7 +81,7 @@ void ut_construct()
 }
 
 void ut_config(){
-    plc_t plc = new_plc(8,8,4,4,4,4,4,4,100,"simulated_hardware");
+    plc_t plc = new_plc(8,8,4,4,4,4,4,4,100,NULL);
 
     plc = declare_variable(plc, 0, 99, "input_1");
     CU_ASSERT(plc->status == ERR_BADOPERAND);

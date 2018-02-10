@@ -14,19 +14,8 @@
 #define THOUSAND 1000
 
 #define MAXRUNG 256 
-#define MAXBUF 256 
-#define MAXSTR	1024
-#define MEDSTR	256
-#define SMALLSTR 128
-#define SMALLBUF 64
-#define TINYBUF 24
-#define TINYSTR 32
-#define COMMLEN 16
-
-#define LONG_BYTES 8
 
 #define FLOAT_PRECISION 0.000001
-#define ASCIISTART 0x30
 
 typedef enum{
     ST_STOPPED,
@@ -173,7 +162,8 @@ typedef struct mreal{
  * The struct which contains all the software PLC registers
  */
 typedef struct PLC_regs{
-    char hw[MAXSTR]; ///just a label for the hardware used
+    hardware_t hw;
+     ///just a label for the hardware used
     BYTE *inputs;   ///digital input values buffer
     uint64_t *real_in; ///analog raw input values buffer
     BYTE *outputs;  ///digital output values buffer
@@ -700,7 +690,7 @@ plc_t new_plc(
     int nm,
     int nr,
     int step,
-    const char * hw);
+    hardware_t hw);
 
 /**
  * @brief copy constructor
@@ -708,6 +698,11 @@ plc_t new_plc(
  * @return newly allocated copy
  */
 plc_t copy_plc(const plc_t plc); 
+
+/**
+ * @brief dtor
+ */
+void clear_plc(plc_t plc);
 
 /*configurators*/
 

@@ -1,86 +1,106 @@
+#include <unistd.h>
 #include <sys/io.h>
-#include "plclib.h"
+#include <sys/types.h>
+
+#include "data.h"
+#include "instruction.h"
+#include "rung.h"
 #include "util.h"
+#include "config.h"
 #include "hardware.h"
 
-void hw_config(const config_t conf)
+int Io_base = 0;
+int Wr_offs = 0;
+int Rd_offs = 0;
+
+struct hardware Uspace;
+
+int usp_config(const config_t conf)
 {
+    config_t u = get_recursive_entry(CONFIG_USPACE, conf);
+    Io_base = get_numeric_entry(USPACE_BASE, u);
+    Wr_offs = get_numeric_entry(USPACE_WR, u);
+    Rd_offs = get_numeric_entry(USPACE_RD, u);
+    Uspace.label = get_string_entry(CONFIG_HW, conf);
+    if(Io_base >= 0 && Wr_offs >=0 && Rd_offs >=0)        
+        return PLC_OK;
+    else 
+        return PLC_ERR;
 }
 
-int enable_bus() /* Enable bus communication */
+int usp_enable() /* Enable bus communication */
 {
-	int uid;
-	uid = getuid(); /* get User id */
-	seteuid(0); /* set User Id to root (0) */
-	if (geteuid() != 0){
+	int uid = getuid(); /* get User id */
+	int r = seteuid(0); /* set User Id to root (0) */
+	if (r < 0 || geteuid() != 0){
 		fprintf(stderr, "FATAL ERROR: UNABLE TO CHANGE TO ROOT\n");
-		return -1;
+		return PLC_ERR;
 	}
 	if (iopl(3)){
 /* request bus WR i/o permission */
 		fprintf(stderr, "FATAL ERROR: UNABLE TO GET I/O PORT PERMISSION\n");
 		perror("iopl() ");
-		seteuid(uid);
-		return -1;
+		r = seteuid(uid);
+		return PLC_ERR;
 	}
-	seteuid(uid); /* reset User Id */
-	outb(0, Base + Wr_offs); //clear outputs port
+	r = seteuid(uid); /* reset User Id */
+	outb(0, Io_base + Wr_offs); //clear outputs port
 	printf("io card enabled\n");
-	return 1;
+	return PLC_OK;
 }
 
-int disable_bus() /* Disable bus communication */
+int usp_disable() /* Disable bus communication */
 {
-	int uid, i, j, n;
+	/*int uid, i, j, n;
 	for (i = 0; i < Dq; i++){	//write zeros
 		for (j = 0; j < BYTESIZE; j++){	//zero n bit out
 			n = BYTESIZE * i + j;
 			dio_write(plc.outputs, n, 0);
 		}
-	}
-	uid = getuid(); /* get User id */
-	setuid(0); /* set User Id to root (0) */
-	if (getuid() != 0){
+	}*/
+	int uid = getuid(); /* get User id */
+	int r = setuid(0); /* set User Id to root (0) */
+	if (r < 0 || getuid() != 0){
 		fprintf(stderr, "Unable to change id to root\nExiting\n");
-		return -1;
+		return PLC_ERR;
 	}
 	if (iopl(0)){ /* Normal i/o prevelege level */
 		perror("iopl() ");
-		setuid(uid);
-		return -1;
+		r = setuid(uid);
+		return PLC_ERR;
 	}
-	setuid(uid); /* reset User Id */
-    return 1;
+	r = setuid(uid); /* reset User Id */
+    return PLC_OK;
 }
 
-int io_fetch()
+int usp_fetch()
 {
     return 0;
 }
 
-int io_flush()
+int usp_flush()
 {
     return 0;
 }
 
-void dio_read(unsigned int n, BYTE* bit)
+void usp_dio_read(unsigned int n, BYTE* bit)
 {	//write input n to bit
 	unsigned int b;
 	BYTE i;
-	i = inb(Base + Rd_offs + n / BYTESIZE);
+	i = inb(Io_base + Rd_offs + n / BYTESIZE);
 	b = (i >> n % BYTESIZE) % 2;
 	*bit = (BYTE) b;
 }
 
-void dio_write(BYTE * buf, int n, int bit)
+void usp_dio_write(const BYTE * buf, int n, int bit)
 {	//write bit to n output
 	BYTE q;
 	q = buf[n / BYTESIZE];
 	q |= bit << n % BYTESIZE;
-	outb(q, Base + Wr_offs + n / BYTESIZE);
+	outb(q, Io_base + Wr_offs + n / BYTESIZE);
 }
 
-void dio_bitfield(BYTE * write_mask, BYTE * bits)
+void usp_dio_bitfield(const BYTE * write_mask, BYTE * bits)
 {	//simultaneusly write output bits defined my mask and read all inputs
     /*FIXME
     int i;
@@ -90,14 +110,30 @@ void dio_bitfield(BYTE * write_mask, BYTE * bits)
         bits[i] = inb(Base + Rd_offs + i);*/
 }
 
-void data_read(unsigned int index, uint64_t* value)
+void usp_data_read(unsigned int index, uint64_t* value)
 {
     return; //unimplemented for user space
 }
 
 
-void data_write(unsigned int index, uint64_t value)
+void usp_data_write(unsigned int index, uint64_t value)
 {
     return; //unimplemented for user space
 }
+
+struct hardware Uspace = {
+    HW_USPACE,
+    0, //errorcode
+    "",
+    usp_enable,// enable
+    usp_disable, //disable
+    usp_fetch, //fetch
+    usp_flush, //flush
+    usp_dio_read, //dio_read
+    usp_dio_write, //dio_write
+    usp_dio_bitfield, //dio_bitfield
+    usp_data_read, //data_read
+    usp_data_write, //data_write
+    usp_config, //hw_config
+};
 

@@ -3,14 +3,14 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include "config.h"
+#include "../hw/hardware.h"
 #include "data.h"
 #include "instruction.h"
 #include "rung.h"
 #include "plclib.h"
 #include "util.h"
 
-#include "config.h"
-#include "../hw/hardware.h"
 #include "project.h"
 
 const char * LibErrors[N_IE] = {
@@ -964,20 +964,24 @@ void read_inputs(plc_t p) {
     
     BYTE i_bit = 0;
     
-    io_fetch();//for simulation
+    if(p == NULL
+    || p->hw == NULL)
+        return;
+    
+    p->hw->fetch();//for simulation
     
     for (i = 0; i < p->ni; i++){	//for each input byte
         p->inputs[i] = 0;
         for (j = 0; j < BYTESIZE; j++){	//read n bit into in
             n = i * BYTESIZE + j;
             i_bit = 0;
-            dio_read(n, &i_bit);
+            p->hw->dio_read(n, &i_bit);
             p->inputs[i] |= i_bit << j;
         }	//mask them
     }
     
     for (i = 0; i < p->nai; i++){	//for each input sample
-        data_read(i, &p->real_in[i]);
+        p->hw->data_read(i, &p->real_in[i]);
     }
 }
 
@@ -987,17 +991,21 @@ void write_outputs(plc_t p) {
     int q_bit=0;
     
     int i=0;
+    if(p == NULL
+    || p->hw == NULL)
+        return;
+    
     for (i = 0; i < p->nq; i++){	
         for (j = 0; j < BYTESIZE; j++){	//write n bit out
             n = BYTESIZE * i + j;
             q_bit = (p->outputs[i] >> j) % 2;
-            dio_write(p->outputs, n, q_bit);
+            p->hw->dio_write(p->outputs, n, q_bit);
         }
     }
     for (i = 0; i < p->naq; i++){	//for each output sample
-        data_write(i, p->real_out[i]);
+        p->hw->data_write(i, p->real_out[i]);
     }
-    io_flush();//for simulation
+    p->hw->flush();//for simulation
 }
 
 int is_input_forced(const plc_t p, BYTE i) {
@@ -1416,7 +1424,7 @@ plc_t new_plc(
     int nm,
     int nr,
     int step,
-    const char * hw){
+    hardware_t hw){
 
     plc_t plc = (plc_t)malloc(sizeof(struct PLC_regs));
     memset(plc, 0, sizeof(struct PLC_regs));
@@ -1430,7 +1438,7 @@ plc_t new_plc(
     plc->nm = nm;
     plc->nmr = nr;
     
-    sprintf(plc->hw, "%s", hw);
+    plc->hw = hw;
     plc->step = step ;
     
     plc->command = 0;
@@ -1470,7 +1478,69 @@ plc_t copy_plc(const plc_t plc) {
     
     return p;
 }
-
+/*destroy*/
+void clear_plc(plc_t plc){
+    if(plc != NULL){
+        if(plc->ai !=NULL){
+            free(plc->ai );
+        }
+        if(plc->aq!=NULL){
+            free(plc->aq);
+        }
+        if(plc->mr !=NULL){
+            free(plc->mr );
+        }
+        if(plc->m!=NULL){
+            free(plc->m);
+        }
+        if( plc->s !=NULL){
+            free( plc->s );
+        }
+        if(plc->t !=NULL){
+            free(plc->t );
+        }
+        if(plc->dq!=NULL){
+            free(plc->dq);
+        }
+        if(plc->di  !=NULL){
+            free(plc->di  );
+        }
+        if(plc->mask_aq !=NULL){
+            free(plc->mask_aq );
+        }
+        if(plc->mask_ai !=NULL){
+            free(plc->mask_ai );
+        }
+        if(plc->real_out !=NULL){
+            free(plc->real_out );
+        }
+        if(plc->real_in!=NULL){
+            free(plc->real_in);
+        }
+        if(plc->maskout_N !=NULL){
+            free(plc->maskout_N );
+        }
+        if(plc->maskin_N !=NULL){
+            free(plc->maskin_N );
+        }
+        if(plc->maskout!=NULL){
+            free(plc->maskout);
+        }
+        if(plc->maskin!=NULL){
+            free(plc->maskin);
+        }
+        if(plc->edgein!=NULL){
+            free(plc->edgein);
+        }
+        if(plc->outputs!=NULL){
+            free(plc->outputs);
+        }
+        if(plc->inputs!=NULL){
+            free(plc->inputs);
+        }
+        free(plc);    
+    }
+}
 /*configurators*/
 plc_t declare_variable(const plc_t p, 
                         int var, 

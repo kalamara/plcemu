@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "config.h"
+#include "hardware.h"
 #include "util.h"
 #include "data.h"
 #include "instruction.h"
@@ -15,13 +16,12 @@
 #include "parser-il.h"
 #include "parser-ld.h"
 #include "ui.h"
-#include "hardware.h"
+
 #include "app.h"
 #include "plcemu.h"
 /*************GLOBALS************************************************/
-plc_t Plc;
-config_t Conf;
-//int UiReady=FALSE;
+
+app_t App;
 
 typedef enum {
     MSG_PLCERR,
@@ -74,25 +74,12 @@ void sigkill() {
     exit(0);
 }
 
-plc_t init_emu(const config_t conf) {
-   
-    hw_config(conf);
-        
-    int di = get_sequence_entry(CONFIG_DI, conf)->size / BYTESIZE + 1; 
-    int dq = get_sequence_entry(CONFIG_DQ, conf)->size / BYTESIZE + 1;
-    int ai = get_sequence_entry(CONFIG_AI, conf)->size;
-    int aq = get_sequence_entry(CONFIG_AQ, conf)->size;
-    int nt = get_sequence_entry(CONFIG_TIMER, conf)->size;
-    int ns = get_sequence_entry(CONFIG_PULSE, conf)->size;
-    int nm = get_sequence_entry(CONFIG_MREG, conf)->size;
-    int nr = get_sequence_entry(CONFIG_MVAR, conf)->size;
-    int step = get_numeric_entry(CONFIG_STEP, conf);
-    char * hw = get_string_entry(CONFIG_HW, conf);
+app_t init_emu(const config_t conf) {
     
-    plc_t p = new_plc(di, dq, ai, aq, nt, ns, nm, nr, step, hw);
-    p = configure(conf, p);
-    p->status = 0;
-    p->update = TRUE;
+    app_t a = (app_t)malloc(sizeof(struct app));
+    memset(a,0,sizeof(struct app));
+    
+    a = configure(conf, a);
 
     //signal(conf->sigenable, sigenable);
     signal(SIGINT, sigkill);
@@ -100,8 +87,9 @@ plc_t init_emu(const config_t conf) {
     
     project_init();
     
-    open_pipe(get_string_entry(CONFIG_HW, conf), p);
-    return p;
+    open_pipe(get_string_entry(CONFIG_HW, conf), a->plc);
+    
+    return a;
 }
 
 const char * Usage = "Usage: plcemu [-c config file] \n \
@@ -148,7 +136,8 @@ int main(int argc, char **argv)
     //int errcode = PLC_OK;
     int prog = 0;
     char * confstr = "config.yml";
-    Conf = init_config();
+  
+    config_t conf = init_config();
     
     char * cvalue = NULL;
     opterr = 0;
@@ -184,40 +173,38 @@ int main(int argc, char **argv)
     if(cvalue == NULL)
        cvalue = confstr;
        
-    if ((load_config_yml(cvalue, Conf))->err < PLC_OK) {
+    if ((load_config_yml(cvalue, conf))->err < PLC_OK) {
         plc_log("Invalid configuration file %s\n", cvalue);
         return PLC_ERR;
     }
 //initialize PLC
-    Plc = init_emu(Conf);
-    sequence_t programs = get_sequence_entry(CONFIG_PROGRAM, Conf);
+    App = init_emu(conf);
+    sequence_t programs = get_sequence_entry(CONFIG_PROGRAM, conf);
     for(; programs && prog < programs->size; prog++){
         if(programs->vars[prog].name){
-            Plc = plc_load_program_file(programs->vars[prog].name, Plc);
+            App->plc = plc_load_program_file(programs->vars[prog].name, App->plc);
         }
     }
-//start hardware
-    enable_bus();
-//start UI
-    
-    ui_init(Conf);
+
+//start UI    
+    ui_init(App->conf);
     //UiReady=more;
-    config_t command = cli_init_command(Conf);
-    config_t state = cli_init_state(Conf);
-    Plc = plc_start(Plc);    
+    config_t command = cli_init_command(conf);
+    config_t state = cli_init_state(conf);
+    App->plc = plc_start(App->plc);    
     while (get_numeric_entry(0, command)!=COM_QUIT) {
-       if(Plc->update != 0){
-           state = get_state(Plc, state);
+       if(App->plc->update != 0){
+           state = get_state(App->plc, state);
            ui_draw(state);
-           Plc->update = 0;
+           App->plc->update = 0;
         }   
         command = ui_update(command);
-        Plc = apply_command(command, &Conf, Plc);
-        Plc = plc_func(Plc);
+        App = apply_command(command, App);
+        App->plc = plc_func(App->plc);
     }
     sigkill();
-    disable_bus();
-    clear_config(Conf);
+    App->plc = plc_stop(App->plc);
+    clear_config(App->conf);
     close_log();
     ui_end();
     return 0;

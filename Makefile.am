@@ -16,7 +16,10 @@ plcemu_SOURCES= src/plcemu.c src/plcemu.h \
                 src/vm/data.c src/vm/data.h \
                 src/vm/instruction.c src/vm/instruction.h \
                 src/vm/rung.c src/vm/rung.h \
-                src/hw/hardware.h \
+                src/hw/hardware.h src/hw/hardware.c \
+                src/hw/hardware-sim.c \
+                src/hw/hardware-uspace.c \
+                src/hw/hardware-comedi.c \
                 src/config.c src/config.h \
                 src/util.c src/util.h \
                 src/ui/ui.h src/ui/cli.c\
@@ -34,15 +37,15 @@ cli_SOURCES=src/ui/cli-zmq.c \
 else
 plcemu_SOURCES+= src/ui/ui-std.c
 endif
+
 #hardware modules supported
+
 if SIMULATION
-plcemu_SOURCES+=src/hw/hardware-sim.c
-else 
-if USPACE
-plcemu_SOURCES+=src/hw/hardware-uspace.c
-else
-plcemu_SOURCES+=src/hw/hardware-comedi.c
+AM_CFLAGS+=-DSIM
 endif
+
+if COMEDI
+AM_CFLAGS+=-DCOMEDI
 endif
 
 nodes:; mknod plcpipe p; mknod plcresponse p; 

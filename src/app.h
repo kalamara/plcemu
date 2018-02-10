@@ -5,13 +5,18 @@
  *@brief app function definitions header
 */
 
+typedef struct app {
+    plc_t plc;
+    config_t conf;
+} * app_t;
+
 /**
- *@brief apply configuration to plc
- *@param plc
+ *@brief apply configuration to application
  *@param configuration
- *@return configured plc 
+ *@param the application
+ *@return configured app
  */
-plc_t configure(const config_t conf, plc_t plc);
+app_t configure(const config_t conf, app_t app);
 
 /**
  *@brief get plc state in serializable form
@@ -25,11 +30,10 @@ config_t get_state(const plc_t plc,
 /**
  *@brief apply a command
  *@param ui command in serializable form
- *@param PLC configuration
- *@param the PLC
- *@return updated PLC
+ *@param app configuration
+ *@param the emulator app
+ *@return updated app
  */                   
-plc_t apply_command(const config_t com, 
-                    config_t * conf,
-                    plc_t plc);
+app_t apply_command(const config_t com, 
+                    app_t a);
 #endif //_APP_H_

@@ -8,6 +8,7 @@
 #include "CUnit/Automated.h"
 
 #include "config.h"
+#include "hardware.h"
 #include "data.h"
 #include "instruction.h"
 #include "rung.h"
@@ -25,6 +26,7 @@
 #include "ut-tree.h"
 #include "ut-cg.h"
 #include "ut-init.h"
+#include "ut-io.h"
 
 #define TRUE 1
 #define FALSE 0
@@ -53,6 +55,7 @@ int clean_suite_failure (void)
 int main ()
 {
   CU_pSuite           suite_lib = NULL;
+  CU_pSuite           suite_io = NULL;
   CU_pSuite           suite_il = NULL;
   CU_pSuite           suite_ld = NULL;
   CU_pSuite           suite_tree = NULL;
@@ -65,6 +68,10 @@ int main ()
 
   /* add a suite to the registry */
   suite_lib = CU_add_suite ("plclib core vm library", 
+                            init_suite_success, 
+                            clean_suite_success);
+
+  suite_io = CU_add_suite ("hardware I/O", 
                             init_suite_success, 
                             clean_suite_success);
                             
@@ -89,6 +96,7 @@ int main ()
                            clean_suite_success);
   
   if(NULL == suite_lib
+  || NULL == suite_io
   || NULL == suite_il
   || NULL == suite_ld
   || NULL == suite_tree
@@ -131,6 +139,16 @@ int main ()
 	CU_cleanup_registry ();
         return CU_get_error ();
   }
+
+//I/O
+  if(ADD_TEST(suite_io, ut_read)
+  || ADD_TEST(suite_io, ut_write) 
+    )
+  {
+	CU_cleanup_registry ();
+        return CU_get_error ();
+  }
+
 //IL lexer-codegen
   if(ADD_TEST(suite_il, ut_number) 
   || ADD_TEST(suite_il, ut_char)

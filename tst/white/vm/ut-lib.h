@@ -1,6 +1,9 @@
 #ifndef _UT_LIB_H_ 
 #define _UT_LIB_H_ 
 
+
+
+
 void init_mock_plc(plc_t plc)
 {
     memset(plc, 0, sizeof(struct PLC_regs));
@@ -57,6 +60,8 @@ void init_mock_plc(plc_t plc)
 	memset(plc->s, 0, plc->ns * sizeof(struct blink));
     memset(plc->m, 0, plc->nm * sizeof(struct mvar));
     memset(plc->mr, 0, plc->nmr * sizeof(struct mreal));
+    
+    
 }
 
 void ut_codec()
@@ -1616,6 +1621,7 @@ Knuth's online variance:
     ins.byte = 0;
 
     int result = append(&ins, &r);
+    CU_ASSERT(result == PLC_OK);
     pc = r.insno - 1;
     result = instruct(&p, &r, &pc);
     CU_ASSERT_DOUBLE_EQUAL(r.acc.r, 1.0l, FLOAT_PRECISION);    
@@ -2187,7 +2193,7 @@ void ut_task_real()
     ins.byte = 0;
 
     int result = append(&ins, &r);
-    
+    CU_ASSERT(result == PLC_OK);
     memset(&ins, 0, sizeof(struct instruction));
 //2.    ADD 1   ;    
     ins.operation = IL_ADD;
@@ -2196,7 +2202,7 @@ void ut_task_real()
     ins.byte = 4;
 
     result = append(&ins, &r);
-    
+    CU_ASSERT(result == PLC_OK);
     memset(&ins, 0, sizeof(struct instruction));
 //3.    ST  %m0   ;
     ins.operation = IL_ST;

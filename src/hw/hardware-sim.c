@@ -3,11 +3,13 @@
 #include "data.h"
 #include "instruction.h"
 #include "rung.h"
-#include "plclib.h"
+
 #include "util.h"
-//#include "plcemu.h"
+
 #include "config.h"
 #include "hardware.h"
+
+#define ASCIISTART 0x30
 
 FILE * Ifd = NULL;
 FILE * Qfd = NULL;
@@ -16,19 +18,52 @@ char * BufOut = NULL;
 char * AdcIn = NULL;
 char * AdcOut = NULL;
 
+unsigned int Ni = 0;
+unsigned int Nq = 0;
+unsigned int Nai = 0;
+unsigned int Naq = 0;
+
 char SimInFile[MAXSTR];
 char SimOutFile[MAXSTR];
 
-extern plc_t Plc;
+struct hardware Sim;
 
-void hw_config(const config_t conf)
+int sim_config(const config_t conf)
 {
     config_t c = get_recursive_entry(CONFIG_SIM, conf);
     sprintf(SimInFile, "%s", get_string_entry(SIM_INPUT, c));
     sprintf(SimOutFile, "%s", get_string_entry(SIM_OUTPUT, c));
+    int r = PLC_OK;
+    Ni = get_sequence_entry(CONFIG_DI, conf)->size / BYTESIZE + 1; 
+    Nq = get_sequence_entry(CONFIG_DQ, conf)->size / BYTESIZE + 1;
+    Nai = get_sequence_entry(CONFIG_AI, conf)->size;
+    Naq = get_sequence_entry(CONFIG_AQ, conf)->size;
+  
+    Sim.label = get_string_entry(CONFIG_HW, conf);
+    if(!(BufIn = (char * )malloc(Ni)))
+        r = PLC_ERR;
+    else
+        memset(BufIn, 0, Ni);
+
+    if(!(BufOut = (char * )malloc(Nq)))
+        r = PLC_ERR;
+    else
+        memset(BufOut, 0, Nq);
+    
+    if(!(AdcIn = (char * )malloc( LONG_BYTES * Nai)))
+        r = PLC_ERR;
+    else
+        memset(AdcIn, 0, LONG_BYTES * Nai);
+
+    if(!(AdcOut = (char * )malloc( LONG_BYTES * Naq)))
+        r = PLC_ERR;
+    else
+        memset(AdcOut, 0, LONG_BYTES * Naq);
+        
+    return r;    
 }
 
-int enable_bus() /* Enable bus communication */
+int sim_enable() /* Enable bus communication */
 {
     int r = PLC_OK;
     /*open input and output streams*/
@@ -48,29 +83,11 @@ int enable_bus() /* Enable bus communication */
     //else
       //  plc_log("Opened simulation output to %s", SimOutFile);
 
-    if(!(BufIn = (char * )malloc(sizeof(char) * Plc->ni)))
-        r = PLC_ERR;
-    else
-        memset(BufIn, 0, sizeof(BYTE)*Plc->ni);
-
-    if(!(BufOut = (char * )malloc(sizeof(char) * Plc->nq)))
-        r = PLC_ERR;
-    else
-        memset(BufOut, 0, sizeof(char) * Plc->nq);
     
-    if(!(AdcIn = (char * )malloc(sizeof(char) * LONG_BYTES * Plc->nai)))
-        r = PLC_ERR;
-    else
-        memset(AdcIn, 0, sizeof(BYTE) * LONG_BYTES * Plc->nai);
-
-    if(!(AdcOut = (char * )malloc(sizeof(char) * LONG_BYTES * Plc->naq)))
-        r = PLC_ERR;
-    else
-        memset(AdcOut, 0, sizeof(char) * LONG_BYTES * Plc->naq);
     return r;
 }
 
-int disable_bus() /* Disable bus communication */
+int sim_disable() /* Disable bus communication */
 {
     int r = 1;
     /*close streams*/
@@ -93,10 +110,10 @@ int disable_bus() /* Disable bus communication */
     return r;
 }
 
-int io_fetch()
+int sim_fetch()
 {
-    unsigned int digital = Plc->ni;
-    unsigned int analog = Plc->nai;
+    unsigned int digital = Ni;
+    unsigned int analog = Nai;
     int bytes_read = 0;
     
     bytes_read = fread(BufIn, 
@@ -119,18 +136,18 @@ int io_fetch()
         && feof(Ifd))
             rewind(Ifd);
         else{
-            disable_bus();
-            enable_bus();
+            sim_disable();
+            sim_enable();
         }
     }
     return bytes_read;
 }
 
-int io_flush()
+int sim_flush()
 {
     int bytes_written = 0;
-    unsigned int digital = Plc->nq;
-    unsigned int analog = Plc->naq;
+    unsigned int digital = Nq;
+    unsigned int analog = Naq;
     bytes_written = fwrite(BufOut, 
                         sizeof(BYTE), 
                         digital, 
@@ -144,7 +161,7 @@ int io_flush()
     return bytes_written;
 }
 
-void dio_read(unsigned int n, BYTE* bit)
+void sim_dio_read(unsigned int n, BYTE* bit)
 {	//write input n to bit
     unsigned int b, position;
     position = n / BYTESIZE;
@@ -157,7 +174,7 @@ void dio_read(unsigned int n, BYTE* bit)
     *bit = (BYTE) b;
 }
 
-void dio_write(const unsigned char *buf,  int n,  int bit)
+void sim_dio_write(const unsigned char *buf,  int n,  int bit)
 
 {	//write bit to n output
 	BYTE q;
@@ -171,7 +188,7 @@ void dio_write(const unsigned char *buf,  int n,  int bit)
          BufOut[position] = q;
 }
 
-void dio_bitfield(const unsigned char* mask, unsigned char *bits)
+void sim_dio_bitfield(const unsigned char* mask, unsigned char *bits)
 {	//simultaneusly write output bits defined by mask and read all inputs
     /* FIXME
     int i=0;
@@ -180,9 +197,7 @@ void dio_bitfield(const unsigned char* mask, unsigned char *bits)
     comedi_dio_bitfield(it, Comedi_subdev_i, w, &b);*/
 }
 
-
-
-void data_read(unsigned int index, uint64_t* value)
+void sim_data_read(unsigned int index, uint64_t* value)
 {
     unsigned int pos = index*LONG_BYTES;
     int i = LONG_BYTES - 1;
@@ -197,9 +212,26 @@ void data_read(unsigned int index, uint64_t* value)
 }
 
 
-void data_write(unsigned int index, uint64_t value)
+void sim_data_write(unsigned int index, uint64_t value)
 {
     unsigned int pos = index*LONG_BYTES;
     sprintf(AdcOut + pos, "%lx", value);
     return; 
 }
+
+struct hardware Sim = {
+    HW_SIM,
+    0, //errorcode
+    "simulated hardware",
+    sim_enable,// enable
+    sim_disable, //disable
+    sim_fetch, //fetch
+    sim_flush, //flush
+    sim_dio_read, //dio_read
+    sim_dio_write, //dio_write
+    sim_dio_bitfield, //dio_bitfield
+    sim_data_read, //data_read
+    sim_data_write, //data_write
+    sim_config, //hw_config
+};
+

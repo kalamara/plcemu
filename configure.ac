@@ -49,14 +49,14 @@ AC_ARG_ENABLE([sim],
 esac],[sim=true])
 AM_CONDITIONAL([SIMULATION], [test x$sim = xtrue])
 
-AC_ARG_ENABLE([uspace],
-[  --enable-uspace    direct user space hw control],
+AC_ARG_ENABLE([comedi],
+[  --enable-comedi    comedi hw drivers],
 [case "${enableval}" in
   yes) uspace=true ;;
   no)  uspace=false ;;
-  *) AC_MSG_ERROR([bad value ${enableval} for --enable-uspace]) ;;
-esac],[uspace=false])
-AM_CONDITIONAL([USPACE], [test x$uspace = xtrue])
+  *) AC_MSG_ERROR([bad value ${enableval} for --enable-comedi]) ;;
+esac],[comedi=false])
+AM_CONDITIONAL([COMEDI], [test x$comedi = xtrue])
 
 
 AC_ARG_ENABLE([ui],

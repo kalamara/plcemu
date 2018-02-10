@@ -1,6 +1,8 @@
 #include <ctype.h>
 
 #include "util.h"
+#include "config.h"
+#include "hardware.h"
 #include "data.h"
 #include "instruction.h"
 #include "rung.h"
