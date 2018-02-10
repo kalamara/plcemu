@@ -16,6 +16,8 @@ int Comedi_subdev_q;
 int Comedi_subdev_ai;
 int Comedi_subdev_aq;
 
+struct hardware Comedi;
+
 int com_config(const config_t conf)
 {
     config_t c = get_recursive_entry(CONFIG_COMEDI, conf);
@@ -27,7 +29,7 @@ int com_config(const config_t conf)
     Comedi_subdev_ai = get_numeric_entry(SUBDEV_ADC, sub);
     Comedi_subdev_aq = get_numeric_entry(SUBDEV_DAC, sub);
     
-    Comedi->label = get_string_entry(CONFIG_HW, conf);
+    Comedi.label = get_string_entry(CONFIG_HW, conf);
     
      if(Comedi_file >= 0) 
          
@@ -68,12 +70,12 @@ int com_disable() /* Disable bus communication */
 }
 
 
-int com_io_fetch()
+int com_fetch()
 {//COMEDI has already fetched them for you
     return 0;
 }
 
-int com_io_flush()
+int com_flush()
 {
     return 0;
 }

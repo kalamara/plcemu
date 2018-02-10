@@ -12570,8 +12570,8 @@ fi
 # Check whether --enable-comedi was given.
 if test "${enable_comedi+set}" = set; then :
   enableval=$enable_comedi; case "${enableval}" in
-  yes) uspace=true ;;
-  no)  uspace=false ;;
+  yes) comedi=true ;;
+  no)  comedi=false ;;
   *) as_fn_error $? "bad value ${enableval} for --enable-comedi" "$LINENO" 5 ;;
 esac
 else

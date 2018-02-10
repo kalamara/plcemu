@@ -52,8 +52,8 @@ AM_CONDITIONAL([SIMULATION], [test x$sim = xtrue])
 AC_ARG_ENABLE([comedi],
 [  --enable-comedi    comedi hw drivers],
 [case "${enableval}" in
-  yes) uspace=true ;;
-  no)  uspace=false ;;
+  yes) comedi=true ;;
+  no)  comedi=false ;;
   *) AC_MSG_ERROR([bad value ${enableval} for --enable-comedi]) ;;
 esac],[comedi=false])
 AM_CONDITIONAL([COMEDI], [test x$comedi = xtrue])
