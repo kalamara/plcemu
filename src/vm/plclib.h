@@ -163,7 +163,7 @@ typedef struct mreal{
  */
 typedef struct PLC_regs{
     hardware_t hw;
-     ///just a label for the hardware used
+     ///hardware interface
     BYTE *inputs;   ///digital input values buffer
     uint64_t *real_in; ///analog raw input values buffer
     BYTE *outputs;  ///digital output values buffer

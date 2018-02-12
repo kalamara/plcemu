@@ -2,7 +2,7 @@
 #define _UT_LIB_H_ 
 
 
-
+extern struct hardware Hw_stub;
 
 void init_mock_plc(plc_t plc)
 {
@@ -15,7 +15,7 @@ void init_mock_plc(plc_t plc)
     plc->ns = 2;
     plc->nm = 8;
     plc->nmr = 8;
-
+    plc->hw = &Hw_stub;
     plc->inputs = (BYTE *) malloc(plc->ni);
     plc->outputs = (BYTE *) malloc(plc->nq);
     plc->real_in = (uint64_t *) malloc(plc->nai * sizeof(uint64_t));

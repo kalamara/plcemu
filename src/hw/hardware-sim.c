@@ -174,7 +174,7 @@ void sim_dio_read(unsigned int n, BYTE* bit)
     *bit = (BYTE) b;
 }
 
-void sim_dio_write(const unsigned char *buf,  int n,  int bit)
+void sim_dio_write(const unsigned char *buf, unsigned int n,  BYTE bit)
 
 {	//write bit to n output
 	BYTE q;
@@ -188,7 +188,7 @@ void sim_dio_write(const unsigned char *buf,  int n,  int bit)
          BufOut[position] = q;
 }
 
-void sim_dio_bitfield(const unsigned char* mask, unsigned char *bits)
+void sim_dio_bitfield(const BYTE* mask, BYTE *bits)
 {	//simultaneusly write output bits defined by mask and read all inputs
     /* FIXME
     int i=0;

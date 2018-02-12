@@ -16,7 +16,7 @@ typedef enum{
 typedef int (*helper_f)(); //generic helper functions only return an error code
 
 typedef void(*dio_rd_f)(unsigned int, unsigned char*);
-typedef void(*dio_wr_f)(const unsigned char *, int , int );
+typedef void(*dio_wr_f)(const unsigned char *, unsigned int , unsigned char );
 typedef void(*dio_bit_f)(const unsigned char*, unsigned char *);
 typedef void(*data_rd_f)(unsigned int, uint64_t* );
 typedef void(*data_wr_f)(unsigned int, uint64_t );
@@ -55,7 +55,7 @@ typedef struct hardware{
     dio_rd_f dio_read;
 /**
  * @brief write bit to digital output
- * @param value
+ * @param current output buffer
  * @param n index
  * @param bit
  */

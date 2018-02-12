@@ -51,13 +51,6 @@ int usp_enable() /* Enable bus communication */
 
 int usp_disable() /* Disable bus communication */
 {
-	/*int uid, i, j, n;
-	for (i = 0; i < Dq; i++){	//write zeros
-		for (j = 0; j < BYTESIZE; j++){	//zero n bit out
-			n = BYTESIZE * i + j;
-			dio_write(plc.outputs, n, 0);
-		}
-	}*/
 	int uid = getuid(); /* get User id */
 	int r = setuid(0); /* set User Id to root (0) */
 	if (r < 0 || getuid() != 0){
@@ -92,7 +85,7 @@ void usp_dio_read(unsigned int n, BYTE* bit)
 	*bit = (BYTE) b;
 }
 
-void usp_dio_write(const BYTE * buf, int n, int bit)
+void usp_dio_write(const BYTE * buf, unsigned int n, unsigned char bit)
 {	//write bit to n output
 	BYTE q;
 	q = buf[n / BYTESIZE];

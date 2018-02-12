@@ -1255,6 +1255,13 @@ plc_t plc_load_program_file(const char * path, plc_t plc) {
 }
 
 plc_t plc_start(plc_t p){
+    
+    if(p == NULL
+    || p->hw == NULL)
+        return NULL;
+    
+    p->hw->enable();
+        
     if(p->status == ST_STOPPED){
         p->update = CHANGED_STATUS;
     }
@@ -1264,6 +1271,15 @@ plc_t plc_start(plc_t p){
 }
 
 plc_t plc_stop(plc_t p){
+    if(p == NULL
+    || p->hw == NULL)
+        return NULL;
+        
+    memset(p->outputs, 0, p->nq);
+    memset(p->real_out, 0, 8*p->naq);
+    write_outputs(p);
+        
+    p->hw->disable();    
     if(p->status == ST_RUNNING){
         p->update = CHANGED_STATUS;
     }

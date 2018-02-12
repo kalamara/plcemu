@@ -86,11 +86,8 @@ void com_dio_read(unsigned int index, BYTE* value)
     comedi_dio_read(it, Comedi_subdev_i, index, &b);
     *value = (BYTE) b;
 }
-void com_dio_write(const BYTE * value, int n, int bit)
+void com_dio_write(const BYTE * value, unsigned int n, unsigned char bit)
 {	//write bit to n output
-    BYTE q;
-    q = value[n / BYTESIZE];
-    q |= bit << n % BYTESIZE;
     comedi_dio_write(it, Comedi_subdev_q, n, bit);
 }
 
