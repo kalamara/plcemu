@@ -56,15 +56,6 @@ int com_enable() /* Enable bus communication */
 
 int com_disable() /* Disable bus communication */
 {
-    int i, j, n;
-   /* for (i = 0; i < Plc.nq; i++){
-        //write zeros
-        for (j = 0; j < BYTESIZE; j++){
-            //zero n bit out
-            n = BYTESIZE * i + j;
-            dio_write(Plc.outputs, n, 0);
-        }
-    }*/
     comedi_close(it);
     return PLC_OK;
 }

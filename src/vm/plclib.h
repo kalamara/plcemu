@@ -17,6 +17,7 @@
 
 #define FLOAT_PRECISION 0.000001
 
+
 typedef enum{
     ST_STOPPED,
     ST_RUNNING
@@ -79,9 +80,14 @@ typedef enum{
  * @brief The digital_input struct
  */
 typedef struct digital_input{
-    BYTE I;///contact value
-    BYTE RE;///rising edge
-    BYTE FE;///falling edge
+    BIT(I);///contact value
+    BIT(RE);///rising edge
+    BIT(FE);///falling edge
+    BIT(EDGE); ///true if value changed
+    BIT(SET); /// true if forced 1
+    BIT(RESET); /// true if forced 0
+    ///no special MASK bit is needed as SET and RESET are accessed only 
+    ///via force commands
     char nick[NICKLEN];///nickname
 } * di_t;
 
@@ -89,9 +95,10 @@ typedef struct digital_input{
  * @brief The digital_output struct
  */
 typedef struct digital_output{
-    BYTE Q;//contact
-    BYTE SET;//set
-    BYTE RESET;//reset
+    BIT(Q);//contact
+    BIT(SET);//set
+    BIT(RESET);//reset
+    BIT(MASK); /// true if forced 
     char nick[NICKLEN];//nickname
 } * do_t;
 
@@ -102,6 +109,7 @@ typedef struct analog_io{
     double V;/// data value
     double min; ///range for conversion to/from raw data
     double max;
+    double mask;///forced value mask
     char nick[NICKLEN];///nickname
 } * aio_t;
 
@@ -113,11 +121,12 @@ typedef struct timer{
     long S;	///scale; S=1000=>increase every 1000 cycles. STEP= 10 msec=> increase every 10 sec
     long sn;///internal counter used for scaling
     long V;	///value
-    BYTE Q;	///output
+    BIT(Q);	///output
     long P;	///Preset value
-    BYTE ONDELAY;///1=on delay, 0 = off delay
-    BYTE START;///start command: must be on to count
-    //BYTE RESET;///down command: sets V = 0
+    BIT(ONDELAY);///1=on delay, 0 = off delay
+    BIT(START);///start command: must be on to count
+    BIT(RESET);///down command: sets V = 0
+    BIT(MASK);///true if timer is forced to up or down
     char nick[NICKLEN];
 } * dt_t;
 
@@ -126,7 +135,7 @@ typedef struct timer{
  * struct which represents a blinker
  */
 typedef struct blink{
-    BYTE Q; ///output
+    BIT(Q); ///output
     long S;	///scale; S=1000=>toggle every 1000 cycles. STEP= 10 msec=> toggle every 10 sec
     long sn;///internal counter for scaling
     char nick[NICKLEN];
@@ -138,12 +147,13 @@ typedef struct blink{
  */
 typedef struct mvar{
     uint64_t V;     ///TODO: add type
-    BYTE RO;	///1 if read only;
-    BYTE DOWN;	///1: can be used as a down counter
-    BYTE PULSE;		///pulse for up/downcounting
-    BYTE EDGE;		///edge of pulse
-    BYTE SET;		///set pulse
-    BYTE RESET;		///reset pulse
+    BIT(RO);	///1 if read only;
+    BIT(DOWN);	///1: can be used as a down counter
+    BIT(PULSE);		///pulse for up/downcounting
+    BIT(EDGE);		///edge of pulse
+    BIT(SET);		///set pulse
+    BIT(RESET);		///reset pulse
+    BIT(MASK); ///true if pulse is set
     char nick[NICKLEN];   ///nickname
 } * mvar_t;
 
@@ -153,7 +163,7 @@ typedef struct mvar{
  */
 typedef struct mreal{
     double V;     ///TODO: add type
-    BYTE RO;	///1 if read only;
+    BIT(RO);	///1 if read only;
     char nick[NICKLEN];   ///nickname
 } * mreal_t;
 
@@ -161,6 +171,7 @@ typedef struct mreal{
  * @brief The PLC_regs struct
  * The struct which contains all the software PLC registers
  */
+//TODO: should masks and edges be packed inside di_t, dq_t?
 typedef struct PLC_regs{
     hardware_t hw;
      ///hardware interface
@@ -168,15 +179,17 @@ typedef struct PLC_regs{
     uint64_t *real_in; ///analog raw input values buffer
     BYTE *outputs;  ///digital output values buffer
     uint64_t *real_out; ///analog raw output values buffer
-    BYTE *edgein;	///edges buffer
-    BYTE *maskin;	///masks used to force values
-	BYTE *maskout;
-	BYTE *maskin_N;
-	BYTE *maskout_N;
-	double *mask_ai;
-	double *mask_aq;
+    //BYTE *edgein;	///edges buffer
+    //BYTE *maskin;	///masks used to force values
+	//BYTE *maskout;
+	//BYTE *maskin_N;
+	//BYTE *maskout_N;
+	//double *mask_ai;
+	//double *mask_aq;
+    
     BYTE command;   ///serial command from plcpipe
     BYTE response;  ///response to named pipe
+    
     BYTE update; ///binary mask of state update
     int status;    ///0 = stopped, 1 = running, negative = error
 	
@@ -547,21 +560,32 @@ int open_pipe(const char * pipe, plc_t p);
 plc_t plc_func( plc_t p);
 
 /**
- * @brief is input forced
- * @param reference to plc
- * @param input index
- * @return true if forced, false if not, error if out of bounds
+ * @brief force operand with value
+ * @param the plc
+ * @param the operand type
+ * @param the operand index
+ * @param the value
+ * @return new plc state, or NULL in error
  */
-int is_input_forced(const plc_t p, BYTE i);
+plc_t force(plc_t p, int op, BYTE i, char * val);
 
 /**
- * @brief is output forced
+ * @brief unforce operand
+ * @param the plc
+ * @param the operand type
+ * @param the operand index
+ * @param new plc state, or null in error
+ */
+plc_t unforce(plc_t p, int op, BYTE i);
+
+/**
+ * @brief is an operand forced
  * @param reference to plc
+ * @param operand type
  * @param input index
  * @return true if forced, false if not, error if out of bounds
  */
-int is_output_forced(const plc_t p, BYTE i);
-
+int is_forced(plc_t p, int op, BYTE i);
 
 /**
  * @brief decode inputs

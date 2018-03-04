@@ -10,15 +10,10 @@ void ut_construct()
     CU_ASSERT(plc->ni == 8);
     CU_ASSERT(plc->di[63].I == 0);
     CU_ASSERT(plc->inputs[7] == 0);
-    CU_ASSERT(plc->edgein[7] == 0);
-    CU_ASSERT(plc->maskin[7] == 0);
-    CU_ASSERT(plc->maskin_N[7] == 0);
    
     CU_ASSERT(plc->nq == 8);
     CU_ASSERT(plc->dq[63].Q == 0);
     CU_ASSERT(plc->outputs[7] == 0);
-    CU_ASSERT(plc->maskout[7] == 0);
-    CU_ASSERT(plc->maskout_N[7] == 0);
    
     CU_ASSERT(plc->nai == 4);
     CU_ASSERT(plc->real_in[3] == 0);
@@ -43,15 +38,10 @@ void ut_construct()
     CU_ASSERT(plc->old->ni == 8);
     CU_ASSERT(plc->old->di[63].I == 0);
     CU_ASSERT(plc->old->inputs[7] == 0);
-    CU_ASSERT(plc->old->edgein[7] == 0);
-    CU_ASSERT(plc->old->maskin[7] == 0);
-    CU_ASSERT(plc->old->maskin_N[7] == 0);
    
     CU_ASSERT(plc->old->nq == 8);
     CU_ASSERT(plc->old->dq[63].Q == 0);
     CU_ASSERT(plc->old->outputs[7] == 0);
-    CU_ASSERT(plc->old->maskout[7] == 0);
-    CU_ASSERT(plc->old->maskout_N[7] == 0);
    
     CU_ASSERT(plc->old->nai == 4);
     CU_ASSERT(plc->old->real_in[3] == 0);
@@ -73,11 +63,9 @@ void ut_construct()
     CU_ASSERT(plc->old->nmr == 4);
     CU_ASSERT(plc->old->mr[3].V < FLOAT_PRECISION);
 
- 
     CU_ASSERT(plc->step == 100);
     CU_ASSERT(plc->command == 0);
-	CU_ASSERT(plc->status = 1);
-	
+	CU_ASSERT(plc->status = 1);	
 }
 
 void ut_config(){

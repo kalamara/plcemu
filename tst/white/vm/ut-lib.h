@@ -20,14 +20,7 @@ void init_mock_plc(plc_t plc)
     plc->outputs = (BYTE *) malloc(plc->nq);
     plc->real_in = (uint64_t *) malloc(plc->nai * sizeof(uint64_t));
     plc->real_out = (uint64_t *) malloc(plc->naq * sizeof(uint64_t));
-	plc->edgein = (BYTE *) malloc(plc->ni);
-	plc->maskin = (BYTE *) malloc(plc->ni);
-	plc->maskout = (BYTE *) malloc(plc->nq);
-	plc->maskin_N = (BYTE *) malloc(plc->ni);
-    plc->maskout_N = (BYTE *) malloc(plc->nq);
-    plc->mask_ai = (double *) malloc(plc->nai * sizeof(double));
-    plc->mask_aq = (double *) malloc(plc->naq * sizeof(double));
-    
+   
 	plc->di = (di_t) malloc(
 			BYTESIZE * plc->ni * sizeof(struct digital_input));
 	plc->dq = (do_t) malloc(
@@ -48,10 +41,6 @@ void init_mock_plc(plc_t plc)
 	memset(plc->outputs, 0, plc->nq);
 	memset(plc->real_in, 0, plc->nai*sizeof(uint64_t));
 	memset(plc->real_out, 0, plc->naq*sizeof(uint64_t));
-    memset(plc->maskin, 0, plc->ni);
-	memset(plc->maskout, 0, plc->nq);
-	memset(plc->maskin_N, 0, plc->ni);
-	memset(plc->maskout_N, 0, plc->nq);
     memset(plc->di, 0, BYTESIZE * plc->ni * sizeof(struct digital_input));
 	memset(plc->dq, 0, BYTESIZE * plc->nq * sizeof(struct digital_output));
     memset(plc->ai, 0, plc->nai * sizeof(struct analog_io));
@@ -59,9 +48,7 @@ void init_mock_plc(plc_t plc)
     memset(plc->t, 0, plc->nt * sizeof(struct timer));
 	memset(plc->s, 0, plc->ns * sizeof(struct blink));
     memset(plc->m, 0, plc->nm * sizeof(struct mvar));
-    memset(plc->mr, 0, plc->nmr * sizeof(struct mreal));
-    
-    
+    memset(plc->mr, 0, plc->nmr * sizeof(struct mreal));    
 }
 
 void ut_codec()
@@ -77,6 +64,7 @@ void ut_codec()
     p.inputs[0] = 0xaa;
     
     //from zero to 0xaa
+    
     p.real_in[0] = UINT64_MAX / 2;
     p.ai[0].min = 0.0l;
     p.ai[0].max = 10.0l;
@@ -84,7 +72,8 @@ void ut_codec()
     BYTE changed = dec_inp(&p);
     
     CU_ASSERT(changed == TRUE);
-    
+    //everything in buffer should be transferred to inputs
+    //any input that changed must have set rising edge
     for(i = 0; i < 8; i++){
         CU_ASSERT(p.di[i].I == (0xaa >> i) % 2);
         CU_ASSERT(p.di[i].I == p.di[i].RE);     
@@ -92,13 +81,15 @@ void ut_codec()
     }
     
     //printf("\n%lf\n", p.ai[0].V);
+    //analog should be max / 2 = 5
     CU_ASSERT_DOUBLE_EQUAL(p.ai[0].V, 5.0l, FLOAT_PRECISION);
-    
+    //first four outputs are true, next for are set
     for(i = 0; i < 4; i++){
         p.dq[i].Q = 1;
         p.dq[i+4].SET = 1;
     }
-    p.mask_aq[0] = 99.0l;
+    //analog 0 has value and is not forced (mask > max)
+    p.aq[0].mask = 99.0l;
     p.aq[0].min = -10.0l;
     p.aq[0].max = 10.0l;
     p.aq[0].V = -7.5l;
@@ -107,13 +98,20 @@ void ut_codec()
     CU_ASSERT(changed == TRUE);
     
     //printf("\n%x\n", p.outputs[0]);
+    //all dout shoud be true
     CU_ASSERT(p.outputs[0] == 0xff);
+    //analog 0 should be -2 
     CU_ASSERT(p.real_out[0] == 0x2000000000000000);
     
     //   printf("%lx\n", p.real_out[0]);
     //0xaa to 0xaa
     
     p.old->inputs[0] = 0xaa;
+    for(i = 0; i < 8; i++){
+        p.old->di[i].I = (0xaa >> i) % 2;
+        p.old->di[i].I = p.di[i].RE;     
+        p.old->di[i].FE = 0;   
+    }
     p.old->outputs[0] = 0xff;
     
     //only analog changed
@@ -121,17 +119,15 @@ void ut_codec()
     
     CU_ASSERT(changed == TRUE); 
     
-    changed = enc_out(&p);
-    
-    CU_ASSERT(changed == TRUE); 
-    
     p.old->aq[0].V = -7.5l;
-    
+//same values as old
     changed = enc_out(&p);
     
     CU_ASSERT(changed == FALSE);
     
     for(i = 0; i < 8; i++){
+//    printf("input %d value %x re %x fe %x\n",
+//                i, p.di[i].I, p.di[i].RE, p.di[i].FE);
         CU_ASSERT(p.di[i].I == (0xaa >> i) % 2);
         CU_ASSERT(p.di[i].FE == p.di[i].RE);
         CU_ASSERT(p.di[i].FE == 0);     
@@ -146,18 +142,26 @@ void ut_codec()
     CU_ASSERT(changed == TRUE);
     
     for(i = 0; i < 8; i++){
+       // printf("input %d value %x re %x fe %x\n",
+        //        i, p.di[i].I, p.di[i].RE, p.di[i].FE);
         CU_ASSERT(p.di[i].I == (0xcc >> i) % 2);
         CU_ASSERT(p.di[i].RE == (0x44 >> i) % 2);
         CU_ASSERT(p.di[i].FE == (0x22 >> i) % 2);     
     }
     //masks
-    p.maskin[0] = 0x33;
-    p.maskin_N[0] = 0xee;
-    p.mask_ai[0] = 9.0l;
-    
-    p.maskout[0] = 0x33;
-    p.maskout_N[0] = 0xee;
-    p.mask_aq[0] = 2.5l;
+    for(i = 0; i < 8; i++){
+        p.di[i].SET = (0x33 >> i) % 2;
+    }
+    for(i = 0; i < 8; i++){
+        p.di[i].RESET = (0xee >> i) % 2;
+    }
+    p.ai[0].mask = 9.0l;
+    for(i = 0; i < 8; i++){
+        p.dq[i].SET = (0x33 >> i) % 2;
+        p.dq[i].RESET = (0xee >> i) % 2;
+        p.dq[i].MASK = 1;
+    }
+    p.aq[0].mask = 2.5l;
     
     //force 0 has precedence
     //Q:       1111 
@@ -173,16 +177,16 @@ void ut_codec()
     changed = dec_inp(&p);
     
     CU_ASSERT(changed == TRUE);
-    
-    CU_ASSERT(p.edgein[0] == 0xbb);
-    
+        
     CU_ASSERT_DOUBLE_EQUAL(p.ai[0].V, 9.0l, FLOAT_PRECISION);
     
     for(i = 0; i < 8; i++){
+    //printf("\noutput %d value %x set %x reset %x\n",
+      //          i, p.dq[i].Q,
+        //        p.dq[i].SET, p.dq[i].RESET);
         CU_ASSERT(p.di[i].I == (0x11 >> i) % 2);        
         CU_ASSERT(p.di[i].RE == (0x11 >> i) % 2);
-        CU_ASSERT(p.di[i].FE == (0xaa >> i) % 2);  
-        //printf("%x", p.di[i].FE);   
+        CU_ASSERT(p.di[i].FE == (0xaa >> i) % 2);   
     }
     
     changed = enc_out(&p);
@@ -2817,6 +2821,12 @@ void ut_type()
     
     rv = get_type(&ins);
     CU_ASSERT(rv == T_REAL);    
+}
+
+void ut_force(){
+    struct PLC_regs plc;
+    
+
 }
 
 #endif //_UT_LIB_H_

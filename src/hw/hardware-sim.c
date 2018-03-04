@@ -40,25 +40,7 @@ int sim_config(const config_t conf)
     Naq = get_sequence_entry(CONFIG_AQ, conf)->size;
   
     Sim.label = get_string_entry(CONFIG_HW, conf);
-    if(!(BufIn = (char * )malloc(Ni)))
-        r = PLC_ERR;
-    else
-        memset(BufIn, 0, Ni);
-
-    if(!(BufOut = (char * )malloc(Nq)))
-        r = PLC_ERR;
-    else
-        memset(BufOut, 0, Nq);
     
-    if(!(AdcIn = (char * )malloc( LONG_BYTES * Nai)))
-        r = PLC_ERR;
-    else
-        memset(AdcIn, 0, LONG_BYTES * Nai);
-
-    if(!(AdcOut = (char * )malloc( LONG_BYTES * Naq)))
-        r = PLC_ERR;
-    else
-        memset(AdcOut, 0, LONG_BYTES * Naq);
         
     return r;    
 }
@@ -82,7 +64,25 @@ int sim_enable() /* Enable bus communication */
     }
     //else
       //  plc_log("Opened simulation output to %s", SimOutFile);
+    if(!(BufIn = (char * )malloc(Ni)))
+        r = PLC_ERR;
+    else
+        memset(BufIn, 0, Ni);
 
+    if(!(BufOut = (char * )malloc(Nq)))
+        r = PLC_ERR;
+    else
+        memset(BufOut, 0, Nq);
+    
+    if(!(AdcIn = (char * )malloc( LONG_BYTES * Nai)))
+        r = PLC_ERR;
+    else
+        memset(AdcIn, 0, LONG_BYTES * Nai);
+
+    if(!(AdcOut = (char * )malloc( LONG_BYTES * Naq)))
+        r = PLC_ERR;
+    else
+        memset(AdcOut, 0, LONG_BYTES * Naq);
     
     return r;
 }

@@ -518,19 +518,19 @@ app_t apply_command(const config_t com,
                     app_t a){
     char * confstr = "config.yml";
     char * cvalue = NULL;
-
-    switch(get_numeric_entry(0, com)){
-        case COM_START:
+    if(a != NULL){
+        switch(get_numeric_entry(0, com)){
+            case COM_START:
         
             a->plc = plc_start(a->plc);
             break;
             
-        case COM_STOP:
+            case COM_STOP:
         
             a->plc = plc_stop(a->plc);
             break;
         
-        case COM_LOAD:
+            case COM_LOAD:
             a->plc = plc_stop(a->plc);
             a->conf = init_config();
             cvalue = get_string_entry(1, com);
@@ -545,7 +545,7 @@ app_t apply_command(const config_t com,
             }    
             break;
             
-        case COM_SAVE:
+            case COM_SAVE:
         
             a->plc = plc_stop(a->plc);
             cvalue = get_string_entry(CLI_ARG, com);
@@ -558,19 +558,20 @@ app_t apply_command(const config_t com,
             }
             break;    
         
-        case COM_FORCE:
+            case COM_FORCE:
         //get block, see if it can have a value
         //get type of value
         //try to convert input value to type
         //apply force
-        case COM_UNFORCE:
+            case COM_UNFORCE:
         //get block, see if it can have a value
         //if forced, unforce
-        case COM_EDIT:
+            case COM_EDIT:
         //get block, 
         //see if key name applies to it
         //update it       
-        default: break;
+            default: break;
+        }
     }
     return a;
 }

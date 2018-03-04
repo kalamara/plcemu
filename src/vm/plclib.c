@@ -1008,21 +1008,21 @@ void write_outputs(plc_t p) {
     p->hw->flush();//for simulation
 }
 
-int is_input_forced(const plc_t p, BYTE i) {
-    if(i < p->nai)
-        return p->mask_ai[i] < p->ai[i].max
-            && p->mask_ai[i] > p->ai[i].min;
-    return PLC_ERR;
-}
-
-int is_output_forced(const plc_t p, BYTE i) {
-    if(i < p->naq){
-        return p->mask_ai[i] < p->ai[i].max
-            && p->mask_ai[i] > p->ai[i].min;
+int is_forced(const plc_t p, int op, BYTE i) {
+    int r = PLC_ERR;
+    switch(op){
+        case OP_REAL_INPUT:if(i < p->nai){
+                                r = p->ai[i].mask < p->ai[i].max
+                                && p->ai[i].mask > p->ai[i].min;
+                           }
+        case OP_REAL_OUTPUT:if(i < p->naq){
+                                r = p->ai[i].mask < p->ai[i].max
+                                && p->ai[i].mask > p->ai[i].min;
+                            }                    
+        default:break;  
     }
-    return PLC_ERR;
+    return r;
 }
-
 
 BYTE dec_inp(plc_t p) { //decode input bytes
 	BYTE i = 0;
@@ -1030,38 +1030,33 @@ BYTE dec_inp(plc_t p) { //decode input bytes
 	BYTE i_changed = FALSE;
 	
 	for (; i < p->ni; i++){
-	    p->inputs[i] = (p->inputs[i] | p->maskin[i]) & ~p->maskin_N[i];
-        
-        if (p->inputs[i] != p->old->inputs[i])
+        if (p->inputs[i] != p->old->inputs[i]){
             i_changed = TRUE;
-            
-        p->edgein[i] = (p->inputs[i]) ^ (p->old->inputs[i]);
-    
+        }
 	    for(; j < BYTESIZE; j++){
-	        unsigned int n = BYTESIZE * i + j; 
-		    p->di[n].I = (p->inputs[i] >> j) % 2;
-		    p->di[n].RE = (p->di[n].I)
-				&& ((p->edgein[i] >> j) % 2);
-		    p->di[n].FE = (!p->di[n].I)
-				&& ((p->edgein[i] >> j) % 2);
+	        unsigned int n = BYTESIZE * i + j;
+	        
+		    p->di[n].I = (((p->inputs[i] >> j) % 2) 
+		                 || p->di[n].SET) && !p->di[n].RESET;
+		    BYTE edge = p->di[n].I ^ p->old->di[n].I;             
+		    p->di[n].RE = p->di[n].I && edge;
+		    p->di[n].FE = !p->di[n].I && edge;
 	    }
 	}
-	
 	for (i = 0; i < p->nai; i++){
-	    if(is_input_forced(p, i))
-            p->ai[i].V = p->mask_ai[i];       
-        else {
+	    if(is_forced(p, OP_REAL_INPUT, i)){
+            p->ai[i].V = p->ai[i].mask;
+        } else {
 	        double denom = (double)UINT64_MAX;   
             double v = p->real_in[i]; 
             double min = p->ai[i].min;
             double max = p->ai[i].max;
             p->ai[i].V = min + ((max - min) * (v/denom));
         }
-        
-        if (abs(p->ai[i].V - p->old->ai[i].V) > FLOAT_PRECISION)
+        if (abs(p->ai[i].V - p->old->ai[i].V) > FLOAT_PRECISION){
             i_changed = TRUE;
+        }
 	}
-	
 	memset(p->outputs, 0, p->nq);
 	return i_changed;
 }
@@ -1077,29 +1072,32 @@ BYTE enc_out(plc_t p) { //encode digital outputs to output bytes
 	for (; i < p->nq ; i++){//write masked outputs
         for(; j < BYTESIZE; j++){
             unsigned int n = BYTESIZE * i + j;
-            out[i] |= (p->dq[n].Q 
-                      || (p->dq[n].SET && !p->dq[n].RESET))
-				      << j;
-	    }
-	    
-	    p->outputs[i] = (out[i] | p->maskout[i]) & ~p->maskout_N[i];
-	    if (p->outputs[i] != p->old->outputs[i])
+            if(p->dq[n].MASK){
+                out[i] |= (p->dq[n].SET && !p->dq[n].RESET)
+                       << j;
+            } else {
+                out[i] |= (p->dq[n].Q || (p->dq[n].SET && !p->dq[n].RESET))
+				       << j;
+		    }
+	    }	    
+	    p->outputs[i] = out[i];
+	    if (p->outputs[i] != p->old->outputs[i]){
             o_changed = TRUE;
-	}
-	
+	    }
+	}	
 	for (i = 0; i < p->naq; i++){
 	    double min = p->aq[i].min;
         double max = p->aq[i].max;
         double val = p->aq[i].V;
-        if(is_output_forced(p, i))
-            val = p->mask_aq[i];    
-        
+        if(is_forced(p, OP_REAL_OUTPUT, i)){
+            val = p->aq[i].mask;    
+        }
         p->real_out[i] = UINT64_MAX * ((val - min)/(max-min));
         
-        if (abs(p->aq[i].V - p->old->aq[i].V) > FLOAT_PRECISION)
+        if (abs(p->aq[i].V - p->old->aq[i].V) > FLOAT_PRECISION){
             o_changed = TRUE;
+        }
     }
-    
     return o_changed;
 }
 
@@ -1383,15 +1381,8 @@ static plc_t allocate(plc_t plc) {
 
     plc->inputs = (BYTE *) malloc(plc->ni);
     plc->outputs = (BYTE *) malloc(plc->nq);
-    plc->edgein = (BYTE *) malloc(plc->ni);
-    plc->maskin = (BYTE *) malloc(plc->ni);
-    plc->maskout = (BYTE *) malloc(plc->nq);
-    plc->maskin_N = (BYTE *) malloc(plc->ni);
-    plc->maskout_N = (BYTE *) malloc(plc->nq);
     plc->real_in = (uint64_t *) malloc(plc->nai * sizeof(uint64_t));
     plc->real_out = (uint64_t *) malloc(plc->naq * sizeof(uint64_t));
-    plc->mask_ai = (double *) malloc(plc->nai * sizeof(double));
-    plc->mask_aq = (double *) malloc(plc->naq * sizeof(double));
     plc->di = (di_t) malloc(
             BYTESIZE * plc->ni * sizeof(struct digital_input));
     plc->dq = (do_t) malloc(
@@ -1411,14 +1402,7 @@ static plc_t allocate(plc_t plc) {
     memset(plc->real_out, 0, plc->naq*sizeof(uint64_t));
     memset(plc->inputs, 0, plc->ni);
     memset(plc->outputs, 0, plc->nq);
-    memset(plc->maskin, 0, plc->ni);
-    memset(plc->maskout, 0, plc->nq);
-    memset(plc->maskin_N, 0, plc->ni);
-    memset(plc->maskout_N, 0, plc->nq);
-    
-    memset(plc->mask_ai, 0, plc->nai * sizeof(double));
-    memset(plc->mask_aq, 0, plc->naq * sizeof(double));
-    
+  
     memset(plc->di, 0, BYTESIZE * plc->ni * sizeof(struct digital_input));
     memset(plc->dq, 0, BYTESIZE * plc->nq * sizeof(struct digital_output));
     memset(plc->t, 0, plc->nt * sizeof(struct timer));
@@ -1521,32 +1505,11 @@ void clear_plc(plc_t plc){
         if(plc->di  !=NULL){
             free(plc->di  );
         }
-        if(plc->mask_aq !=NULL){
-            free(plc->mask_aq );
-        }
-        if(plc->mask_ai !=NULL){
-            free(plc->mask_ai );
-        }
         if(plc->real_out !=NULL){
             free(plc->real_out );
         }
         if(plc->real_in!=NULL){
             free(plc->real_in);
-        }
-        if(plc->maskout_N !=NULL){
-            free(plc->maskout_N );
-        }
-        if(plc->maskin_N !=NULL){
-            free(plc->maskin_N );
-        }
-        if(plc->maskout!=NULL){
-            free(plc->maskout);
-        }
-        if(plc->maskin!=NULL){
-            free(plc->maskin);
-        }
-        if(plc->edgein!=NULL){
-            free(plc->edgein);
         }
         if(plc->outputs!=NULL){
             free(plc->outputs);

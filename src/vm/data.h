@@ -4,6 +4,7 @@
 #include <inttypes.h>
 
 #define BYTE unsigned char
+#define BIT(x) unsigned char x:1
 
 #define NEGATE 128//negate second operand, not return value.
 #define BOOLEAN   64

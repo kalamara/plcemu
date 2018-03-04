@@ -134,6 +134,7 @@ int main ()
   || ADD_TEST(suite_lib, ut_task_scalar)
   || ADD_TEST(suite_lib, ut_task_real)
   || ADD_TEST(suite_lib, ut_task_timeout)
+  || ADD_TEST(suite_lib, ut_force)
     )
   {
 	CU_cleanup_registry ();

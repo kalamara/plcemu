@@ -15,6 +15,7 @@
 #include "rung.h"
 #include "plclib.h"
 #include "ui.h"
+#include "app.h"
 
 #include "ut-conf.h"
 #include "ut-cli.h"
