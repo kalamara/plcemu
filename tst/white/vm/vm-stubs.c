@@ -39,6 +39,7 @@ unsigned char Mock_dout = 0;
 int Mock_flush_count = 0;
 uint64_t Mock_ain = 0;
 uint64_t Mock_aout = 0;
+
 int stub_config(const config_t conf)
 {
     return PLC_OK;    

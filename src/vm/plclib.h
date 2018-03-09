@@ -84,10 +84,8 @@ typedef struct digital_input{
     BIT(RE);///rising edge
     BIT(FE);///falling edge
     BIT(EDGE); ///true if value changed
-    BIT(SET); /// true if forced 1
-    BIT(RESET); /// true if forced 0
-    ///no special MASK bit is needed as SET and RESET are accessed only 
-    ///via force commands
+    BIT(MASK); /// true if forced 1
+    BIT(N_MASK); /// true if forced 0
     char nick[NICKLEN];///nickname
 } * di_t;
 
@@ -98,7 +96,8 @@ typedef struct digital_output{
     BIT(Q);//contact
     BIT(SET);//set
     BIT(RESET);//reset
-    BIT(MASK); /// true if forced 
+    BIT(MASK); /// true if forced true 
+    BIT(N_MASK); /// true if forced false
     char nick[NICKLEN];//nickname
 } * do_t;
 
@@ -126,7 +125,7 @@ typedef struct timer{
     BIT(ONDELAY);///1=on delay, 0 = off delay
     BIT(START);///start command: must be on to count
     BIT(RESET);///down command: sets V = 0
-    BIT(MASK);///true if timer is forced to up or down
+    //BIT(MASK);///true if timer is forced to up or down
     char nick[NICKLEN];
 } * dt_t;
 
@@ -153,7 +152,7 @@ typedef struct mvar{
     BIT(EDGE);		///edge of pulse
     BIT(SET);		///set pulse
     BIT(RESET);		///reset pulse
-    BIT(MASK); ///true if pulse is set
+    //BIT(MASK); ///true if pulse is set
     char nick[NICKLEN];   ///nickname
 } * mvar_t;
 
@@ -179,13 +178,6 @@ typedef struct PLC_regs{
     uint64_t *real_in; ///analog raw input values buffer
     BYTE *outputs;  ///digital output values buffer
     uint64_t *real_out; ///analog raw output values buffer
-    //BYTE *edgein;	///edges buffer
-    //BYTE *maskin;	///masks used to force values
-	//BYTE *maskout;
-	//BYTE *maskin_N;
-	//BYTE *maskout_N;
-	//double *mask_ai;
-	//double *mask_aq;
     
     BYTE command;   ///serial command from plcpipe
     BYTE response;  ///response to named pipe

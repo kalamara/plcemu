@@ -10,6 +10,10 @@
 #include "rung.h"
 #include "plclib.h"
 
+char * Mock_force_val  = NULL;
+unsigned char Mock_force_op = 0;
+int Mock_force_idx = 0;
+
 void plc_log(const char * msg, ...)
 {
     va_list arg;
@@ -89,6 +93,20 @@ plc_t plc_start(plc_t p){
 plc_t plc_stop(plc_t p){
     p->status = ST_STOPPED;
     return p;
+}
+
+plc_t force(plc_t p, int op, BYTE i, char * val){
+    Mock_force_val = val;
+    Mock_force_op = op;
+    Mock_force_idx = i;
+    return p;
+}
+
+plc_t unforce(plc_t p, int op, BYTE i){
+    Mock_force_val = NULL;
+    Mock_force_op = op;
+    Mock_force_idx = i;
+
 }
 
 struct PLC_regs Mock_plc;

@@ -117,6 +117,7 @@ typedef enum{
                 || x == OP_REAL_CONTACT \
                 || x == OP_REAL_MEMIN
 
+
 //TODO: add type for checkings and castings
 typedef union accdata{
   uint64_t u; 

@@ -1007,18 +1007,117 @@ void write_outputs(plc_t p) {
     }
     p->hw->flush();//for simulation
 }
+/*TODO: how is force implemented for variables and timers?*/
+plc_t force(plc_t p, int op, BYTE i, char * val){
+    if(p == NULL
+    || val == NULL){
+        return NULL;
+    }
+    plc_t r = NULL;
+    switch(op){
+        case OP_REAL_INPUT: 
+            if(i < p->nai){
+                r = p;
+                double f_val =  atof(val);
+                if(f_val > r->ai[i].min
+                && f_val < r->ai[i].max){
+                    r->ai[i].mask = f_val;
+                }    
+            }
+        break;
+        case OP_INPUT: 
+            if(i < p->ni){
+                r = p;
+                if(atoi(val)){
+                    r->di[i].MASK = 1;
+                 }else{
+                    r->di[i].N_MASK = 1;
+                 }    
+            }
+        break;
+        case OP_REAL_OUTPUT: 
+            if(i < p->naq){
+                r = p;
+                double f_val =  atof(val);
+                if(f_val > r->aq[i].min
+                && f_val < r->aq[i].max){
+                    r->aq[i].mask = f_val;
+                }
+            }
+        break;
+        case OP_OUTPUT: 
+            if(i < p->nq){
+                r = p;
+                if(atoi(val)){
+                    r->dq[i].MASK = 1;                   
+                }else{
+                    r->dq[i].N_MASK = 1;
+                }    
+            }
+        break;
+        default: break;
+    }
+    return r;
+}
+
+plc_t unforce(plc_t p, int op, BYTE i){
+    if(p == NULL){
+        return NULL;
+    }
+    plc_t r = NULL;
+    switch(op){
+        case OP_REAL_INPUT: 
+            if(i < p->nai){
+                r = p;
+                r->ai[i].mask = r->ai[i].min;
+            }
+            break;
+        case OP_INPUT: 
+            if(i < p->ni){
+                r = p;
+                r->di[i].MASK = 0;
+                r->di[i].N_MASK = 0;     
+            }
+        break;
+        case OP_REAL_OUTPUT: 
+            if(i < p->naq){
+                r = p;
+                r->aq[i].mask = r->aq[i].min;
+            }
+        break;
+        case OP_OUTPUT: 
+            if(i < p->nq){
+                r = p;
+                r->dq[i].MASK = 0;
+                r->dq[i].N_MASK = 0;    
+            }
+        break;
+        default: break;
+    }
+    return r;
+}
 
 int is_forced(const plc_t p, int op, BYTE i) {
     int r = PLC_ERR;
     switch(op){
+        case OP_INPUT:if(i < p->ni){
+                                r = p->di[i].MASK || p->di[i].N_MASK;
+                           }
+                           break;
+        case OP_OUTPUT:if(i < p->nq){
+                                r = p->dq[i].MASK || p->dq[i].N_MASK;;
+                            }
+                            break;                    
         case OP_REAL_INPUT:if(i < p->nai){
                                 r = p->ai[i].mask < p->ai[i].max
                                 && p->ai[i].mask > p->ai[i].min;
                            }
+                           break;
         case OP_REAL_OUTPUT:if(i < p->naq){
-                                r = p->ai[i].mask < p->ai[i].max
-                                && p->ai[i].mask > p->ai[i].min;
-                            }                    
+                                r = p->aq[i].mask < p->aq[i].max
+                                && p->aq[i].mask > p->aq[i].min;
+                            }
+                            break;                    
         default:break;  
     }
     return r;
@@ -1035,9 +1134,9 @@ BYTE dec_inp(plc_t p) { //decode input bytes
         }
 	    for(; j < BYTESIZE; j++){
 	        unsigned int n = BYTESIZE * i + j;
-	        
+//negative mask has precedence		        
 		    p->di[n].I = (((p->inputs[i] >> j) % 2) 
-		                 || p->di[n].SET) && !p->di[n].RESET;
+		                 || p->di[n].MASK) && !p->di[n].N_MASK;
 		    BYTE edge = p->di[n].I ^ p->old->di[n].I;             
 		    p->di[n].RE = p->di[n].I && edge;
 		    p->di[n].FE = !p->di[n].I && edge;
@@ -1072,13 +1171,12 @@ BYTE enc_out(plc_t p) { //encode digital outputs to output bytes
 	for (; i < p->nq ; i++){//write masked outputs
         for(; j < BYTESIZE; j++){
             unsigned int n = BYTESIZE * i + j;
-            if(p->dq[n].MASK){
-                out[i] |= (p->dq[n].SET && !p->dq[n].RESET)
-                       << j;
-            } else {
-                out[i] |= (p->dq[n].Q || (p->dq[n].SET && !p->dq[n].RESET))
-				       << j;
-		    }
+            
+                out[i] |= ((p->dq[n].Q 
+                        || (p->dq[n].SET && !p->dq[n].RESET)
+                        || p->dq[n].MASK) && !p->dq[n].N_MASK)
+				        << j;
+//negative mask has precedence		    
 	    }	    
 	    p->outputs[i] = out[i];
 	    if (p->outputs[i] != p->old->outputs[i]){

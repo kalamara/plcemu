@@ -150,16 +150,15 @@ void ut_codec()
     }
     //masks
     for(i = 0; i < 8; i++){
-        p.di[i].SET = (0x33 >> i) % 2;
+        p.di[i].MASK = (0x33 >> i) % 2;
     }
     for(i = 0; i < 8; i++){
-        p.di[i].RESET = (0xee >> i) % 2;
+        p.di[i].N_MASK = (0xee >> i) % 2;
     }
     p.ai[0].mask = 9.0l;
     for(i = 0; i < 8; i++){
-        p.dq[i].SET = (0x33 >> i) % 2;
-        p.dq[i].RESET = (0xee >> i) % 2;
-        p.dq[i].MASK = 1;
+        p.dq[i].MASK = (0x33 >> i) % 2;
+        p.dq[i].N_MASK = (0xee >> i) % 2;
     }
     p.aq[0].mask = 2.5l;
     
@@ -2825,8 +2824,89 @@ void ut_type()
 
 void ut_force(){
     struct PLC_regs plc;
+    //degenerates
+    plc_t r = force(NULL, -1, -1, NULL);
+    CU_ASSERT(is_forced(NULL, -1, -1) == PLC_ERR);
+    CU_ASSERT_PTR_NULL(unforce(NULL, -1, -1));
+    CU_ASSERT_PTR_NULL(r);
+    //unsupported returns NULL
+    r = force(&plc, N_OPERANDS, -1, NULL);    
+    CU_ASSERT(is_forced(&plc, -1, -1) == PLC_ERR);
+    CU_ASSERT_PTR_NULL(unforce(&plc, -1, -1));
+    CU_ASSERT_PTR_NULL(r);
     
-
+    r = force(&plc, OP_INPUT, -1, NULL);
+    
+    CU_ASSERT(is_forced(&plc, OP_INPUT, -1) == PLC_ERR);
+    CU_ASSERT_PTR_NULL(unforce(&plc, OP_INPUT, -1));    
+    CU_ASSERT_PTR_NULL(r);
+    
+    r = force(&plc, OP_INPUT, 1, NULL);    
+    CU_ASSERT_PTR_NULL(r);
+            
+    r = force(&plc, OP_INPUT, -1, "1");    
+    CU_ASSERT_PTR_NULL(r);
+//regular behavior        
+    init_mock_plc(&plc);               
+    plc.ai[1].min = 0.0;
+    plc.ai[1].max = 2.0;
+    plc.aq[1].min = 0.0;
+    plc.aq[1].max = 2.0;
+    r = force(&plc, OP_INPUT, 1, "1");    
+    
+    CU_ASSERT_PTR_NOT_NULL(r);
+    CU_ASSERT(r->di[1].MASK==1);
+    r = force(&plc, OP_INPUT, 1, "0");    
+    CU_ASSERT(r->di[1].N_MASK==1);
+    CU_ASSERT(is_forced(r, OP_INPUT, 1)==1);
+    r = unforce(&plc, OP_INPUT, 1);    
+    
+    CU_ASSERT(r->di[1].MASK==0);
+    CU_ASSERT(r->di[1].N_MASK==0);
+    CU_ASSERT(is_forced(r, OP_INPUT, 1)==0);
+    
+    r = force(&plc, OP_OUTPUT, 1, "1");    
+    
+    CU_ASSERT_PTR_NOT_NULL(r);
+    CU_ASSERT(r->dq[1].MASK==1);
+    r = force(&plc, OP_OUTPUT, 1, "0");    
+    CU_ASSERT(r->dq[1].N_MASK==1);
+    CU_ASSERT(is_forced(r, OP_OUTPUT, 1)==1);
+    r = unforce(&plc, OP_OUTPUT, 1);    
+    
+    CU_ASSERT(r->dq[1].MASK==0);
+    CU_ASSERT(r->dq[1].N_MASK==0);
+    CU_ASSERT(is_forced(r, OP_OUTPUT, 1)==0);
+    
+    r = force(&plc, OP_REAL_INPUT, 1, "-1.5");    
+    //value less than min should not apply force
+    CU_ASSERT(is_forced(r, OP_REAL_INPUT, 1)==0);
+    
+    r = force(&plc, OP_REAL_INPUT, 1, "1.5");    
+    
+    CU_ASSERT_PTR_NOT_NULL(r);
+    CU_ASSERT_DOUBLE_EQUAL(r->ai[1].mask, 1.5, FLOAT_PRECISION);
+    
+    CU_ASSERT(is_forced(r, OP_REAL_INPUT, 1)==1);
+    r = unforce(&plc, OP_REAL_INPUT, 1);    
+    
+    CU_ASSERT(r->ai[1].mask <= r->ai[1].min);
+    CU_ASSERT(is_forced(r, OP_REAL_INPUT, 1)==0);
+    
+    r = force(&plc, OP_REAL_OUTPUT, 1, "-1.5");    
+    //value less than min should not apply force
+    CU_ASSERT(is_forced(r, OP_REAL_OUTPUT, 1)==0);
+   
+    r = force(&plc, OP_REAL_OUTPUT, 1, "1.3");    
+    
+    CU_ASSERT_PTR_NOT_NULL(r);
+    CU_ASSERT_DOUBLE_EQUAL(r->aq[1].mask, 1.3, FLOAT_PRECISION);
+    
+    CU_ASSERT(is_forced(r, OP_REAL_OUTPUT, 1)==1);
+    r = unforce(&plc, OP_REAL_OUTPUT, 1);    
+    
+    CU_ASSERT(is_forced(r, OP_OUTPUT, 1)==0);
+    CU_ASSERT(r->aq[1].mask <= r->aq[1].min);
 }
 
 #endif //_UT_LIB_H_
