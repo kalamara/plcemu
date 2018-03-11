@@ -518,8 +518,14 @@ app_t apply_command(const config_t com,
                     app_t a){
     char * confstr = "config.yml";
     char * cvalue = NULL;
+    char * val = NULL;
+    sequence_t seq = NULL;
+    variable_t var = NULL;
+    int s = CONFIG_PROGRAM;
+    int v = -1;
+    plc_t p = NULL;
     if(a != NULL){
-        switch(get_numeric_entry(0, com)){
+        switch(get_numeric_entry(CLI_COM, com)){
             case COM_START:
         
             a->plc = plc_start(a->plc);
@@ -531,9 +537,10 @@ app_t apply_command(const config_t com,
             break;
         
             case COM_LOAD:
+            
             a->plc = plc_stop(a->plc);
             a->conf = init_config();
-            cvalue = get_string_entry(1, com);
+            cvalue = get_string_entry(CLI_ARG, com);
             if( cvalue == NULL ||
                 cvalue[0] == 0){
                 cvalue = confstr;
@@ -558,13 +565,44 @@ app_t apply_command(const config_t com,
             }
             break;    
         
-            case COM_FORCE:
-        //get block, see if it can have a value
-        //get type of value
-        //try to convert input value to type
-        //apply force
+            case COM_FORCE:         
+            
+            for(s = CONFIG_PROGRAM; s < N_CONFIG_VARIABLES; s++){
+                seq = get_sequence_entry(s, com); 
+                for(v = 0; seq && v < seq->size; v++){
+                //filter sequences who have a param "FORCE"
+                    val = get_param_val("FORCE", seq->vars[v].params);
+                    if(val){  //apply force   
+                        p = force(a->plc, s, v, val);
+                        if(p){
+                            a->plc = p;
+                        }
+                    }
+                } 
+            }
+            if(p == NULL){
+                plc_log("Invalid force command\n");
+            }
+            break;
+            
             case COM_UNFORCE:
-        //get block, see if it can have a value
+            
+            for(s = CONFIG_PROGRAM; s < N_CONFIG_VARIABLES; s++){
+                seq = get_sequence_entry(s, com); 
+                for(v = 0; seq && v < seq->size; v++){
+                //filter sequences who have a param "FORCE"
+                    val = get_param_val("FORCE", seq->vars[v].params);
+                    if(val){  //apply force   
+                        p = unforce(a->plc, s, v);
+                        if(p){
+                            a->plc = p;
+                        }
+                    }
+                } 
+            }
+            if(p == NULL){
+                plc_log("Invalid force command\n");
+            }
         //if forced, unforce
             case COM_EDIT:
         //get block, 

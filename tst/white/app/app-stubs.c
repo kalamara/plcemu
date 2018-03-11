@@ -11,18 +11,18 @@
 #include "plclib.h"
 
 char * Mock_force_val  = NULL;
-unsigned char Mock_force_op = 0;
-int Mock_force_idx = 0;
+unsigned char Mock_force_op = 0xff;
+int Mock_force_idx = -1;
+char MsgStr[256];
 
 void plc_log(const char * msg, ...)
 {
     va_list arg;
-    char msgstr[256];
-    memset(msgstr,0, 256);
+    memset(MsgStr,0, 256);
     va_start(arg, msg);
-    vsprintf(msgstr,msg,arg);
+    vsprintf(MsgStr,msg,arg);
     va_end(arg);
-    printf("%s\n",msgstr);
+    printf("%s\n",MsgStr);
 }
 
 void ui_display_message(char *msgstr){
@@ -104,9 +104,13 @@ plc_t force(plc_t p, int op, BYTE i, char * val){
 
 plc_t unforce(plc_t p, int op, BYTE i){
     Mock_force_val = NULL;
-    Mock_force_op = op;
-    Mock_force_idx = i;
-
+    if(Mock_force_op == op){
+        Mock_force_op = 0xff;
+        if(Mock_force_idx == i){
+            Mock_force_idx  = -1;
+            Mock_force_val  = NULL;
+        }
+    }
 }
 
 struct PLC_regs Mock_plc;
@@ -159,7 +163,9 @@ void stub_dio_read(unsigned int n, BYTE* bit)
 {	
 }
 
-void stub_dio_write(const unsigned char *buf, unsigned  int n, unsigned char bit)
+void stub_dio_write(const unsigned char *buf, 
+                    unsigned  int n, 
+                    unsigned char bit)
 {	//write bit to n output
 }
 

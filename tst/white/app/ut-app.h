@@ -3,6 +3,8 @@
 
 void ut_apply_command()
 {
+    extern char MsgStr[];
+//degenerates
     app_t r = apply_command(NULL, NULL);
     
     config_t conf = init_config();
@@ -15,23 +17,56 @@ void ut_apply_command()
     memset(a,0,sizeof(struct app));
     
     a = configure(conf, a);
+//unsupported command    
+    
+//start should start
     r = apply_command(com, a);
     
     CU_ASSERT(r->plc->status == ST_RUNNING);
-    
+
+//stop shpould stop    
     com = set_numeric_entry(CLI_COM, COM_STOP, com);
     r = apply_command(com, a);
     
     CU_ASSERT(r->plc->status == ST_STOPPED);
+
+    extern char * Mock_force_val;
+    extern unsigned char Mock_force_op;
+    extern int Mock_force_idx;
     
-    //"FORCE DI 2 1"
+    com = set_numeric_entry(CLI_COM, COM_FORCE, com);
+//force invalid block
+    r = apply_command(com, a);
+    CU_ASSERT_STRING_EQUAL(MsgStr, "Invalid force command\n");
+    CU_ASSERT_PTR_NULL(Mock_force_val);
+//force block out of bounds tested in library already     
+//"FORCE DI 2 1"    
     sequence_t s = edit_seq_param(com, 
                                         "DI", 
                                         2, 
                                         "FORCE",
                                         "1");
-    com = set_numeric_entry(CLI_COM, COM_FORCE, com);
+    
     r = apply_command(com, a);
+    CU_ASSERT_STRING_EQUAL(Mock_force_val, "1");
+    CU_ASSERT(Mock_force_op == CONFIG_DI);
+    CU_ASSERT(Mock_force_idx == 2);
+    
+    com = set_numeric_entry(CLI_COM, COM_UNFORCE, com);
+
+//"UNFORCE DI 2"    
+    s = edit_seq_param(com, 
+                                        "DI", 
+                                        2, 
+                                        "FORCE",
+                                        "UNFORCE");
+    
+    r = apply_command(com, a);
+    CU_ASSERT_PTR_NULL(Mock_force_val);
+    CU_ASSERT(Mock_force_op == 0xff);
+    CU_ASSERT(Mock_force_idx == -1);
+    
+    
     
     
 }
