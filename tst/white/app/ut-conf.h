@@ -100,14 +100,14 @@ void ut_store()
 
   CU_ASSERT(updated->err == PLC_ERR);
   updated->err = PLC_OK;
-  
-  updated = store_seq_value(CONFIG_AI, 0, "MAX", "1.0", conf);
+  sequence_t seq = conf->map[CONFIG_AI]->e.seq;
+  updated = store_seq_value(seq, 0, "MAX", "1.0", conf);
   CU_ASSERT_STRING_EQUAL(
     get_param_val("MAX",
         get_entry(CONFIG_AI, conf)->e.seq->vars[0].params), 
     "1.0");
   CU_ASSERT(updated->err == PLC_OK);
-  
+  seq = conf->map[CONFIG_AQ]->e.seq;
   updated = store_seq_value(CONFIG_AQ, 0, "", NULL, conf);
   CU_ASSERT(updated->err == PLC_ERR);  
   clear_config(conf);
@@ -201,8 +201,9 @@ AI:  \n\
 
 void ut_save(){
     config_t conf = init_config();
-    conf = store_seq_value(CONFIG_AI, 0, "MAX", "1.0", conf);
-    conf = store_seq_value(CONFIG_AI, 0, "ID", "var1", conf);
+    sequence_t seq = conf->map[CONFIG_AI]->e.seq;
+    conf = store_seq_value(seq, 0, "MAX", "1.0", conf);
+    conf = store_seq_value(seq, 0, "ID", "var1", conf);
 
     char * output = serialize_config( conf);    
     char * expected = "\
@@ -255,8 +256,9 @@ PULSES:\n\
 void ut_get(){
 
     config_t conf = init_config();
-    conf = store_seq_value(CONFIG_AI, 3, "MAX", "1.0", conf);
-    conf = store_seq_value(CONFIG_AI, 3, "ID", "var1", conf);
+    sequence_t seq =  get_sequence_entry(CONFIG_AI, conf);
+    conf = store_seq_value(seq, 3, "MAX", "1.0", conf);
+    conf = store_seq_value(seq, 3, "ID", "var1", conf);
  
     //bullshit should return -1
     int step = get_numeric_entry(-523, conf);
@@ -272,7 +274,7 @@ void ut_get(){
     hw = get_string_entry(CONFIG_HW, conf);
     CU_ASSERT_STRING_EQUAL(hw, "STDI/O");
     
-    sequence_t seq =  get_sequence_entry(CONFIG_AI, conf);
+    
     int i = 0;
     char * name = NULL;
     char * max = NULL;

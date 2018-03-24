@@ -520,7 +520,6 @@ app_t apply_command(const config_t com,
     char * cvalue = NULL;
     char * val = NULL;
     sequence_t seq = NULL;
-    variable_t var = NULL;
     int s = CONFIG_PROGRAM;
     int v = -1;
     plc_t p = NULL;
@@ -528,86 +527,98 @@ app_t apply_command(const config_t com,
         switch(get_numeric_entry(CLI_COM, com)){
             case COM_START:
         
-            a->plc = plc_start(a->plc);
-            break;
+                a->plc = plc_start(a->plc);
+                break;
             
             case COM_STOP:
         
-            a->plc = plc_stop(a->plc);
-            break;
+                a->plc = plc_stop(a->plc);
+                break;
         
             case COM_LOAD:
             
-            a->plc = plc_stop(a->plc);
-            a->conf = init_config();
-            cvalue = get_string_entry(CLI_ARG, com);
-            if( cvalue == NULL ||
-                cvalue[0] == 0){
-                cvalue = confstr;
-            }
-            if ((load_config_yml(cvalue, a->conf))->err < PLC_OK) {
-                plc_log("Invalid configuration file %s\n", cvalue);
-            } else {
-                a = configure(a->conf, a);
-            }    
-            break;
+                a->plc = plc_stop(a->plc);
+                a->conf = init_config();
+                cvalue = get_string_entry(CLI_ARG, com);
+                if( cvalue == NULL ||
+                    cvalue[0] == 0){
+                    cvalue = confstr;
+                }
+                if ((load_config_yml(cvalue, a->conf))->err < PLC_OK) {
+                    plc_log("Invalid configuration file %s\n", cvalue);
+                } else {
+                    a = configure(a->conf, a);
+                }    
+                break;
             
             case COM_SAVE:
         
-            a->plc = plc_stop(a->plc);
-            cvalue = get_string_entry(CLI_ARG, com);
-            if( cvalue == NULL ||
-                cvalue[0] == 0){
-                cvalue = confstr;
-            }
-            if ((save_config_yml(cvalue, a->conf)) < PLC_OK) {
-                plc_log("Invalid configuration file %s\n", cvalue);
-            }
-            break;    
+                a->plc = plc_stop(a->plc);
+                cvalue = get_string_entry(CLI_ARG, com);
+                if( cvalue == NULL ||
+                    cvalue[0] == 0){
+                    cvalue = confstr;
+                }
+                if ((save_config_yml(cvalue, a->conf)) < PLC_OK) {
+                    plc_log("Invalid configuration file %s\n", cvalue);
+                }
+                break;    
         
             case COM_FORCE:         
             
-            for(s = CONFIG_PROGRAM; s < N_CONFIG_VARIABLES; s++){
-                seq = get_sequence_entry(s, com); 
-                for(v = 0; seq && v < seq->size; v++){
-                //filter sequences who have a param "FORCE"
-                    val = get_param_val("FORCE", seq->vars[v].params);
-                    if(val){  //apply force   
-                        p = force(a->plc, s, v, val);
-                        if(p){
-                            a->plc = p;
+                for(s = CONFIG_PROGRAM; s < N_CONFIG_VARIABLES; s++){
+                    seq = get_sequence_entry(s, com); 
+                    for(v = 0; seq && v < seq->size; v++){
+                    //filter sequences who have a param "FORCE"
+                        val = get_param_val("FORCE", seq->vars[v].params);
+                        if(val){  //apply force   
+                            p = force(a->plc, s, v, val);
+                            if(p){
+                                a->plc = p;
+                            }
                         }
-                    }
-                } 
-            }
-            if(p == NULL){
-                plc_log("Invalid force command\n");
-            }
-            break;
+                    } 
+                }
+                if(p == NULL){
+                    plc_log("Invalid force command\n");
+                }
+                break;
             
             case COM_UNFORCE:
             
-            for(s = CONFIG_PROGRAM; s < N_CONFIG_VARIABLES; s++){
-                seq = get_sequence_entry(s, com); 
-                for(v = 0; seq && v < seq->size; v++){
+                for(s = CONFIG_PROGRAM; s < N_CONFIG_VARIABLES; s++){
+                    seq = get_sequence_entry(s, com); 
+                    for(v = 0; seq && v < seq->size; v++){
                 //filter sequences who have a param "FORCE"
-                    val = get_param_val("FORCE", seq->vars[v].params);
-                    if(val){  //apply force   
-                        p = unforce(a->plc, s, v);
-                        if(p){
-                            a->plc = p;
+                        val = get_param_val("FORCE", seq->vars[v].params);
+                        if(val){  //apply force   
+                            p = unforce(a->plc, s, v);
+                            if(p){
+                                a->plc = p;
+                            }
                         }
-                    }
-                } 
-            }
-            if(p == NULL){
-                plc_log("Invalid force command\n");
-            }
-        //if forced, unforce
-            case COM_EDIT:
-        //get block, 
-        //see if key name applies to it
-        //update it       
+                    } 
+                }
+                if(p == NULL){
+                    plc_log("Invalid force command\n");
+                }
+             
+             case COM_EDIT:
+                //TODO: filter sequences who have an updated variable                    
+                p = configure_di(com, p);
+                p = configure_dq(com, p);
+                p = configure_ai(com, p);
+                p = configure_aq(com, p);
+                p = configure_counters(com, p);
+                p = configure_reals(com, p);
+                p = configure_timers(com, p);
+                p = configure_pulses(com, p);
+                if(p){
+                   a->plc = p;
+                } else {
+                    plc_log("Invalid edit command\n");
+                }
+                break;
             default: break;
         }
     }

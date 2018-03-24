@@ -30,45 +30,44 @@ void ut_apply_command()
     
     CU_ASSERT(r->plc->status == ST_STOPPED);
 
-    extern char * Mock_force_val;
-    extern unsigned char Mock_force_op;
-    extern int Mock_force_idx;
+    extern char * Mock_val;
+    extern unsigned char Mock_op;
+    extern int Mock_idx;
     
     com = set_numeric_entry(CLI_COM, COM_FORCE, com);
 //force invalid block
     r = apply_command(com, a);
     CU_ASSERT_STRING_EQUAL(MsgStr, "Invalid force command\n");
-    CU_ASSERT_PTR_NULL(Mock_force_val);
+    CU_ASSERT_PTR_NULL(Mock_val);
 //force block out of bounds tested in library already     
 //"FORCE DI 2 1"    
-    sequence_t s = edit_seq_param(com, 
-                                        "DI", 
-                                        2, 
-                                        "FORCE",
-                                        "1");
+    sequence_t s = edit_seq_param(com, "DI", 2, "FORCE","1");
     
     r = apply_command(com, a);
-    CU_ASSERT_STRING_EQUAL(Mock_force_val, "1");
-    CU_ASSERT(Mock_force_op == CONFIG_DI);
-    CU_ASSERT(Mock_force_idx == 2);
+    CU_ASSERT_STRING_EQUAL(Mock_val, "1");
+    CU_ASSERT(Mock_op == CONFIG_DI);
+    CU_ASSERT(Mock_idx == 2);
     
     com = set_numeric_entry(CLI_COM, COM_UNFORCE, com);
 
 //"UNFORCE DI 2"    
-    s = edit_seq_param(com, 
-                                        "DI", 
-                                        2, 
-                                        "FORCE",
-                                        "UNFORCE");
+    s = edit_seq_param(com, "DI", 2, "FORCE","UNFORCE");
     
     r = apply_command(com, a);
-    CU_ASSERT_PTR_NULL(Mock_force_val);
-    CU_ASSERT(Mock_force_op == 0xff);
-    CU_ASSERT(Mock_force_idx == -1);
+    CU_ASSERT_PTR_NULL(Mock_val);
+    CU_ASSERT(Mock_op == 0xff);
+    CU_ASSERT(Mock_idx == -1);
     
+    com = set_numeric_entry(CLI_COM, COM_EDIT, com);
+
+//"EDIT DI 2 NAME X"    
+    s = edit_seq_param(com, "DI", 2, "ID", "X");
     
-    
-    
+    r = apply_command(com, a);
+    CU_ASSERT_STRING_EQUAL(Mock_val, "X");
+    CU_ASSERT(Mock_op == OP_INPUT);
+    CU_ASSERT(Mock_idx == 2);
+
 }
     
 #endif//_UT_APP_H_

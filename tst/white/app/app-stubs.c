@@ -10,9 +10,10 @@
 #include "rung.h"
 #include "plclib.h"
 
-char * Mock_force_val  = NULL;
-unsigned char Mock_force_op = 0xff;
-int Mock_force_idx = -1;
+char * Mock_var  = NULL;
+char * Mock_val  = NULL;
+unsigned char Mock_op = 0xff;
+int Mock_idx = -1;
 char MsgStr[256];
 
 void plc_log(const char * msg, ...)
@@ -33,6 +34,9 @@ plc_t declare_variable(const plc_t p,
                         int var,
                         BYTE idx,                          
                         const char* val){
+    Mock_op = var;
+    Mock_idx = idx;                    
+    Mock_val = val;                    
     return p;
 }
 
@@ -96,19 +100,19 @@ plc_t plc_stop(plc_t p){
 }
 
 plc_t force(plc_t p, int op, BYTE i, char * val){
-    Mock_force_val = val;
-    Mock_force_op = op;
-    Mock_force_idx = i;
+    Mock_val = val;
+    Mock_op = op;
+    Mock_idx = i;
     return p;
 }
 
 plc_t unforce(plc_t p, int op, BYTE i){
-    Mock_force_val = NULL;
-    if(Mock_force_op == op){
-        Mock_force_op = 0xff;
-        if(Mock_force_idx == i){
-            Mock_force_idx  = -1;
-            Mock_force_val  = NULL;
+    Mock_val = NULL;
+    if(Mock_op == op){
+        Mock_op = 0xff;
+        if(Mock_idx == i){
+            Mock_idx  = -1;
+            Mock_val  = NULL;
         }
     }
 }

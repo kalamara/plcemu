@@ -97,7 +97,8 @@ typedef param_t * param_table_t;
 typedef struct variable {
     unsigned char index;
     char * name ;
-/*    char * value;
+/*    unsigned char updated;
+    char * value;
   */
   param_t params;    
 } * variable_t;
@@ -314,9 +315,9 @@ param_t update_param(const param_t params,
  * @param value
  * @return updated sequence or NULL
  */
-sequence_t edit_seq_param(config_t conf,                     
+config_t edit_seq_param(config_t conf,                     
                                 const char * seq_name, 
-                                int i,
+                                unsigned char idx,
                                 const char * key, 
                                 const char * val);
 
@@ -341,7 +342,7 @@ config_t store_value(
  * @param where to store
  * @return config with applied value or changed errorcode
  */
-config_t store_seq_value(unsigned char seq,
+config_t store_seq_value(const sequence_t seq,
                     unsigned char idx, 
                     const char * key, 
                     const char * value, 

@@ -67,6 +67,7 @@ config_t cli_parse( char * input, config_t command){
     char * index = NULL;
     char * value = NULL;
     char * key = NULL;
+    config_t res = command;
     if(command == NULL
     || input == NULL){
         return command;
@@ -95,7 +96,6 @@ config_t cli_parse( char * input, config_t command){
                 new_entry_str(filename, "FILE"), 
                 command);
         }
-        
     } else if(!strncasecmp(input, "SAVE" , 4)){
         //parse rest
         command = set_numeric_entry(CLI_COM, COM_SAVE, command);
@@ -113,12 +113,8 @@ config_t cli_parse( char * input, config_t command){
         if(block != NULL 
         && index != NULL
         && value != NULL){
-            sequence_t s = edit_seq_param(command, 
-                                        block, 
-                                        atoi(index), 
-                                        "FORCE",
-                                        value);              
-            if(s!=NULL){
+            res = edit_seq_param(command,block,atoi(index),"FORCE",value);
+            if(res){                                          
                 command = set_numeric_entry(CLI_COM, COM_FORCE, command);
             }
         }
@@ -128,12 +124,8 @@ config_t cli_parse( char * input, config_t command){
         index = strtok(NULL, " \n");
         if(block != NULL 
         && index != NULL){
-            sequence_t s = edit_seq_param(command, 
-                                        block, 
-                                        atoi(index), 
-                                        "FORCE",
-                                        "UNFORCE");              
-            if(s!=NULL){
+            res = edit_seq_param(command,block,atoi(index),"FORCE","UNFORCE");
+            if(res){                                          
                 command = set_numeric_entry(CLI_COM, COM_UNFORCE, command);
             }
         }    
@@ -147,12 +139,8 @@ config_t cli_parse( char * input, config_t command){
         && index != NULL
         && key   != NULL
         && value != NULL){
-            sequence_t s = edit_seq_param(command, 
-                                        block, 
-                                        atoi(index), 
-                                        key,
-                                        value);              
-            if(s!=NULL){
+            res = edit_seq_param(command,block,atoi(index),key,value);
+            if(res){                                          
                 command = set_numeric_entry(CLI_COM, COM_EDIT, command);
             }
         }

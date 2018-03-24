@@ -311,24 +311,18 @@ char * get_param_val(const char * key, const param_t params){
     return it?it->value:NULL;
 }
 
-sequence_t edit_seq_param(config_t conf,                     
+config_t edit_seq_param(config_t conf,                     
                                 const char * seq_name, 
-                                int i,
+                                unsigned char idx,
                                 const char * key, 
                                 const char * val){
     int k = get_key(seq_name, conf);
-    sequence_t s = get_sequence_entry(k, conf);
-    if(s != NULL){
-        if( 0 <= i
-        &&  i < s->size){
-             param_t vp = s->vars[i].params;
-             vp = update_param(vp,
-                                key,
-                                val);
-             s->vars[i].params = vp;                  
-        }
+    sequence_t seq = get_sequence_entry(k, conf);
+    if(seq == NULL || k == CONF_ERR){
+    
+        return NULL;
     }
-    return s;
+    return store_seq_value(seq, idx, key, val, conf);
 }
 
 param_t append_param(const param_t params, 
@@ -525,50 +519,27 @@ config_t store_value(
 }
 
 config_t store_seq_value(
-                    unsigned char seq,
+                    const sequence_t s,
                     unsigned char idx,  
                     const char * key,
                     const char * value, 
                     config_t config){
-                    
     config_t conf = config;                
-    entry_t s = conf->map[seq];
-    
     if( s == NULL ||
         key == NULL || 
         value == NULL ||
-        s->type_tag != ENTRY_SEQ ||
-        idx >= s->e.seq->size) {
-        
+        idx >= s->size) {     
         conf->err = CONF_ERR;
         
         return conf;
     }            
-    
-    variable_t var = &(conf->map[seq]
-                            ->e.seq
-                            ->vars[idx]);
-    
-    conf->map[seq]
-        ->e.seq
-        ->vars[idx].index = idx;
-    
+    variable_t var = &(s->vars[idx]);
+    s->vars[idx].index = idx;
     if(!strcmp(key, "ID")){
-         conf->map[seq]
-             ->e.seq
-             ->vars[idx].name = strdup_r(var->name, value);
+        s->vars[idx].name = strdup_r(var->name, value);
     } else {
-        
-        conf->map[seq]
-            ->e.seq
-            ->vars[idx].params = update_param(
-                conf->map[seq]
-                    ->e.seq
-                    ->vars[idx].params,
-                key,
-                value);    
+        s->vars[idx].params = update_param(s->vars[idx].params,key,value);    
     }   
-        
     return conf;                       
 }
 
@@ -609,14 +580,11 @@ static config_t process_seq_element(
                              
             *idx = atoi(val);
     } else {  
-                             
-            conf = store_seq_value(sequence, 
-                                      *idx, 
-                                      key, 
-                                      val, 
-                                      conf);       
-    }                      
-      
+        sequence_t s = get_sequence_entry(sequence, conf); 
+        if( s != NULL){                
+            conf = store_seq_value(s,*idx,key,val,conf);       
+        }    
+    }                            
     return conf;                       
 }
 
@@ -649,17 +617,11 @@ static config_t process_mapping(
     if( c != NULL &&
         c->type_tag == ENTRY_MAP) {
                     
-        c->e.conf = process(
-                        seq, 
-                        parser, 
-                        c->e.conf);        
+        c->e.conf = process(seq,parser,c->e.conf);        
         conf->map[k] = c;
     } else {
                     
-        conf = process(
-            seq, 
-            parser, 
-            conf);
+        conf = process(seq,parser,conf);
     }
     
     return conf;    
