@@ -110,10 +110,12 @@ void deepcopy(const instruction_t from, instruction_t to)
 }
 
 void dump_label(char * label, char * dump) {
-    char buf[NICKLEN] = "";
-    if(label[0] != 0)
-        sprintf(buf, "%s:", label);
-    strcat(dump, buf);
+    //char buf[NICKLEN] = "";
+    if(label[0] != 0){
+        //sprintf(buf, "%s:", label);
+        strcat(dump, label);
+        strcat(dump, ":");
+    }
 }
 
 void dump_instruction(instruction_t ins, char * dump) {

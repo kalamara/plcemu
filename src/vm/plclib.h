@@ -86,7 +86,7 @@ typedef struct digital_input{
     BIT(EDGE); ///true if value changed
     BIT(MASK); /// true if forced 1
     BIT(N_MASK); /// true if forced 0
-    char nick[NICKLEN];///nickname
+    char * nick;//[NICKLEN];///nickname
 } * di_t;
 
 /**
@@ -98,7 +98,7 @@ typedef struct digital_output{
     BIT(RESET);//reset
     BIT(MASK); /// true if forced true 
     BIT(N_MASK); /// true if forced false
-    char nick[NICKLEN];//nickname
+    char * nick;//[NICKLEN];//nickname
 } * do_t;
 
 /**
@@ -109,7 +109,7 @@ typedef struct analog_io{
     double min; ///range for conversion to/from raw data
     double max;
     double mask;///forced value mask
-    char nick[NICKLEN];///nickname
+    char * nick;//[NICKLEN];///nickname
 } * aio_t;
 
 /**
@@ -126,7 +126,7 @@ typedef struct timer{
     BIT(START);///start command: must be on to count
     BIT(RESET);///down command: sets V = 0
     //BIT(MASK);///true if timer is forced to up or down
-    char nick[NICKLEN];
+    char * nick;//[NICKLEN];
 } * dt_t;
 
 /**
@@ -137,7 +137,7 @@ typedef struct blink{
     BIT(Q); ///output
     long S;	///scale; S=1000=>toggle every 1000 cycles. STEP= 10 msec=> toggle every 10 sec
     long sn;///internal counter for scaling
-    char nick[NICKLEN];
+    char * nick;//[NICKLEN];
 } * blink_t;
 
 /**
@@ -153,7 +153,7 @@ typedef struct mvar{
     BIT(SET);		///set pulse
     BIT(RESET);		///reset pulse
     //BIT(MASK); ///true if pulse is set
-    char nick[NICKLEN];   ///nickname
+    char * nick;//[NICKLEN];   ///nickname
 } * mvar_t;
 
 /**
@@ -163,7 +163,7 @@ typedef struct mvar{
 typedef struct mreal{
     double V;     ///TODO: add type
     BIT(RO);	///1 if read only;
-    char nick[NICKLEN];   ///nickname
+    char * nick;//[NICKLEN];   ///nickname
 } * mreal_t;
 
 /**

@@ -2,7 +2,7 @@
 #define _INSTRUCTION_H_ 
 
 #define LABELLEN 4
-#define NICKLEN	16
+//#define NICKLEN	16
 /**
  *IL modifiers
  */

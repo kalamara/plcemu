@@ -2,17 +2,6 @@
 #include "util.h"
 #include "config.h"
 
-char * strdup_r(char * dest, const char * src) {
-//strdup with realloc
-
-    char * r = (!dest)?(char *)malloc(strlen(src)):realloc(
-                                            (void*)dest, strlen(src));
-        
-    memset(r, 0, strlen(src));
-    sprintf(r, "%s", src);
-    
-    return r;
-}
 /*
 static void yaml_config_error(yaml_parser_t parser){
 

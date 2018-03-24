@@ -10,6 +10,12 @@
 #include "rung.h"
 #include "plclib.h"
 
+char * strdup_r(char * dest, const char * src) {
+    char * r =  strdup(src);
+    dest = r;
+    return r;
+}
+
 void plc_log(const char * msg, ...)
 {
     va_list arg;
