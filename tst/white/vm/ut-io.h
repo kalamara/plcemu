@@ -50,6 +50,7 @@ void ut_write(){
     CU_ASSERT(Mock_flush_count == 1);
     
     plc_stop(NULL);
+    p.status = ST_RUNNING;
     plc_stop(&p);
     //this should reset outputs
     CU_ASSERT(Mock_flush_count == 0);

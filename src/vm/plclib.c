@@ -1351,36 +1351,34 @@ plc_t plc_load_program_file(const char * path, plc_t plc) {
 }
 
 plc_t plc_start(plc_t p){
-    
     if(p == NULL
-    || p->hw == NULL)
+    || p->hw == NULL){
+    
         return NULL;
-    
-    p->hw->enable();
-        
-    if(p->status == ST_STOPPED){
-        p->update = CHANGED_STATUS;
     }
-    p->status = ST_RUNNING;
-    
+    if(p->status == ST_STOPPED){
+        p->hw->enable();
+        p->update = CHANGED_STATUS;
+        p->status = ST_RUNNING;
+    }
     return p;
 }
 
 plc_t plc_stop(plc_t p){
     if(p == NULL
-    || p->hw == NULL)
-        return NULL;
-        
-    memset(p->outputs, 0, p->nq);
-    memset(p->real_out, 0, 8*p->naq);
-    write_outputs(p);
-        
-    p->hw->disable();    
-    if(p->status == ST_RUNNING){
-        p->update = CHANGED_STATUS;
-    }
-    p->status = ST_STOPPED;
+    || p->hw == NULL){
     
+        return NULL;
+    }
+    if(p->status != ST_STOPPED){
+        memset(p->outputs, 0, p->nq);
+        memset(p->real_out, 0, 8*p->naq);
+        write_outputs(p);
+        
+        p->hw->disable();    
+        p->update = CHANGED_STATUS;   
+        p->status = ST_STOPPED;
+    }
     return p;
 }
 
@@ -1677,7 +1675,8 @@ plc_t declare_variable(const plc_t p,
         
         r->status = ERR_BADINDEX;
     } else {        
-        *nick = strdup_r(*nick, val);
+        //*nick = strdup_r(*nick, val);
+        *nick = strdup(val);
         //snprintf(nick, NICKLEN, "%s", val);
     }
     return r;

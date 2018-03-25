@@ -404,6 +404,154 @@ static config_t get_pulse_values(const plc_t plc,
     }
     return ret;
 }
+
+config_t init_config(){
+ //TODO: in a c++ implementation this all can be done automatically 
+ //using a hashmap
+    config_t conf = new_config(N_CONFIG_VARIABLES);
+   
+    config_t uspace = new_config(N_USPACE_VARS);
+            
+    uspace = update_entry(
+        USPACE_BASE,
+	    new_entry_int(50176, "BASE"),
+	    uspace);
+	
+	uspace = update_entry(
+	    USPACE_WR, 
+	    new_entry_int(0, "WR"),
+	    uspace);
+	    
+	uspace = update_entry(
+	    USPACE_RD, 
+	    new_entry_int(8, "RD"),
+	    uspace);
+	
+	config_t subdev = new_config(N_SUBDEV_VARS);
+	
+    subdev = update_entry(
+        SUBDEV_IN,
+	    new_entry_int(0, "IN"),
+	    subdev);
+	    
+	subdev = update_entry(
+	    SUBDEV_OUT,
+	    new_entry_int(1, "OUT"),
+	    subdev);
+	    
+    subdev = update_entry(
+        SUBDEV_ADC, 
+	    new_entry_int(2, "ADC"),
+	    subdev);
+	    
+	subdev = update_entry(
+	    SUBDEV_DAC, 
+	    new_entry_int(3, "DAC"),
+	    subdev);
+	
+	config_t comedi = new_config(N_COMEDI_VARS);
+	
+	comedi = update_entry(
+	    COMEDI_FILE,
+	    new_entry_int(0, "FILE"),
+	    comedi);
+	    
+	comedi = update_entry(
+	    COMEDI_SUBDEV, 
+	    new_entry_map(subdev, "SUBDEV"),
+	    comedi);
+    
+    config_t sim = new_config(N_SIM_VARS);
+    
+    sim = update_entry(
+        SIM_INPUT,
+        new_entry_str("sim.in", "INPUT"), 
+        sim);
+        
+    sim = update_entry(
+        SIM_OUTPUT,
+        new_entry_str("sim.out", "OUTPUT"),
+        sim);    
+
+    conf = update_entry(
+        CONFIG_STEP,
+        new_entry_int(1, "STEP"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_PIPE,
+        new_entry_str("plcpipe", "PIPE"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_HW,
+        new_entry_str("STDI/O", "HW"),
+        conf);
+        
+    conf = update_entry(
+        CONFIG_USPACE,
+        new_entry_map(uspace, "USPACE"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_COMEDI,
+        new_entry_map(comedi, "COMEDI"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_SIM,
+        new_entry_map(sim, "SIM"),
+        conf);
+
+   /*******************************************/
+    conf = update_entry(
+        CONFIG_TIMER,
+        new_entry_seq(new_sequence(4), "TIMERS"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_PULSE,
+        new_entry_seq(new_sequence(4), "PULSES"),
+        conf);
+        
+    conf = update_entry(
+        CONFIG_MREG,
+        new_entry_seq(new_sequence(4), "MREG"),
+        conf);
+        
+    conf = update_entry(
+        CONFIG_MVAR,
+        new_entry_seq(new_sequence(4), "MVAR"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_DI,
+        new_entry_seq(new_sequence(8), "DI"),
+        conf);
+ 
+    conf = update_entry(
+        CONFIG_DQ,
+        new_entry_seq(new_sequence(8), "DQ"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_AI,
+        new_entry_seq(new_sequence(8), "AI"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_AQ,
+        new_entry_seq(new_sequence(8), "AQ"),
+        conf);
+
+    conf = update_entry(
+        CONFIG_PROGRAM,
+        new_entry_seq(new_sequence(2), "PROGRAM"),
+        conf);
+
+    return conf;
+}
+
 //FIXME: support for multiple interfaces
 #ifdef SIM
 #define HW_TYPE HW_SIM
@@ -416,6 +564,23 @@ static config_t get_pulse_values(const plc_t plc,
 #define HW_TYPE HW_USPACE
 #endif //COMEDI
 #endif //SIM
+int Lookup[N_CONFIG_VARIABLES] = {
+    PLC_ERR, //CONFIG_STEP,
+    PLC_ERR, //CONFIG_PIPE,
+    PLC_ERR, //CONFIG_HW,
+    PLC_ERR, //CONFIG_USPACE,
+    PLC_ERR, //CONFIG_COMEDI,
+    PLC_ERR, //CONFIG_SIM,
+    PLC_ERR, //CONFIG_PROGRAM,
+        OP_REAL_INPUT,  //CONFIG_AI
+        OP_REAL_OUTPUT, //CONFIG_AQ
+        OP_INPUT,       //CONFIG_DI,
+        OP_OUTPUT,      //CONFIG_DQ,
+        OP_MEMORY,  	//CONFIG_MVAR,
+        OP_REAL_MEMORY, //CONFIG_MREG,
+        OP_BLINKOUT,    //CONFIG_TIMER,
+        OP_TIMEOUT,     //CONFIG_PULSE, 
+};
 
 app_t configure(const config_t conf, app_t app){
 
@@ -572,7 +737,7 @@ app_t apply_command(const config_t com,
                     //filter sequences who have a param "FORCE"
                         val = get_param_val("FORCE", seq->vars[v].params);
                         if(val){  //apply force   
-                            p = force(a->plc, s, v, val);
+                            p = force(a->plc, Lookup[s], v, val);
                             if(p){
                                 a->plc = p;
                             }
@@ -592,7 +757,7 @@ app_t apply_command(const config_t com,
                 //filter sequences who have a param "FORCE"
                         val = get_param_val("FORCE", seq->vars[v].params);
                         if(val){  //apply force   
-                            p = unforce(a->plc, s, v);
+                            p = unforce(a->plc, Lookup[s], v);
                             if(p){
                                 a->plc = p;
                             }
@@ -602,22 +767,18 @@ app_t apply_command(const config_t com,
                 if(p == NULL){
                     plc_log("Invalid force command\n");
                 }
-             
+                break;
              case COM_EDIT:
                 //TODO: filter sequences who have an updated variable                    
-                p = configure_di(com, p);
-                p = configure_dq(com, p);
-                p = configure_ai(com, p);
-                p = configure_aq(com, p);
-                p = configure_counters(com, p);
-                p = configure_reals(com, p);
-                p = configure_timers(com, p);
-                p = configure_pulses(com, p);
-                if(p){
-                   a->plc = p;
-                } else {
-                    plc_log("Invalid edit command\n");
-                }
+                a->plc = configure_di(com, a->plc);
+                a->plc = configure_dq(com, a->plc);
+                a->plc = configure_ai(com, a->plc);
+                a->plc = configure_aq(com, a->plc);
+                a->plc = configure_counters(com, a->plc);
+                a->plc = configure_reals(com, a->plc);
+                a->plc = configure_timers(com, a->plc);
+                a->plc = configure_pulses(com, a->plc);
+                a->conf = copy_sequences(com, a->conf);
                 break;
             default: break;
         }

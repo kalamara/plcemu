@@ -11,6 +11,12 @@ typedef struct app {
 } * app_t;
 
 /**
+ * @brief init configuration
+ * @return new app configuration
+ */ 
+config_t init_config();
+
+/**
  *@brief apply configuration to application
  *@param configuration
  *@param the application

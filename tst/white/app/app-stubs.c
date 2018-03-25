@@ -121,6 +121,7 @@ plc_t unforce(plc_t p, int op, BYTE i){
             Mock_val  = NULL;
         }
     }
+    return p;
 }
 
 struct PLC_regs Mock_plc;

@@ -192,14 +192,16 @@ int main(int argc, char **argv)
     config_t command = cli_init_command(conf);
     config_t state = cli_init_state(conf);
     App->plc = plc_start(App->plc);    
-    while (get_numeric_entry(0, command)!=COM_QUIT) {
-       if(App->plc->update != 0){
+    while (get_numeric_entry(CLI_COM, command)!=COM_QUIT) {
+        
+        if(App->plc->update != 0){
            state = get_state(App->plc, state);
            ui_draw(state);
            App->plc->update = 0;
         }   
         command = ui_update(command);
         App = apply_command(command, App);
+        state = App->conf;
         App->plc = plc_func(App->plc);
     }
     sigkill();

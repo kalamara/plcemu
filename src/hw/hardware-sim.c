@@ -53,52 +53,53 @@ int sim_enable() /* Enable bus communication */
     {
         plc_log("Failed to open simulation input from %s", SimInFile);
         r = PLC_ERR;
+    } else {
+        plc_log("Opened simulation input from %s", SimInFile);
     }
-    //else
-      //  plc_log("Opened simulation input from %s", SimInFile);
-
     if(!(Qfd=fopen(SimOutFile, "w+")))
     {
         plc_log("Failed to open simulation output to %s", SimOutFile);
         r = PLC_ERR;
+    } else {
+        plc_log("Opened simulation output to %s", SimOutFile);
     }
-    //else
-      //  plc_log("Opened simulation output to %s", SimOutFile);
-    if(!(BufIn = (char * )malloc(Ni)))
+    if(!(BufIn = (char * )malloc(Ni))){
         r = PLC_ERR;
-    else
+    } else {
         memset(BufIn, 0, Ni);
-
-    if(!(BufOut = (char * )malloc(Nq)))
+    }
+    if(!(BufOut = (char * )malloc(Nq))){
         r = PLC_ERR;
-    else
+    } else {
         memset(BufOut, 0, Nq);
-    
-    if(!(AdcIn = (char * )malloc( LONG_BYTES * Nai)))
+    }
+    if(!(AdcIn = (char * )malloc( LONG_BYTES * Nai))){
         r = PLC_ERR;
-    else
+    } else {
         memset(AdcIn, 0, LONG_BYTES * Nai);
-
-    if(!(AdcOut = (char * )malloc( LONG_BYTES * Naq)))
+    }
+    if(!(AdcOut = (char * )malloc( LONG_BYTES * Naq))){
         r = PLC_ERR;
-    else
+    } else {
         memset(AdcOut, 0, LONG_BYTES * Naq);
-    
+    }
     return r;
 }
 
 int sim_disable() /* Disable bus communication */
 {
-    int r = 1;
+    int r = PLC_OK;
     /*close streams*/
     if( !Ifd
-    ||  !fclose(Ifd))
-        r = -1;
-    //plc_log("Closed simulation input");
+    ||  !fclose(Ifd)){
+        r = PLC_ERR;
+    }
+    plc_log("Closed simulation input");
     if( !Qfd
-    ||  !fclose(Qfd))
-        r = -1;
-    //plc_log("Closed simulation output"); 
+    ||  !fclose(Qfd)){
+        r = PLC_ERR;
+    }
+    plc_log("Closed simulation output"); 
     if(BufIn){
         free(BufIn);
         BufIn = NULL;
@@ -121,10 +122,11 @@ int sim_fetch()
                         digital, 
                         Ifd?Ifd:stdin);
     int i = 0;
-    for(; i < bytes_read; i++)
-        if(BufIn[i] >= ASCIISTART)
+    for(; i < bytes_read; i++){
+        if(BufIn[i] >= ASCIISTART){
             BufIn[i] -= ASCIISTART;
-
+        }
+    }
     bytes_read += fread(AdcIn, 
                         sizeof(BYTE), 
                         LONG_BYTES*analog, 
@@ -133,9 +135,9 @@ int sim_fetch()
     if(bytes_read < digital + LONG_BYTES*analog){
         //plc_log("failed to read from %s, reopening", SimInFile);
         if(Ifd
-        && feof(Ifd))
+        && feof(Ifd)){
             rewind(Ifd);
-        else{
+        } else {
             sim_disable();
             sim_enable();
         }
@@ -184,8 +186,9 @@ void sim_dio_write(const unsigned char *buf, unsigned int n,  BYTE bit)
     /*write a byte to output stream*/
     q+=ASCIISTART; //ASCII
    // plc_log("Send %d to byte %d", q, position);
-     if(strlen(BufOut) >= position)
+     if(strlen(BufOut) >= position){
          BufOut[position] = q;
+     }
 }
 
 void sim_dio_bitfield(const BYTE* mask, BYTE *bits)

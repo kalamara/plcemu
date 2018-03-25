@@ -412,10 +412,13 @@ char * serialize_config(const config_t conf);
 config_t deserialize_config(const char * buf, 
                             const config_t conf);         
  
-//TEMP: init configuration 
-config_t init_config();
- 
-config_t copy_sequences(const config_t conf, config_t com);
+/**
+ * @brief copy all the block sequences
+ * @param source
+ * @param destination
+ * @return destination
+ */ 
+config_t copy_sequences(const config_t from, config_t to);
  
 #endif //_CONFIG_H_
 

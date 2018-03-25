@@ -45,7 +45,7 @@ void ut_apply_command()
     
     r = apply_command(com, a);
     CU_ASSERT_STRING_EQUAL(Mock_val, "1");
-    CU_ASSERT(Mock_op == CONFIG_DI);
+    CU_ASSERT(Mock_op == OP_INPUT);
     CU_ASSERT(Mock_idx == 2);
     
     com = set_numeric_entry(CLI_COM, COM_UNFORCE, com);
