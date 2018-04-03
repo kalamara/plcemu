@@ -1,5 +1,5 @@
 #include <string.h>
-#include <comedilib.h>
+
 #include "util.h"
 #include "data.h"
 #include "instruction.h"
@@ -7,7 +7,10 @@
 #include "config.h"
 #include "hardware.h"
 
+struct hardware Comedi;
+
 #ifdef COMEDI
+#include <comedilib.h>
 
 static comedi_t * it;
 int Comedi_file;
@@ -15,8 +18,6 @@ int Comedi_subdev_i;
 int Comedi_subdev_q;
 int Comedi_subdev_ai;
 int Comedi_subdev_aq;
-
-struct hardware Comedi;
 
 int com_config(const config_t conf)
 {
