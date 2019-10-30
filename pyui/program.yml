@@ -11,13 +11,13 @@ DQ:
       Identifier:    RESULT
 
 TIMER:
-    - Index: 1
+    - Index: 0
       Resolution: 10
       Preset: 10
             
 
 PULSE:
-    - Index: 1    
+    - Index: 0    
       Resolution: 100    
 
 MVAR:
