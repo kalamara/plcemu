@@ -1,24 +1,24 @@
 DI:
-    -Index: 0
-    Identifier:    A    
-    -Index: 1
-    Identifier:    B    
-    -Index: 2
-    Identifier:    C        
+    - Index: 0
+      Identifier:    A    
+    - Index: 1
+      Identifier:    B    
+    - Index: 2
+      Identifier:    C        
  
 DQ:
-    -Index: 0
-    Identifier:    RESULT
+    - Index: 0
+      Identifier:    RESULT
 
 TIMER:
-    -Index: 1
-    Resolution: 10
-    Preset: 10
+    - Index: 1
+      Resolution: 10
+      Preset: 10
             
 
 PULSE:
-    -Index: 1    
-    Resolution: 100    
+    - Index: 1    
+      Resolution: 100    
 
 
 # triple majority circuit
