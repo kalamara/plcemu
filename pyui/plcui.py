@@ -15,180 +15,282 @@ mVmodel = QStandardItemModel (0, 3)
 Tmodel = QStandardItemModel (0, 4)
 Smodel = QStandardItemModel (0, 4)
 
+def on_edited_di(item):
+    
+    r = item.index().row()
+    c = item.index().column()
+    v = item.text()
+
+    print(r,c,v)
+
 def on_action_connect():
 
     alert = QMessageBox()
     alert.setText('wanna connect?')
     alert.exec_()
 
+
+def update_di(data):
+    if(data!=None):
+        
+        for i in data:
+            keyItem = QStandardItem("I %d" % i['INDEX'])
+            dImodel.setItem(i['INDEX'], 0, keyItem)
+
+            nameItem = QStandardItem(i.get('ID'))
+            if(nameItem!=None):
+                dImodel.setItem(i['INDEX'], 1, nameItem)
+            
+            valItem = QStandardItem(i.get('VALUE'))
+            if(valItem!=None):
+                dImodel.setItem(i['INDEX'], 2, valItem)
+
 def populate_di(data):
     if(data!=None):
-        dImodel.setHorizontalHeaderLabels(["Digital Inputs", "Name", "Value"]);
-        for i in data:
-            keyItem = QStandardItem("I %d" % i['Index'])
-            dImodel.setItem(i['Index'], 0, keyItem)
-
-            nameItem = QStandardItem(i.get('Identifier'))
-            if(nameItem!=None):
-                dImodel.setItem(i['Index'], 1, nameItem)
-            
-            valItem = QStandardItem(i.get('Value'))
-            if(valItem!=None):
-                dImodel.setItem(i['Index'], 2, valItem)
-            
+        dImodel.setHorizontalHeaderLabels(["Digital Inputs", "Name", "VALUE"]);
+        if(isinstance(data[0],(int))):
+            num, *items = data
+            for i in range(0,num):
+                keyItem = QStandardItem("I %d" % i)
+                keyItem.setEditable(False) #FIXME
+                dImodel.appendRow([keyItem])
+            update_di(items)
+        
         ui.diView.setModel(dImodel)
         ui.diView.show()
 
-def populate_dq(data):
+#
+
+def update_dq(data):
     if(data!=None):
-        dQmodel.setHorizontalHeaderLabels(["Digital Outputs", "Name", "Value"]);
+        
         for i in data:
-            keyItem = QStandardItem("Q %d" % i['Index'])
-            dQmodel.setItem(i['Index'], 0, keyItem)
+            keyItem = QStandardItem("Q %d" % i['INDEX'])
+            dQmodel.setItem(i['INDEX'], 0, keyItem)
 
-            nameItem = QStandardItem(i.get('Identifier'))
+            nameItem = QStandardItem(i.get('ID'))
             if(nameItem!=None):
-                dQmodel.setItem(i['Index'], 1, nameItem)
+                dQmodel.setItem(i['INDEX'], 1, nameItem)
             
-            valItem = QStandardItem( i.get('Value'))
+            valItem = QStandardItem( i.get('VALUE'))
             if(valItem!=None):
-                dQmodel.setItem(i['Index'], 2, valItem)
+                dQmodel.setItem(i['INDEX'], 2, valItem)
             
+def populate_dq(data):  
+    if(data!=None):
+        dQmodel.setHorizontalHeaderLabels(["Digital Outputs", "Name", "VALUE"]);
+        if(isinstance(data[0],(int))):
+            num, *items = data
+            for i in range(0,num):
+                keyItem = QStandardItem("Q %d" % i)
+                keyItem.setEditable(False) #FIXME
+                dQmodel.appendRow([keyItem])
+            update_dq(items)
+        
         ui.dqView.setModel(dQmodel)
-        ui.dqView.show()
+        ui.dqView.show()    
 
+def update_ai(data):
+    if(data!=None):
+        
+        for i in data:
+            keyItem = QStandardItem("AI %d" % i['INDEX'])
+            aImodel.setItem(i['INDEX'], 0, keyItem)
+            
+            nameItem = QStandardItem(i.get('ID'))
+            if(nameItem!=None):
+                aImodel.setItem(i['INDEX'], 1, nameItem)
+            
+            if(i.get('VALUE')!=None):
+                valItem = QStandardItem(str(i.get('VALUE')))
+                aImodel.setItem(i['INDEX'], 2, valItem)
+
+            if(i.get('MIN')!=None):
+                minItem = QStandardItem(str(i['MIN']))
+                aImodel.setItem(i['INDEX'], 3, minItem)
+            
+            if(i.get('MAX')!=None):
+                maxItem = QStandardItem(str(i['MAX']))
+                aImodel.setItem(i['INDEX'], 4, maxItem)
+            
+        
 def populate_ai(data):
     if(data!=None):
-        aImodel.setHorizontalHeaderLabels(["Analog Inputs", "Name", "Value", "Min", "Max"]);
-        for i in data:
-            keyItem = QStandardItem("AI %d" % i['Index'])
-            aImodel.setItem(i['Index'], 0, keyItem)
-            
-            nameItem = QStandardItem(i.get('Identifier'))
-            if(nameItem!=None):
-                aImodel.setItem(i['Index'], 1, nameItem)
-            
-            if(i.get('Value')!=None):
-                valItem = QStandardItem(str(i.get('Value')))
-                aImodel.setItem(i['Index'], 2, valItem)
-
-            if(i.get('Min')!=None):
-                minItem = QStandardItem(str(i['Min']))
-                aImodel.setItem(i['Index'], 3, minItem)
-            
-            if(i.get('Max')!=None):
-                maxItem = QStandardItem(str(i['Max']))
-                aImodel.setItem(i['Index'], 4, maxItem)
-            
+        aImodel.setHorizontalHeaderLabels(["Analog Inputs", "Name", "VALUE", "MIN", "MAX"]);
+        if(isinstance(data[0],(int))):
+            num, *items = data
+            for i in range(0,num):
+                keyItem = QStandardItem("AI %d" % i)
+                keyItem.setEditable(False) #FIXME
+                aImodel.appendRow([keyItem])
+            update_ai(items)
+        
         ui.aiView.setModel(aImodel)
-        ui.aiView.show()
+        ui.aiView.show()  
 
-def populate_aq(data):
+def update_aq(data):
     if(data!=None):
-        aQmodel.setHorizontalHeaderLabels(["Analog Outputs", "Name", "Value"]);
+        
         for i in data:
-            keyItem = QStandardItem("AQ %d" % i['Index'])
-            aQmodel.setItem(i['Index'], 0, keyItem)
+            keyItem = QStandardItem("AQ %d" % i['INDEX'])
+            aQmodel.setItem(i['INDEX'], 0, keyItem)
 
-            nameItem = QStandardItem(i.get('Identifier'))
+            nameItem = QStandardItem(i.get('ID'))
             if(nameItem!=None):
-                aQmodel.setItem(i['Index'], 1, nameItem)
+                aQmodel.setItem(i['INDEX'], 1, nameItem)
 
-            if(i.get('Value')!=None):
-                valItem = QStandardItem(str(i.get('Value')))
-                aQmodel.setItem(i['Index'], 2, valItem)
+            if(i.get('VALUE')!=None):
+                valItem = QStandardItem(str(i.get('VALUE')))
+                aQmodel.setItem(i['INDEX'], 2, valItem)
 
-            if(i.get('Min')!=None):    
-                minItem = QStandardItem(str(i['Min']))
-                aQmodel.setItem(i['Index'], 3, minItem)
+            if(i.get('MIN')!=None):    
+                minItem = QStandardItem(str(i['MIN']))
+                aQmodel.setItem(i['INDEX'], 3, minItem)
 
-            if(i.get('Max')!=None):
-                maxItem = QStandardItem(str(i['Max']))
-                aQmodel.setItem(i['Index'], 4, maxItem)
+            if(i.get('MAX')!=None):
+                maxItem = QStandardItem(str(i['MAX']))
+                aQmodel.setItem(i['INDEX'], 4, maxItem)
             
+
+def populate_aq(data):    
+    if(data!=None):
+        aQmodel.setHorizontalHeaderLabels(["Analog Outputs", "Name", "VALUE", "MIN", "MAX"]);
+        if(isinstance(data[0],(int))):
+            num, *items = data
+            for i in range(0,num):
+                keyItem = QStandardItem("AQ %d" % i)
+                keyItem.setEditable(False) #FIXME
+                aQmodel.appendRow([keyItem])
+            update_aq(items)
+        
         ui.aqView.setModel(aQmodel)
-        ui.aqView.show()
+        ui.aqView.show()   
 
-def populate_mreg(data):
+def update_mreg(data):
     if(data!=None):
-        mRmodel.setHorizontalHeaderLabels(["Memory Registers", "Name", "Value"]);
+        
         for i in data:
-            keyItem = QStandardItem("MW %d" % i['Index'])
-            mRmodel.setItem(i['Index'], 0, keyItem)
+            keyItem = QStandardItem("MW %d" % i['INDEX'])
+            mRmodel.setItem(i['INDEX'], 0, keyItem)
             
-            nameItem = QStandardItem(i.get('Identifier'))
+            nameItem = QStandardItem(i.get('ID'))
             if(nameItem!=None):
-                mRmodel.setItem(i['Index'], 1, nameItem)
+                mRmodel.setItem(i['INDEX'], 1, nameItem)
 
-            if(i.get('Value')!=None):
-                valItem = QStandardItem(str(i.get('Value')))
-                mRmodel.setItem(i['Index'], 2, valItem)
+            if(i.get('VALUE')!=None):
+                valItem = QStandardItem(str(i.get('VALUE')))
+                mRmodel.setItem(i['INDEX'], 2, valItem)
     
-        ui.mView.setModel(mRmodel)
-        ui.mView.show()
-
-def populate_mvar(data):
+def populate_mreg(data):    
     if(data!=None):
-        mVmodel.setHorizontalHeaderLabels(["Memory Reals", "Name", "Value"]);
+        mRmodel.setHorizontalHeaderLabels(["Memory Registers", "Name", "VALUE"]);
+        if(isinstance(data[0],(int))):
+            num, *items = data
+            for i in range(0,num):
+                keyItem = QStandardItem("MW %d" % i)
+                keyItem.setEditable(False) #FIXME
+                mRmodel.appendRow([keyItem])
+            update_mreg(items)
+        
+        ui.mView.setModel(mRmodel)
+        ui.mView.show()      
+
+def update_mvar(data):
+    if(data!=None):
+        
         for i in data:
-            keyItem = QStandardItem("MF %d" % i['Index'])
-            mVmodel.setItem(i['Index'], 0, keyItem)
+            keyItem = QStandardItem("MF %d" % i['INDEX'])
+            mVmodel.setItem(i['INDEX'], 0, keyItem)
             
-            nameItem = QStandardItem(i.get('Identifier'))
+            nameItem = QStandardItem(i.get('ID'))
             if(nameItem!=None):
-                mVmodel.setItem(i['Index'], 1, nameItem)
+                mVmodel.setItem(i['INDEX'], 1, nameItem)
 
-            if(i.get('Value')!=None):
-                valItem = QStandardItem(str(i.get('Value')))   
-                mVmodel.setItem(i['Index'], 2, valItem)
+            if(i.get('VALUE')!=None):
+                valItem = QStandardItem(str(i.get('VALUE')))   
+                mVmodel.setItem(i['INDEX'], 2, valItem)
             
+def populate_mvar(data):   
+    if(data!=None):
+        mVmodel.setHorizontalHeaderLabels(["Memory Reals", "Name", "VALUE"]);
+        if(isinstance(data[0],(int))):
+            num, *items = data
+            for i in range(0,num):
+                keyItem = QStandardItem("MF %d" % i)
+                keyItem.setEditable(False) #FIXME
+                mVmodel.appendRow([keyItem])
+            update_mvar(items)
+        
         ui.rView.setModel(mVmodel)
-        ui.rView.show()
+        ui.rView.show()      
 
+def update_timer(data):
+    if(data!=None):
+        
+        for i in data:
+            keyItem = QStandardItem("T %d" % i['INDEX'])
+            Tmodel.setItem(i['INDEX'], 0, keyItem)
+            nameItem = QStandardItem(i.get('ID'))
+            if(nameItem!=None):
+                Tmodel.setItem(i['INDEX'], 1, nameItem)
+
+            if(i.get('VALUE')!=None):
+                valItem = QStandardItem(str(i.get('VALUE')))   
+                Tmodel.setItem(i['INDEX'], 2, valItem)
+
+            if(i.get('RESOLUTION')!=None):
+                resItem = QStandardItem(str(i['RESOLUTION']))
+                Tmodel.setItem(i['INDEX'], 3, resItem)
+            
+            if(i.get('PRESET')!=None):    
+                presItem = QStandardItem(str(i['PRESET']))
+                Tmodel.setItem(i['INDEX'], 4, presItem)
+            
 def populate_timer(data):
     if(data!=None):
-        Tmodel.setHorizontalHeaderLabels(["Timers", "Name", "Value", "Resolution", "Preset"]);
-        for i in data:
-            keyItem = QStandardItem("T %d" % i['Index'])
-            Tmodel.setItem(i['Index'], 0, keyItem)
-            nameItem = QStandardItem(i.get('Identifier'))
-            if(nameItem!=None):
-                Tmodel.setItem(i['Index'], 1, nameItem)
-
-            if(i.get('Value')!=None):
-                valItem = QStandardItem(str(i.get('Value')))   
-                Tmodel.setItem(i['Index'], 2, valItem)
-
-            if(i.get('Resolution')!=None):
-                resItem = QStandardItem(str(i['Resolution']))
-                Tmodel.setItem(i['Index'], 3, resItem)
-            
-            if(i.get('Preset')!=None):    
-                presItem = QStandardItem(str(i['Preset']))
-                Tmodel.setItem(i['Index'], 4, presItem)
-            
+        Tmodel.setHorizontalHeaderLabels(["Timers", "Name", "VALUE", "RESOLUTION", "PRESET"]);
+        if(isinstance(data[0],(int))):
+            num, *items = data
+            for i in range(0,num):
+                keyItem = QStandardItem("T %d" % i)
+                keyItem.setEditable(False) #FIXME
+                Tmodel.appendRow([keyItem])
+            update_timer(items)
+        
         ui.tView.setModel(Tmodel)
-        ui.tView.show()
+        ui.tView.show()  
 
-def populate_pulse(data):
+def update_pulse(data):
     if(data!=None):
-        Smodel.setHorizontalHeaderLabels(["Pulses", "Name", "Value", "Resolution"]);
+        
         for i in data:
-            keyItem = QStandardItem("S %d" % i['Index'])
-            Smodel.setItem(i['Index'], 0, keyItem)
+            keyItem = QStandardItem("S %d" % i['INDEX'])
+            Smodel.setItem(i['INDEX'], 0, keyItem)
 
-            nameItem = QStandardItem(i.get('Identifier'))
+            nameItem = QStandardItem(i.get('ID'))
             if(nameItem!=None):
-                Smodel.setItem(i['Index'], 1, nameItem)
+                Smodel.setItem(i['INDEX'], 1, nameItem)
             
-            if(i.get('Value')!=None):
-                valItem = QStandardItem(str(i.get('Value')))
-                Smodel.setItem(i['Index'], 2, valItem)
+            if(i.get('VALUE')!=None):
+                valItem = QStandardItem(str(i.get('VALUE')))
+                Smodel.setItem(i['INDEX'], 2, valItem)
 
-            if(i.get('Resolution')!=None):
-                resItem = QStandardItem(str(i['Resolution']))
-                Smodel.setItem(i['Index'], 3, resItem)
+            if(i.get('RESOLUTION')!=None):
+                resItem = QStandardItem(str(i['RESOLUTION']))
+                Smodel.setItem(i['INDEX'], 3, resItem)
 
+    
+def populate_pulse(data):       
+    if(data!=None):
+        Smodel.setHorizontalHeaderLabels(["Pulses", "Name", "VALUE", "RESOLUTION"]);
+        if(isinstance(data[0],(int))):
+            num, *items = data
+            for i in range(0,num):
+                keyItem = QStandardItem("S %d" % i)
+                keyItem.setEditable(False) #FIXME
+                Smodel.appendRow([keyItem])
+            update_timer(items)
+        
         ui.sView.setModel(Smodel)
         ui.sView.show()
 
@@ -208,8 +310,8 @@ if __name__ == "__main__":
             aq = data.get('AQ')
             mr = data.get('MREG')
             mv = data.get('MVAR')
-            tt = data.get('TIMER')
-            ps = data.get('PULSE')
+            tt = data.get('TIMERS')
+            ps = data.get('PULSES')
 
             #print(ai)
             ui.diView.hide()
@@ -234,7 +336,7 @@ if __name__ == "__main__":
             print(exc)
 
     ui.actionConnect.triggered.connect(on_action_connect)
-
+    dImodel.itemChanged.connect(on_edited_di)
 
     MainWindow.show()
 

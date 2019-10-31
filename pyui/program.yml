@@ -1,118 +1,111 @@
+STEP:         10        #time cycle in milliseconds
+PIPE:         plcpipe   #UNIX path of named pipe polled for commands
+
+#hardware
+HW:         STDI/O      #just a text tag that appears in a footer
+
+#user space interface:
+USPACE: 
+    BASE:         50176            #hardware address base
+    WR:        4               #write offset
+    RD:        0                #read offset
+
+
+#COMEDI interface:
+COMEDI: 
+    FILE:     0           #device and subdevice nodes of comedi driver.
+    SUBDEV: 
+        IN: 0
+        OUT: 1
+    
+
+#SIMULATION IO
+SIM: 
+    INPUT:   sim.in
+    OUTPUT:  sim.out
+
+#PROGRAM    
 DI:
-    - Index: 0
-      Identifier:    A    
-    - Index: 1
-      Identifier:    B    
-    - Index: 2
-      Identifier:    C        
+    - 16
+    - INDEX: 0
+      BYTE:  0  
+      BIT:   0
+      ID:    A    
+    - INDEX: 1
+      BYTE:  0
+      BIT:   1 
+      ID:    B    
+    - INDEX: 2
+      BYTE:  0
+      BIT:   2
+      ID:    C        
  
 DQ:
-    - Index: 0
-      Identifier:    RESULT
+    - 16
+    - INDEX: 0
+      BYTE:  0
+      BIT:   0
+      ID:    RESULT
 
-TIMER:
-    - Index: 0
-      Resolution: 10
-      Preset: 10
-            
-
-PULSE:
-    - Index: 0    
-      Resolution: 100    
-
-MVAR:
-    - Index:     0    
-      Identifier: N
-      Value:      1.0
- 
-    - Index:     1    
-      Identifier: MEAN
- 
-    - Index:     2    
-      Identifier: M2
- 
-    - Index:     3    
-      Identifier: DELTA
- 
-    - Index:     4    
-      Identifier: ONE
-      Value:      1.0
+TIMERS:
+    - 2  
+    - INDEX: 1
+      RESOLUTION: 10
+      PRESET: 10
       
 MREG:
-    - Index: 0
-      Identifier: RESULT
-      Value: 64   
-    
-    - Index: 1
-      Identifier: TEMP      
+    - 4
+    - INDEX: 0
+      ID: RESULT
+      VALUE: 64   
+     
+    - INDEX: 1
+      ID: TEMP
+            
+MVAR:
+ - 6
+ - INDEX :     0    
+   ID    :     N
+   VALUE :     1.0
+ - INDEX :     1    
+   ID    : MEAN
+ - INDEX :     2    
+   ID    : M2
+ - INDEX :     3    
+   ID    : DELTA
+ - INDEX :     4    
+   ID    : ONE
+   VALUE :      1.0
 
 AI: 
-    - Index:     0    
-      Identifier: INPUT
-      Min:        0.0
-      Max:        24.0
+ - 1
+ - INDEX :     0    
+   ID    :    INPUT
+   MIN   :    0.0
+   MAX   :   24.0
 
 AQ:
-    - Index:     0    
-      Identifier: OUTPUT
-      Min:        0.0
-      Max:        10.0
+ - 1
+ - INDEX :     0    
+   ID:         OUTPUT
+   MIN:        0.0
+   MAX:        10.0
 
-# Knuth's online variance:
-#    n = 1
-#    mean = 5.0
-#    m2 = 0.0
-#    delta = 0.0
+PULSES:
+    - 2
+ 
 
-#    read x :
-#        n += 1
-#        delta = x - mean
-#        mean += delta/n
-#        m2 += delta*(x - mean)
+PROGRAM:
+  - 2
+  - INDEX: 0       
+    ID: "knuth.il"
 
-#    if n < 2:
-#        return float('nan')
-#    else:
-#        return m2 / (n - 1)
-
-
-IL: |
- "
-    LD %MF0  ; n = n+1
-    ADD %MF4 ;
-    ST %MF0  ;
-
-    LD %IF0  ; read x
-    SUB %MF1 ;
-    ST %MF3  ; delta = x - mean
-
-    LD %MF1  ; Acc = mean
-    ADD(%MF3 ; Acc = delta,              Stack = ADD mean
-    DIV %MF0 ; Acc = delta/n,            Stack = ADD mean
-    )        ; Acc = mean + ( delta/n )
-    ST %MF1  ; mean = mean + ( delta/n )
-
-    LD %MF2  ; Acc = m2
-    ADD(%MF3 ; Acc = delta,              Stack = ADD m2
-    MUL(%IF0 ; Acc = x,                  Stack = MUL delta, ADD m2
-    SUB %MF1 ; Acc = x - mean,           Stack = MUL delta, ADD m2
-    )        ; Acc = delta * (x - mean), Stack = ADD m2
-    )        ; Acc = m2 + (delta * (x - mean))
-    ST %MF2  ; m2 = m2 + (delta * (x - mean))
-
-    LD %MF2  ; Acc = m2
-    DIV(%MF0 ; Acc = n,                  Stack = DIV m2
-    SUB %MF4   ; Acc = n-1,                Stack = DIV m2
-    )          ; Acc = m2 / n-1,
-    ST %QF0  ; y = m2 / (n - 1)
- "      
 
 # triple majority circuit
 # https://en.wikipedia.org/wiki/Triple_modular_redundancy
+PROGRAM:
+    - 2 
+    - INDEX: 1
+      ID: triple_majority.ld 
+        
 
-LD: |
- "i0---i1----+---------(Q0 
-  i2---i0----+ 
-  i1---i2----+" 
-  
-  
