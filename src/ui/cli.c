@@ -145,7 +145,12 @@ config_t cli_parse( char * input, config_t command){
             }
         }
     }
-    //plc_log("CLI: %s", input);
+    char * serialized = serialize_config(command);
+    plc_log("CLI: %s", serialized);
+    if(serialized){
+        free(serialized);
+        serialized = NULL;
+    }
     return command;
 }
 

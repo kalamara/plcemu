@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
+
 import yaml
 
 from mainwindow import *
@@ -15,13 +16,208 @@ mVmodel = QStandardItemModel (0, 3)
 Tmodel = QStandardItemModel (0, 4)
 Smodel = QStandardItemModel (0, 4)
 
+commands = ['NONE',
+    'START',
+    'STOP',
+    'HELP',
+    'FORCE',
+    'UNFORCE',
+    'EDIT',
+    'LOAD',
+    'SAVE',
+    'QUIT']
+
 def on_edited_di(item):
-    
+    #labels = ['INDEX', 'ID', 'VALUE']
+
     r = item.index().row()
     c = item.index().column()
+    
     v = item.text()
+    if(c == 1):
+        comm = {'COMMAND': 6, 'DI': [{ 'INDEX' : r, 'ID' : v }]}
+        print(yaml.dump(comm))
+    bv = 0
+    if(c == 2):
+        if(v==''):
+            co = 'UNFORCE'
 
-    print(r,c,v)
+        else:
+            co = 'FORCE'
+            if(int(v)>0):
+                bv = 1
+          
+        comm = {'COMMAND': 4, 'DI': [{ 'INDEX' : r, co : bv }]}
+        print(yaml.dump(comm))    
+        
+def on_edited_dq(item):
+    #labels = ['INDEX', 'ID', 'VALUE']
+
+    r = item.index().row()
+    c = item.index().column()
+    
+    v = item.text()
+    if(c == 1):
+        comm = {'COMMAND': 6, 'DQ': [{ 'INDEX' : r, 'ID' : v }]}
+        print(yaml.dump(comm))
+    bv = 0
+    if(c == 2):
+        if(v==''):
+            co = 'UNFORCE'
+
+        else:
+            co = 'FORCE'
+            if(int(v)>0):
+                bv = 1
+          
+        comm = {'COMMAND': 4, 'DQ': [{ 'INDEX' : r, co : bv }]}
+        print(yaml.dump(comm))            
+
+def on_edited_ai(item):
+    #labels = ['INDEX', 'ID', 'VALUE', 'MIN', 'MAX']
+
+    r = item.index().row()
+    c = item.index().column()
+    
+    v = item.text()
+    if(c == 1):
+        comm = {'COMMAND': 6, 'AI': [{ 'INDEX' : r, 'ID' : v }]}
+        print(yaml.dump(comm))
+
+    if(c == 2):
+        bv = 0
+        if(v==''):
+            co = 'UNFORCE'
+
+        else:
+            co = 'FORCE'
+            bv = float(v)
+          
+        comm = {'COMMAND': 4, 'AI': [{ 'INDEX' : r, co : bv }]}
+        print(yaml.dump(comm))    
+
+    if(c == 3):
+        comm = {'COMMAND': 6, 'AI': [{ 'INDEX' : r, 'MIN' : float(v) }]}
+        print(yaml.dump(comm))  
+
+    if(c == 4):
+        comm = {'COMMAND': 6, 'AI': [{ 'INDEX' : r, 'MAX' : float(v) }]}
+        print(yaml.dump(comm))        
+        
+        
+def on_edited_aq(item):
+    #labels = ['INDEX', 'ID', 'VALUE', 'MIN', 'MAX']
+
+    r = item.index().row()
+    c = item.index().column()
+    
+    v = item.text()
+    if(c == 1):
+        comm = {'COMMAND': 6, 'AQ': [{ 'INDEX' : r, 'ID' : v }]}
+        print(yaml.dump(comm))
+
+    if(c == 2):
+        bv = 0
+        if(v==''):
+            co = 'UNFORCE'
+
+        else:
+            co = 'FORCE'
+            bv = float(v)
+          
+        comm = {'COMMAND': 4, 'AQ': [{ 'INDEX' : r, co : bv }]}
+        print(yaml.dump(comm))    
+
+    if(c == 3):
+        comm = {'COMMAND': 6, 'AQ': [{ 'INDEX' : r, 'MIN' : float(v) }]}
+        print(yaml.dump(comm))  
+
+    if(c == 4):
+        comm = {'COMMAND': 6, 'AQ': [{ 'INDEX' : r, 'MAX' : float(v) }]}
+        print(yaml.dump(comm))      
+
+def on_edited_t(item):
+    #labels = ['INDEX', 'ID', 'VALUE', 'RESOLUTION', 'PRESET']
+
+    r = item.index().row()
+    c = item.index().column()
+    
+    v = item.text()
+    if(c == 1):
+        comm = {'COMMAND': 6, 'TIMERS': [{ 'INDEX' : r, 'ID' : v }]}
+        print(yaml.dump(comm))
+    
+    if(c == 3):
+        comm = {'COMMAND': 6, 'TIMERS': [{ 'INDEX' : r, 'RESOLUTION' : int(v) }]}
+        print(yaml.dump(comm))  
+
+    if(c == 4):
+        comm = {'COMMAND': 6, 'TIMERS': [{ 'INDEX' : r, 'PRESET' : int(v) }]}
+        print(yaml.dump(comm))      
+
+def on_edited_s(item):
+    #labels = ['INDEX', 'ID', 'VALUE', 'RESOLUTION']
+
+    r = item.index().row()
+    c = item.index().column()
+    
+    v = item.text()
+    if(c == 1):
+        comm = {'COMMAND': 6, 'PULSES': [{ 'INDEX' : r, 'ID' : v }]}
+        print(yaml.dump(comm))
+
+    if(c == 3):
+        comm = {'COMMAND': 6, 'PULSES': [{ 'INDEX' : r, 'RESOLUTION' : int(v) }]}
+        print(yaml.dump(comm)) 
+
+
+def on_edited_mr(item):
+    #labels = ['INDEX', 'ID', 'VALUE']
+
+    r = item.index().row()
+    c = item.index().column()
+    
+    v = item.text()
+    if(c == 1):
+        comm = {'COMMAND': 6, 'MREG': [{ 'INDEX' : r, 'ID' : v }]}
+        print(yaml.dump(comm))
+
+    if(c == 2):
+        bv = 0
+        if(v==''):
+            co = 'UNFORCE'
+
+        else:
+            co = 'FORCE'
+            bv = int(v)
+          
+        comm = {'COMMAND': 4, 'MREG': [{ 'INDEX' : r, co : bv }]}
+        print(yaml.dump(comm))    
+        
+        
+def on_edited_mv(item):
+    #labels = ['INDEX', 'ID', 'VALUE']
+
+    r = item.index().row()
+    c = item.index().column()
+    
+    v = item.text()
+    if(c == 1):
+        comm = {'COMMAND': 6, 'MVAR': [{ 'INDEX' : r, 'ID' : v }]}
+        print(yaml.dump(comm))
+
+    if(c == 2):
+        bv = 0
+        if(v==''):
+            co = 'UNFORCE'
+
+        else:
+            co = 'FORCE'
+            bv = float(v)
+          
+        comm = {'COMMAND': 4, 'MVAR': [{ 'INDEX' : r, co : bv }]}
+        print(yaml.dump(comm))    
+        
 
 def on_action_connect():
 
@@ -29,6 +225,42 @@ def on_action_connect():
     alert.setText('wanna connect?')
     alert.exec_()
 
+def on_action_load():
+    fileName = QFileDialog.getOpenFileName(None,
+    "Open PLC configuration", ".", "YML Files (*.yml)")
+
+    with open(fileName[0], 'r') as stream:
+        try:
+            data = yaml.safe_load(stream)
+            di = data.get('DI')
+            dq = data.get('DQ')
+            ai = data.get('AI')
+            aq = data.get('AQ')
+            mr = data.get('MREG')
+            mv = data.get('MVAR')
+            tt = data.get('TIMERS')
+            ps = data.get('PULSES')
+
+            ui.diView.hide()
+            ui.dqView.hide()
+            ui.aiView.hide()
+            ui.aqView.hide()
+            ui.mView.hide()
+            ui.rView.hide()
+            ui.tView.hide()
+            ui.sView.hide()
+            
+            populate_di(di)
+            populate_dq(dq)
+            populate_ai(ai)
+            populate_aq(aq)
+            populate_mreg(mr)
+            populate_mvar(mv)
+            populate_timer(tt)
+            populate_pulse(ps)
+
+        except yaml.YAMLError as exc:
+            print(exc)
 
 def update_di(data):
     if(data!=None):
@@ -47,6 +279,7 @@ def update_di(data):
 
 def populate_di(data):
     if(data!=None):
+        dImodel.clear()
         dImodel.setHorizontalHeaderLabels(["Digital Inputs", "Name", "VALUE"]);
         if(isinstance(data[0],(int))):
             num, *items = data
@@ -59,7 +292,6 @@ def populate_di(data):
         ui.diView.setModel(dImodel)
         ui.diView.show()
 
-#
 
 def update_dq(data):
     if(data!=None):
@@ -78,6 +310,7 @@ def update_dq(data):
             
 def populate_dq(data):  
     if(data!=None):
+        dQmodel.clear()
         dQmodel.setHorizontalHeaderLabels(["Digital Outputs", "Name", "VALUE"]);
         if(isinstance(data[0],(int))):
             num, *items = data
@@ -116,6 +349,7 @@ def update_ai(data):
         
 def populate_ai(data):
     if(data!=None):
+        aImodel.clear()
         aImodel.setHorizontalHeaderLabels(["Analog Inputs", "Name", "VALUE", "MIN", "MAX"]);
         if(isinstance(data[0],(int))):
             num, *items = data
@@ -154,6 +388,7 @@ def update_aq(data):
 
 def populate_aq(data):    
     if(data!=None):
+        aQmodel.clear()
         aQmodel.setHorizontalHeaderLabels(["Analog Outputs", "Name", "VALUE", "MIN", "MAX"]);
         if(isinstance(data[0],(int))):
             num, *items = data
@@ -183,6 +418,7 @@ def update_mreg(data):
     
 def populate_mreg(data):    
     if(data!=None):
+        mRmodel.clear()
         mRmodel.setHorizontalHeaderLabels(["Memory Registers", "Name", "VALUE"]);
         if(isinstance(data[0],(int))):
             num, *items = data
@@ -212,6 +448,7 @@ def update_mvar(data):
             
 def populate_mvar(data):   
     if(data!=None):
+        mVmodel.clear()
         mVmodel.setHorizontalHeaderLabels(["Memory Reals", "Name", "VALUE"]);
         if(isinstance(data[0],(int))):
             num, *items = data
@@ -248,6 +485,7 @@ def update_timer(data):
             
 def populate_timer(data):
     if(data!=None):
+        Tmodel.clear()
         Tmodel.setHorizontalHeaderLabels(["Timers", "Name", "VALUE", "RESOLUTION", "PRESET"]);
         if(isinstance(data[0],(int))):
             num, *items = data
@@ -282,6 +520,7 @@ def update_pulse(data):
     
 def populate_pulse(data):       
     if(data!=None):
+        Smodel.clear()
         Smodel.setHorizontalHeaderLabels(["Pulses", "Name", "VALUE", "RESOLUTION"]);
         if(isinstance(data[0],(int))):
             num, *items = data
@@ -301,42 +540,16 @@ if __name__ == "__main__":
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
 
-    with open("program.yml", 'r') as stream:
-        try:
-            data = yaml.safe_load(stream)
-            di = data.get('DI')
-            dq = data.get('DQ')
-            ai = data.get('AI')
-            aq = data.get('AQ')
-            mr = data.get('MREG')
-            mv = data.get('MVAR')
-            tt = data.get('TIMERS')
-            ps = data.get('PULSES')
-
-            #print(ai)
-            ui.diView.hide()
-            ui.dqView.hide()
-            ui.aiView.hide()
-            ui.aqView.hide()
-            ui.mView.hide()
-            ui.rView.hide()
-            ui.tView.hide()
-            ui.sView.hide()
-            
-            populate_di(di)
-            populate_dq(dq)
-            populate_ai(ai)
-            populate_aq(aq)
-            populate_mreg(mr)
-            populate_mvar(mv)
-            populate_timer(tt)
-            populate_pulse(ps)
-
-        except yaml.YAMLError as exc:
-            print(exc)
-
     ui.actionConnect.triggered.connect(on_action_connect)
+    ui.actionLoad.triggered.connect(on_action_load)
     dImodel.itemChanged.connect(on_edited_di)
+    dQmodel.itemChanged.connect(on_edited_dq)
+    aImodel.itemChanged.connect(on_edited_ai)
+    aQmodel.itemChanged.connect(on_edited_aq)
+    mVmodel.itemChanged.connect(on_edited_mv)
+    mRmodel.itemChanged.connect(on_edited_mr)
+    Tmodel.itemChanged.connect(on_edited_t)
+    Smodel.itemChanged.connect(on_edited_s)
 
     MainWindow.show()
 

@@ -9,6 +9,7 @@
 #include "data.h"
 #include "instruction.h"
 #include "rung.h"
+#include "hardware.h"
 #include "plclib.h"
 #include "plcemu.h"
 #include "config.h"

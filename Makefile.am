@@ -34,6 +34,7 @@ cli_SOURCES=src/ui/cli-zmq.c \
             src/ui/ui-zmq.c \
             src/config.c src/config.h \
             src/util.c src/util.h 
+
 else
 plcemu_SOURCES+= src/ui/ui-std.c
 endif

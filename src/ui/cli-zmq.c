@@ -10,6 +10,7 @@
 #include "data.h"
 #include "instruction.h"
 #include "rung.h"
+#include "hardware.h"
 #include "plclib.h"
 #include "plcemu.h"
 #include "config.h"
@@ -22,6 +23,55 @@ char * Response_buf = NULL;
 char * Update_buf = NULL;
 
 pthread_t Reader;
+config_t init_config(){
+ //TODO: in a c++ implementation this all can be done automatically 
+ //using a hashmap
+    config_t conf = new_config(N_CONFIG_VARIABLES);
+    conf = update_entry(
+        CONFIG_TIMER,
+        new_entry_seq(new_sequence(4), "TIMERS"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_PULSE,
+        new_entry_seq(new_sequence(4), "PULSES"),
+        conf);
+        
+    conf = update_entry(
+        CONFIG_MREG,
+        new_entry_seq(new_sequence(4), "MREG"),
+        conf);
+        
+    conf = update_entry(
+        CONFIG_MVAR,
+        new_entry_seq(new_sequence(4), "MVAR"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_DI,
+        new_entry_seq(new_sequence(8), "DI"),
+        conf);
+ 
+    conf = update_entry(
+        CONFIG_DQ,
+        new_entry_seq(new_sequence(8), "DQ"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_AI,
+        new_entry_seq(new_sequence(8), "AI"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_AQ,
+        new_entry_seq(new_sequence(8), "AQ"),
+        conf);
+
+    conf = update_entry(
+        CONFIG_PROGRAM,
+        new_entry_seq(new_sequence(2), "PROGRAM"),
+        conf);
+}
 
 void * read_cli(void * sock) {
     
