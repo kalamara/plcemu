@@ -99,13 +99,8 @@ PROGRAM:
   - 2
   - INDEX: 0       
     ID: "knuth.il"
+    
 
-
-# triple majority circuit
-# https://en.wikipedia.org/wiki/Triple_modular_redundancy
-PROGRAM:
-    - 2 
-    - INDEX: 1
-      ID: triple_majority.ld 
-        
-
+  - INDEX: 1
+    ID: "triple_majority.ld"
+    
