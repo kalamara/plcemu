@@ -28,6 +28,128 @@ commands = ['NONE',
     'SAVE',
     'QUIT']
 
+def dump_di():
+    count = dImodel.rowCount()
+    payload = [count]
+    for r in range(0, count):
+        id = dImodel.item(r,1)
+        if(id!=None):
+            payload.append({ 'INDEX' : r, 'ID' : id.text() })
+
+    return payload
+
+def dump_dq():
+    count = dQmodel.rowCount()
+    payload = [count]
+    for r in range(0, count):
+        id = dQmodel.item(r,1)
+        if(id!=None):
+            payload.append({ 'INDEX' : r, 'ID' : id.text() })
+   
+    return payload
+
+def dump_ai():
+    count = aImodel.rowCount()
+    payload = [count]
+    for r in range(0, count):
+        id = aImodel.item(r,1)
+        min = aImodel.item(r,3)
+        max = aImodel.item(r,4)
+        line = {}
+        if(id!=None):
+            line.update({'INDEX' : r})
+            line.update({'ID' : id.text()})
+            if(min!=None):
+                line.update({'MIN' : min.text()})
+            if(max!=None):
+                line.update({'MAX' : max.text()})    
+            payload.append(line)
+  
+    return payload
+
+def dump_aq():
+    count = aQmodel.rowCount()
+    payload = [count]
+    for r in range(0, count):
+        id = aQmodel.item(r,1)
+        min = aQmodel.item(r,3)
+        max = aQmodel.item(r,4)
+        line = {}
+        if(id!=None):
+            line.update({'INDEX' : r})
+            line.update({'ID' : id.text()})
+            if(min!=None):
+                line.update({'MIN' : min.text()})
+            if(max!=None):
+                line.update({'MAX' : max.text()})    
+            payload.append(line)
+ 
+    return payload
+
+def dump_mr():
+    count = mRmodel.rowCount()
+    payload = [count]
+    for r in range(0, count):
+        id = mRmodel.item(r,1)
+        if(id!=None):
+            payload.append({ 'INDEX' : r, 'ID' : id.text() })
+
+    return payload
+
+def dump_mv():
+    count = mVmodel.rowCount()
+    payload = [count]
+    for r in range(0, count):
+        id = mVmodel.item(r,1)
+        if(id!=None):
+            payload.append({ 'INDEX' : r, 'ID' : id.text() })
+     
+    return payload
+
+def dump_t():
+    count = Tmodel.rowCount()
+    payload = [count]
+    for r in range(0, count):
+        id = Tmodel.item(r,1)
+        res = Tmodel.item(r,3)
+        pres = Tmodel.item(r,4)
+        line = {}
+        if(id!=None):
+            line.update({'INDEX' : r})
+            line.update({'ID' : id.text()})
+            if(res!=None):
+                line.update({'RESOLUTION' : res.text()})
+            if(pres!=None):
+                line.update({'PRESET' : pres.text()})    
+            payload.append(line)
+    
+    return payload
+
+def dump_s():
+    count = Smodel.rowCount()
+    payload = [count]
+    for r in range(0, count):
+        id = Smodel.item(r,1)
+        res = Smodel.item(r,3)
+        line = {}
+        if(id!=None):
+            line.update({'INDEX' : r})
+            line.update({'ID' : id.text()})
+            if(res!=None):
+                line.update({'RESOLUTION' : res.text()})
+            payload.append(line)
+         
+    return payload
+
+def dump_prog():
+    count = Pmodel.rowCount()
+    payload = [count]
+    for r in range(0, count):
+        id = Pmodel.item(r)
+        payload.append({ 'INDEX' : r, 'ID' : id.text() })
+    
+    return payload    
+
 def update_di(data):
     if(data!=None):
         
@@ -57,7 +179,6 @@ def populate_di(data):
         
         ui.diView.setModel(dImodel)
         ui.diView.show()
-
 
 def update_dq(data):
     if(data!=None):
@@ -511,14 +632,21 @@ def on_edited_mv(item):
             bv = float(v)
           
         comm = {'COMMAND': 4, 'MVAR': [{ 'INDEX' : r, co : bv }]}
-        print(yaml.dump(comm))    
+        #print(yaml.dump(comm))    
         
-
 def on_action_connect():
 
     alert = QMessageBox()
     alert.setText('wanna connect?')
     alert.exec_()
+
+def save_config(file, config):
+    try:
+        f = open(file, 'w')      
+        f.write(yaml.dump(config))
+
+    except Exception as e:
+        print(e)
 
 def load_config(file):
     with open(file, 'r') as stream:
@@ -561,12 +689,27 @@ def on_action_load():
     "Open PLC configuration", ".", "YML Files (*.yml)")
     load_config(fileName[0])
     
+def on_action_save():
+    payload = {}
+    payload.update({"DI":dump_di()})
+    payload.update({"DQ":dump_dq()})
+    payload.update({"AI":dump_ai()})
+    payload.update({"AQ":dump_aq()})
+    payload.update({"MREG":dump_mr()})
+    payload.update({"MVAR":dump_mv()})
+    payload.update({"TIMERS":dump_t()})
+    payload.update({"PULSES":dump_s()})
+    payload.update({"PROGRAM":dump_prog()})
+    #print(yaml.dump(payload))
+    fileName = QFileDialog.getOpenFileName(None,
+    "Save PLC configuration", ".", "YML Files (*.yml)")
+    save_config(fileName[0], payload)
+
+
 def load_program(fileName):
     
-    #ui.textBrowser.setSource(fileName)
     try:
-        with open(fileName, 'r') as stream:
-              
+        with open(fileName, 'r') as stream:              
             ui.programEdit.setPlainText(stream.read())
 
     except Exception as e:
@@ -575,8 +718,17 @@ def load_program(fileName):
 
 def on_program_selected(curr):
     fn = Pmodel.itemFromIndex(curr).text()
-    print(fn)
+    #print(fn)
     load_program(fn)
+
+def on_program_save():
+    selection = ui.listView.selectedIndexes()
+    try:
+        f = open(Pmodel.itemFromIndex(selection[0]).text(), 'w')      
+        f.write(ui.programEdit.toPlainText())
+
+    except Exception as e:
+        print(e)
 
 def on_program_add():
     fileName = QFileDialog.getOpenFileName(None,
@@ -598,9 +750,11 @@ if __name__ == "__main__":
 
     ui.actionConnect.triggered.connect(on_action_connect)
     ui.actionLoad.triggered.connect(on_action_load)
+    ui.actionSave.triggered.connect(on_action_save)
     ui.listView.clicked.connect(on_program_selected)
     ui.pushButtonAdd.clicked.connect(on_program_add)
     ui.pushButtonRemove.clicked.connect(on_program_remove)
+    ui.programEdit.textChanged.connect(on_program_save)
 
     load_config("program.yml") #FOR DEBUG
 
@@ -613,7 +767,6 @@ if __name__ == "__main__":
     Tmodel.itemChanged.connect(on_edited_t)
     Smodel.itemChanged.connect(on_edited_s)
     
-
     MainWindow.show()
 
     sys.exit(app.exec_())
