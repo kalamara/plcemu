@@ -56,7 +56,7 @@ config_t cli_init_command(config_t conf){
 
 config_t cli_init_state(config_t conf){
     config_t stat = new_config(N_CONFIG_VARIABLES);
-    stat = update_entry(CLI_COM, new_entry_int(0, "STATUS"), stat);
+    stat = update_entry(CLI_COM, new_entry_int(COM_NONE, "STATUS"), stat);
     return copy_sequences(conf, stat);
 }
 

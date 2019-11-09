@@ -4,8 +4,14 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 
 import yaml
+import zmq
+import threading
 
 from mainwindow import *
+
+context = zmq.Context()
+requester = context.socket(zmq.REQ)
+subscriber = context.socket(zmq.SUB)
 
 dImodel = QStandardItemModel (0, 3)
 dQmodel = QStandardItemModel (0, 3)
@@ -27,6 +33,25 @@ commands = ['NONE',
     'LOAD',
     'SAVE',
     'QUIT']
+
+def req_resp(command):
+    if(ui.actionConnect.isChecked()):    
+        request = bytes(yaml.dump(command), 'utf-8')  
+        try:  
+            requester.send(request)
+            message = requester.recv()#zmq.NOBLOCK)
+            print("Received reply %s [%s] " %  (message, request))
+
+        except Exception as e:
+            print(e)    
+ 
+def pub_sub():
+    while(True):
+        print("waiting for updates from PLC EMU...")
+        message = subscriber.recv()
+        print("Received update %s " % message)
+
+sub_thread = threading.Thread(target=pub_sub, args=(), daemon=True)
 
 def dump_di():
     count = dImodel.rowCount()
@@ -634,11 +659,26 @@ def on_edited_mv(item):
         comm = {'COMMAND': 4, 'MVAR': [{ 'INDEX' : r, co : bv }]}
         #print(yaml.dump(comm))    
         
-def on_action_connect():
+def on_action_start(state):
+    if(state):
+        comm = {'COMMAND': 1}
+    else:    
+        comm = {'COMMAND': 2}
+    req_resp(comm)
+    ui.programEdit.setEnabled(not(state))
 
-    alert = QMessageBox()
-    alert.setText('wanna connect?')
-    alert.exec_()
+def on_action_connect(state):
+    if(state):
+        print("Connecting to PLC EMU...")
+        requester.connect("tcp://localhost:5555")
+        subscriber.connect("tcp://localhost:5556")
+        sub_thread.start()
+
+    else:
+        print("Disconnecting...")
+        requester.disconnect("tcp://localhost:5555")
+        subscriber.disconnect("tcp://localhost:5556")
+        sub_thread.join()
 
 def save_config(file, config):
     try:
@@ -749,6 +789,7 @@ if __name__ == "__main__":
     ui.setupUi(MainWindow)
 
     ui.actionConnect.triggered.connect(on_action_connect)
+    ui.actionStart_stop.triggered.connect(on_action_start)
     ui.actionLoad.triggered.connect(on_action_load)
     ui.actionSave.triggered.connect(on_action_save)
     ui.listView.clicked.connect(on_program_selected)
@@ -768,6 +809,7 @@ if __name__ == "__main__":
     Smodel.itemChanged.connect(on_edited_s)
     
     MainWindow.show()
+    
 
     sys.exit(app.exec_())
 

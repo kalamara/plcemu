@@ -1345,6 +1345,7 @@ plc_t plc_load_program_file(const char * path, plc_t plc) {
             plc = parse_ld_program(path, program_lines, plc);   
         }
     } else {
+        plc_log("Could not open program file %s...", path);
         plc->status = r;
     }
     return plc;
@@ -1370,7 +1371,7 @@ plc_t plc_stop(plc_t p){
     
         return NULL;
     }
-    if(p->status != ST_STOPPED){
+    if(p->status == ST_RUNNING){
         memset(p->outputs, 0, p->nq);
         memset(p->real_out, 0, 8*p->naq);
         write_outputs(p);
