@@ -1,7 +1,7 @@
 # Makefile for PLCEMU
 # (c) 2018
 
-AM_CFLAGS=-g -O0 -Wall -I./src -I./src/vm -I./src/ui -I./src/hw
+AM_CFLAGS=-g -O0 -Wall -I./src -I./src/vm -I./src/ui -I./src/hw -I./src/cfg
 
 bin_PROGRAMS=plcemu 
 
@@ -20,7 +20,8 @@ plcemu_SOURCES= src/plcemu.c src/plcemu.h \
                 src/hw/hardware-sim.c \
                 src/hw/hardware-uspace.c \
                 src/hw/hardware-comedi.c \
-                src/config.c src/config.h \
+                src/cfg/config.c src/cfg/config.h \
+                src/cfg/config-yml.c \
                 src/util.c src/util.h \
                 src/ui/ui.h src/ui/cli.c\
                 src/project.h src/project.c

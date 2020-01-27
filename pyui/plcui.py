@@ -672,6 +672,7 @@ def on_action_connect(state):
         print("Connecting to PLC EMU...")
         requester.connect("tcp://localhost:5555")
         subscriber.connect("tcp://localhost:5556")
+        subscriber.setsockopt(zmq.SUBSCRIBE, b"---")
         sub_thread.start()
 
     else:

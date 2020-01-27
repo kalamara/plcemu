@@ -8,6 +8,7 @@
 #include "plclib.h"
 
 #include "ui.h"
+#include "util.h"
 #include "plcemu.h"
 
 /*************GLOBALS************************************************/

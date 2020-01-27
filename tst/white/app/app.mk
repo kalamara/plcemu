@@ -7,7 +7,7 @@ config.c \
 app.c \
 cli.c
 
-IFLAGS+=-I. -I.. -Imock/ -I../../../src/  -I../../../src/vm -I../../../src/ui -I../../../src/hw   
+IFLAGS+=-I. -I.. -Imock/ -I../../../src/  -I../../../src/vm -I../../../src/ui -I../../../src/hw   -I../../../src/cfg 
 
 
 # These are the top-level common vars

@@ -709,7 +709,7 @@ app_t apply_command(const config_t com,
                     cvalue[0] == 0){
                     cvalue = confstr;
                 }
-                if ((load_config_yml(cvalue, a->conf))->err < PLC_OK) {
+                if ((load_config(cvalue, a->conf))->err < PLC_OK) {
                     plc_log("Invalid configuration file %s\n", cvalue);
                 } else {
                     a = configure(a->conf, a);
@@ -724,7 +724,7 @@ app_t apply_command(const config_t com,
                     cvalue[0] == 0){
                     cvalue = confstr;
                 }
-                if ((save_config_yml(cvalue, a->conf)) < PLC_OK) {
+                if ((save_config(cvalue, a->conf)) < PLC_OK) {
                     plc_log("Invalid configuration file %s\n", cvalue);
                 }
                 break;    

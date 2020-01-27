@@ -24,7 +24,7 @@ void ui_display_message(char * msgstr)
 
 void ui_draw(config_t state)
 {
-    print_config_yml(stdout, state);
+    print_config(stdout, state);
     cli_header();
 }
 

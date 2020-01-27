@@ -212,4 +212,57 @@ struct hardware Hw_stub = {
 hardware_t get_hardware( int type){
     return &Hw_stub;    
 }                        
+
+
+/**
+ * @brief entry point: load text file into configuration
+ * @param filename (full path)
+ * @param the configuration
+ * @return new config
+ */
+config_t load_config(const char * filename, config_t conf){
+    return NULL;
+}
+
+
+/**
+ * @brief entry point: save configuration to text file 
+ * @param filename (full path)
+ * @param the configuration
+ * @return OK or ERR
+ */
+int save_config(const char * filename, const config_t conf){
+    return PLC_OK;
+}
+
+/**
+ * @brief print configuration to a file
+ * @param the open file
+ * @param the configuration where the parsed values are stored
+ * @return OK or ERR
+ */        
+int print_config(FILE * f, const config_t conf){
+    return PLC_OK;    
+}
+
+/**
+ * @brief serialize configuration to a string
+ * @param the configuration where the parsed values are stored
+ * @return string allocated with CONF_STR size  
+ * must be consequently free'd.
+ */          
+char * serialize_config(const config_t conf){
+    return NULL;
+}
+
+/**
+ * @brief deserialize string to a config
+ * @param a string
+ * @param a config that defines the structure
+ * @return the configuration where the parsed values are stored, or NULL
+ */          
+config_t deserialize_config(const char * buf, 
+                            const config_t conf){
+    return NULL;    
+}
  

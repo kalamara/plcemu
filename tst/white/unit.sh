@@ -32,7 +32,7 @@ unlink ./app/cli.c
 link ../../src/ui/cli.c ./app/cli.c
 
 unlink ./app/config.c
-link ../../src/config.c ./app/config.c
+link ../../src/cfg/config.c ./app/config.c
 
 unlink ./app/app.c
 link ../../src/app.c ./app/app.c

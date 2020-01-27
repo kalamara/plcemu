@@ -113,7 +113,7 @@ void ut_store()
   clear_config(conf);
     
 }
-
+/*
 void ut_process()
 {
     config_t conf = process(PLC_ERR, NULL, NULL);
@@ -324,6 +324,6 @@ void ut_copy(){
     
     entry_t map = copy_entry(get_entry(CONFIG_SIM, conf));
 }
-
+*/
     
 #endif//_UT_CONF_H_

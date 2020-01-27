@@ -1,6 +1,9 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
-#include <yaml.h>
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 #define ADVANTECH_HISTORICAL_BASE 50176
 #define CONF_OK 0
@@ -349,26 +352,23 @@ config_t store_seq_value(const sequence_t seq,
                     config_t c);
 
 /**
- * @brief process an initialized parser, recursively for each mapping
- * @param sequence no. if the mapping is inside of a sequence, 
- * PLC_ERR otherwise
- * @param the parser
- * @param the configuration where the parsed values are stored
- * @return config with applied values or changed errorcode
- */
-config_t process(int sequence, 
-            yaml_parser_t *parser, 
-            config_t conf);
+ * @brief copy all the block sequences
+ * @param source
+ * @param destination
+ * @return destination
+ */ 
+config_t copy_sequences(const config_t from, config_t to);
 
 /**
- * @brief emit all configuration values to a yaml emitter
- * @param the emitter
- * @param the configuration where the parsed values are stored
- * @return OK or ERR
+ * @brief resize sequence in memory
+ * @param the configuration
+ * @param seq number
+ * @param new size
+ * @return updated configuration
  */
-int emit(yaml_emitter_t *emitter,
-         const config_t conf);
+config_t resize_sequence(config_t config, int sequence, int size);
 
+/********these are abstract, implementation is required per serialization format (yml/json/cbor)*****/
 
 /**
  * @brief entry point: load text file into configuration
@@ -376,7 +376,7 @@ int emit(yaml_emitter_t *emitter,
  * @param the configuration
  * @return new config
  */
-config_t load_config_yml(const char * filename, config_t conf);
+config_t load_config(const char * filename, config_t conf);
 
 
 /**
@@ -385,7 +385,7 @@ config_t load_config_yml(const char * filename, config_t conf);
  * @param the configuration
  * @return OK or ERR
  */
-int save_config_yml(const char * filename, const config_t conf);
+int save_config(const char * filename, const config_t conf);
 
 /**
  * @brief print configuration to a file
@@ -393,7 +393,7 @@ int save_config_yml(const char * filename, const config_t conf);
  * @param the configuration where the parsed values are stored
  * @return OK or ERR
  */        
-int print_config_yml(FILE * f, const config_t conf);  
+int print_config(FILE * f, const config_t conf);  
 
 /**
  * @brief serialize configuration to a string
@@ -412,13 +412,7 @@ char * serialize_config(const config_t conf);
 config_t deserialize_config(const char * buf, 
                             const config_t conf);         
  
-/**
- * @brief copy all the block sequences
- * @param source
- * @param destination
- * @return destination
- */ 
-config_t copy_sequences(const config_t from, config_t to);
+
  
 #endif //_CONFIG_H_
 
