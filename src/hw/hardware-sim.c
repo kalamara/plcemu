@@ -34,13 +34,14 @@ int sim_config(const config_t conf)
     sprintf(SimInFile, "%s", get_string_entry(SIM_INPUT, c));
     sprintf(SimOutFile, "%s", get_string_entry(SIM_OUTPUT, c));
     int r = PLC_OK;
+    //TODO: handle NULL errors here
     Ni = get_sequence_entry(CONFIG_DI, conf)->size / BYTESIZE + 1; 
     Nq = get_sequence_entry(CONFIG_DQ, conf)->size / BYTESIZE + 1;
     Nai = get_sequence_entry(CONFIG_AI, conf)->size;
     Naq = get_sequence_entry(CONFIG_AQ, conf)->size;
   
     Sim.label = get_string_entry(CONFIG_HW, conf);
-    
+    //TODO: perform an early check for hardware errors here
         
     return r;    
 }

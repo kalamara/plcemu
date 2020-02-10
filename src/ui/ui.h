@@ -19,6 +19,7 @@ typedef enum
     COM_EDIT,
     COM_LOAD,
     COM_SAVE,
+    COM_CONFIG, //TODO
     COM_QUIT,
     N_COM
 } COMMANDS;

@@ -175,7 +175,7 @@ int main(int argc, char **argv)
        
     if ((load_config(cvalue, conf))->err < PLC_OK) {
         plc_log("Invalid configuration file %s\n", cvalue);
-        return PLC_ERR;
+        //return PLC_ERR;
     }
 //initialize PLC
     App = init_emu(conf);
@@ -191,7 +191,9 @@ int main(int argc, char **argv)
     //UiReady=more;
     config_t command = cli_init_command(conf);
     config_t state = cli_init_state(conf);
-    App->plc = plc_start(App->plc);    
+    if(conf->err == PLC_OK){
+        App->plc = plc_start(App->plc);    
+    }
     while (get_numeric_entry(CLI_COM, command)!=COM_QUIT) {
         
         if(App->plc->update != 0){

@@ -13,6 +13,20 @@
 
 /*************GLOBALS************************************************/
 
+const char * Command[N_COM] = {
+        "",
+        "START",
+        "STOP",
+        "HELP",
+        "FORCE",
+        "UNFORCE",
+        "EDIT",
+        "LOAD",
+        "SAVE",
+        "CONFIG",
+        "QUIT"
+};
+
 void print_help()
 {
 	FILE * f;
@@ -75,19 +89,19 @@ config_t cli_parse( char * input, config_t command){
     }
     command = set_numeric_entry(CLI_COM, COM_NONE, command);
     strtok(input, " \n");
-    if(!strncasecmp(input, "HELP" , 4)){
+    if(!strncasecmp(input, Command[COM_HELP] , 4)){
         print_help();
         command = set_numeric_entry(CLI_COM, COM_HELP, command);
-    } else if(!strncasecmp(input, "QUIT" , 4)){
+    } else if(!strncasecmp(input, Command[COM_QUIT] , 4)){
     
         command = set_numeric_entry(CLI_COM, COM_QUIT, command);
-    } else if(!strncasecmp(input, "START" , 5)){
+    } else if(!strncasecmp(input, Command[COM_START] , 4)){
     
         command = set_numeric_entry(CLI_COM, COM_START, command);
-    } else if(!strncasecmp(input, "STOP" , 4)){
+    } else if(!strncasecmp(input, Command[COM_STOP] , 4)){
 
         command = set_numeric_entry(CLI_COM, COM_STOP, command);
-    } else if(!strncasecmp(input, "LOAD" , 4)){
+    } else if(!strncasecmp(input, Command[COM_LOAD] , 4)){
     
         command = set_numeric_entry(CLI_COM, COM_LOAD, command);
         //parse rest
@@ -97,7 +111,7 @@ config_t cli_parse( char * input, config_t command){
                 new_entry_str(filename, "FILE"), 
                 command);
         }
-    } else if(!strncasecmp(input, "SAVE" , 4)){
+    } else if(!strncasecmp(input, Command[COM_SAVE] , 4)){
         //parse rest
         command = set_numeric_entry(CLI_COM, COM_SAVE, command);
         filename = strtok(NULL, " \n");
@@ -106,7 +120,7 @@ config_t cli_parse( char * input, config_t command){
                 new_entry_str(filename, "FILE"),
                 command);
         }
-    } else if(!strncasecmp(input, "FORCE" , 5)){
+    } else if(!strncasecmp(input, Command[COM_FORCE] , 4)){
         //parse rest
         block = strtok(NULL, " \n");
         index = strtok(NULL, " \n");
@@ -114,12 +128,12 @@ config_t cli_parse( char * input, config_t command){
         if(block != NULL 
         && index != NULL
         && value != NULL){
-            res = edit_seq_param(command,block,atoi(index),"FORCE",value);
+            res = edit_seq_param(command,block,atoi(index),Command[COM_FORCE],value);
             if(res){                                          
                 command = set_numeric_entry(CLI_COM, COM_FORCE, command);
             }
         }
-    } else if(!strncasecmp(input, "UNFORCE" , 7)){
+    } else if(!strncasecmp(input, Command[COM_UNFORCE] , 4)){
         //parse rest
         block = strtok(NULL, " \n");
         index = strtok(NULL, " \n");
@@ -130,7 +144,7 @@ config_t cli_parse( char * input, config_t command){
                 command = set_numeric_entry(CLI_COM, COM_UNFORCE, command);
             }
         }    
-    } else if(!strncasecmp(input, "EDIT" , 4)){
+    } else if(!strncasecmp(input, Command[COM_EDIT] , 4)){
         //parse rest
         block = strtok(NULL, " \n");
         index = strtok(NULL, " \n");
@@ -145,7 +159,7 @@ config_t cli_parse( char * input, config_t command){
                 command = set_numeric_entry(CLI_COM, COM_EDIT, command);
             }
         }
-    }
+    }//TODO: CONF command
     char * serialized = serialize_config(command);
     plc_log("CLI: %s", serialized);
     if(serialized){

@@ -16,7 +16,9 @@ hardware_t get_hardware( int type){
         case HW_USPACE:
             return &Uspace;
 
-        default: return &Sim;
+        case HW_SIM: 
+        	return &Sim;
+        default: return NULL;
     }
 }
 

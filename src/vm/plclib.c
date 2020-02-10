@@ -1358,7 +1358,7 @@ plc_t plc_start(plc_t p){
         return NULL;
     }
     if(p->status == ST_STOPPED){
-        p->hw->enable();
+        p->hw->enable(); //TODO: handle hardware errors here
         p->update = CHANGED_STATUS;
         p->status = ST_RUNNING;
     }

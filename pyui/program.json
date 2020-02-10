@@ -1,0 +1,109 @@
+{
+  "DI": [
+    16, 
+    {
+      "INDEX": 0, 
+      "BYTE": 0, 
+      "BIT": 0, 
+      "ID": "A"
+    }, 
+    {
+      "INDEX": 1, 
+      "BYTE": 0, 
+      "BIT": 1, 
+      "ID": "B"
+    }, 
+    {
+      "INDEX": 2, 
+      "BYTE": 0, 
+      "BIT": 2, 
+      "ID": "C"
+    }
+  ], 
+  "DQ": [
+    16, 
+    {
+      "INDEX": 0, 
+      "BYTE": 0, 
+      "BIT": 0, 
+      "ID": "RESULT"
+    }
+  ],
+  "AI": [
+    1, 
+    {
+      "INDEX": 0, 
+      "MIN": 0.0, 
+      "ID": "INPUT", 
+      "MAX": 24.0
+    }
+  ], 
+  "AQ": [
+    1, 
+    {
+      "INDEX": 0, 
+      "MIN": 0.0, 
+      "ID": "OUTPUT", 
+      "MAX": 10.0
+    }
+  ], 
+  "MVAR": [
+    6, 
+    {
+      "INDEX": 0, 
+      "ID": "N", 
+      "VALUE": 1.0
+    }, 
+    {
+      "INDEX": 1, 
+      "ID": "MEAN"
+    }, 
+    {
+      "INDEX": 2, 
+      "ID": "M2"
+    }, 
+    {
+      "INDEX": 3, 
+      "ID": "DELTA"
+    }, 
+    {
+      "INDEX": 4, 
+      "ID": "ONE", 
+      "VALUE": 1.0
+    }
+  ], 
+  "MREG": [
+    4, 
+    {
+      "INDEX": 0, 
+      "ID": "RESULT", 
+      "VALUE": 64
+    }, 
+    {
+      "INDEX": 1, 
+      "ID": "TEMP"
+    }
+  ],
+  "TIMERS": [
+    2, 
+    {
+      "INDEX": 1, 
+      "PRESET": 10, 
+      "RESOLUTION": 10
+    }
+  ], 
+  "PULSES": [
+    2
+  ],
+  "PROGRAM": [
+    2, 
+    {
+      "INDEX": 0, 
+      "ID": "knuth.il"
+    }, 
+    {
+      "INDEX": 1, 
+      "ID": "triple_majority.ld"
+    }
+  ], 
+}

@@ -555,13 +555,19 @@ config_t init_config(){
 //FIXME: support for multiple interfaces
 #ifdef SIM
 #define HW_TYPE HW_SIM
-#else 
+#else //SIM
 
 #ifdef COMEDI
 #define HW_TYPE HW_COMEDI
-#else
+#else //COMEDI
 
+#ifdef USPACE
 #define HW_TYPE HW_USPACE
+#else //USPACE
+
+#define HW_TYPE HW_DRY
+
+#endif //USPACE
 #endif //COMEDI
 #endif //SIM
 int Lookup[N_CONFIG_VARIABLES] = {
@@ -588,7 +594,7 @@ app_t configure(const config_t conf, app_t app){
     a->conf = conf;
     hardware_t hw = get_hardware(HW_TYPE);
     hw->status = hw->configure(conf);
-        
+  //TODO: handle NULL errors here      
     int di = get_sequence_entry(CONFIG_DI, conf)->size / BYTESIZE + 1; 
     int dq = get_sequence_entry(CONFIG_DQ, conf)->size / BYTESIZE + 1;
     int ai = get_sequence_entry(CONFIG_AI, conf)->size;
@@ -603,7 +609,7 @@ app_t configure(const config_t conf, app_t app){
 
     p->status = 0;
     p->update = TRUE;
-    
+  //these errors should be already handled
     p = configure_di(conf, p);
     p = configure_dq(conf, p);
     p = configure_ai(conf, p);
@@ -691,16 +697,21 @@ app_t apply_command(const config_t com,
     if(a != NULL){
         switch(get_numeric_entry(CLI_COM, com)){
             case COM_START:
-        
-                a->plc = plc_start(a->plc);
-                break;
+                if(a->conf->err == PLC_OK){
+                    a->plc = plc_start(a->plc);
+                } else {
+                    plc_log("Configuration error\n");
+                }
+                break;//TODO: handle also PLC error
             
             case COM_STOP:
         
                 a->plc = plc_stop(a->plc);
                 break;
         
-            case COM_LOAD:
+            case COM_LOAD://TODO: file parsing should be done in the UI and 
+            //copied over here (with multiple edit commands, so this one 
+            //will be deprecated)
             
                 a->plc = plc_stop(a->plc);
                 a->conf = init_config();
@@ -716,7 +727,9 @@ app_t apply_command(const config_t com,
                 }    
                 break;
             
-            case COM_SAVE:
+            case COM_SAVE://TODO: file saving whould be done in the UI, 
+            //PLC configuration is already dumped into the UI 
+            //but configuration should be also backed up in the PLC
         
                 a->plc = plc_stop(a->plc);
                 cvalue = get_string_entry(CLI_ARG, com);
@@ -780,6 +793,7 @@ app_t apply_command(const config_t com,
                 a->plc = configure_pulses(com, a->plc);
                 a->conf = copy_sequences(com, a->conf);
                 break;
+            //TODO: new command: CONFIGURE to set up the hardware and register sizes
             default: break;
         }
     }
