@@ -2,8 +2,6 @@
 #define _UT_IO_
 void ut_read(){
 
-    extern unsigned char Mock_din;
-    
     //nulls shouldn't crash
     read_inputs(NULL);
     struct PLC_regs p;
@@ -15,13 +13,6 @@ void ut_read(){
     read_inputs(&p);
     CU_ASSERT(p.inputs[p.ni - 1] == 0xFF);
     CU_ASSERT(p.real_in[p.nai - 1] == 0xABCDEF01);
-    
-    plc_start(NULL);
-    plc_start(&p);
-    //this should reset inputs
-    CU_ASSERT(Mock_din == 0);    
-    
-    
 }
 
 void ut_write(){

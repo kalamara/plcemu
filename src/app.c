@@ -9,6 +9,86 @@
 #include "plcemu.h"
 #include "app.h"
 
+config_t init_config(){
+ // in a c++ implementation this all can be done automatically 
+ //using a hashmap
+    config_t conf = new_config(N_CONFIG_VARIABLES);
+   
+   
+
+    config_t hw = new_config(N_HW_VARS);
+
+    hw = update_entry(
+        HW_LABEL,
+        new_entry_str("DRY", "LABEL"), 
+        hw);
+    
+   /* hw = update_entry(
+        HW_IFACE,
+        new_entry_map(NULL, "IFACE"), 
+        hw);
+ */
+    conf = update_entry(
+        CONFIG_HW,
+        new_entry_map(hw, "HW"),
+        conf);
+        
+
+    conf = update_entry(
+        CONFIG_STEP,
+        new_entry_int(100, "STEP"),
+        conf);
+ 
+   /*******************************************/
+  
+    conf = update_entry(
+        CONFIG_TIMER,
+        new_entry_seq(new_sequence(4), "TIMERS"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_PULSE,
+        new_entry_seq(new_sequence(4), "PULSES"),
+        conf);
+        
+    conf = update_entry(
+        CONFIG_MREG,
+        new_entry_seq(new_sequence(4), "MREG"),
+        conf);
+        
+    conf = update_entry(
+        CONFIG_MVAR,
+        new_entry_seq(new_sequence(4), "MVAR"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_DI,
+        new_entry_seq(new_sequence(8), "DI"),
+        conf);
+ 
+    conf = update_entry(
+        CONFIG_DQ,
+        new_entry_seq(new_sequence(8), "DQ"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_AI,
+        new_entry_seq(new_sequence(8), "AI"),
+        conf);
+    
+    conf = update_entry(
+        CONFIG_AQ,
+        new_entry_seq(new_sequence(8), "AQ"),
+        conf);
+
+    conf = update_entry(
+        CONFIG_PROGRAM,
+        new_entry_seq(new_sequence(2), "PROGRAM"),
+        conf);
+
+    return conf;
+}
+
 static plc_t declare_names(int operand,
                     const variable_t var,                      
                     plc_t plc){
@@ -294,6 +374,7 @@ static config_t get_aio_values(const plc_t plc,
     int i = 0;
     double val = 0;
     char valbuf[TINYBUF] = "";
+    memset(valbuf, 0, TINYBUF);
     while(i < aios->size){
         if(viter != NULL) {
            
@@ -405,152 +486,7 @@ static config_t get_pulse_values(const plc_t plc,
     return ret;
 }
 
-config_t init_config(){
- //TODO: in a c++ implementation this all can be done automatically 
- //using a hashmap
-    config_t conf = new_config(N_CONFIG_VARIABLES);
-   
-    config_t uspace = new_config(N_USPACE_VARS);
-            
-    uspace = update_entry(
-        USPACE_BASE,
-	    new_entry_int(50176, "BASE"),
-	    uspace);
-	
-	uspace = update_entry(
-	    USPACE_WR, 
-	    new_entry_int(0, "WR"),
-	    uspace);
-	    
-	uspace = update_entry(
-	    USPACE_RD, 
-	    new_entry_int(8, "RD"),
-	    uspace);
-	
-	config_t subdev = new_config(N_SUBDEV_VARS);
-	
-    subdev = update_entry(
-        SUBDEV_IN,
-	    new_entry_int(0, "IN"),
-	    subdev);
-	    
-	subdev = update_entry(
-	    SUBDEV_OUT,
-	    new_entry_int(1, "OUT"),
-	    subdev);
-	    
-    subdev = update_entry(
-        SUBDEV_ADC, 
-	    new_entry_int(2, "ADC"),
-	    subdev);
-	    
-	subdev = update_entry(
-	    SUBDEV_DAC, 
-	    new_entry_int(3, "DAC"),
-	    subdev);
-	
-	config_t comedi = new_config(N_COMEDI_VARS);
-	
-	comedi = update_entry(
-	    COMEDI_FILE,
-	    new_entry_int(0, "FILE"),
-	    comedi);
-	    
-	comedi = update_entry(
-	    COMEDI_SUBDEV, 
-	    new_entry_map(subdev, "SUBDEV"),
-	    comedi);
-    
-    config_t sim = new_config(N_SIM_VARS);
-    
-    sim = update_entry(
-        SIM_INPUT,
-        new_entry_str("sim.in", "INPUT"), 
-        sim);
-        
-    sim = update_entry(
-        SIM_OUTPUT,
-        new_entry_str("sim.out", "OUTPUT"),
-        sim);    
 
-    conf = update_entry(
-        CONFIG_STEP,
-        new_entry_int(1, "STEP"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_PIPE,
-        new_entry_str("plcpipe", "PIPE"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_HW,
-        new_entry_str("STDI/O", "HW"),
-        conf);
-        
-    conf = update_entry(
-        CONFIG_USPACE,
-        new_entry_map(uspace, "USPACE"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_COMEDI,
-        new_entry_map(comedi, "COMEDI"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_SIM,
-        new_entry_map(sim, "SIM"),
-        conf);
-
-   /*******************************************/
-    conf = update_entry(
-        CONFIG_TIMER,
-        new_entry_seq(new_sequence(4), "TIMERS"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_PULSE,
-        new_entry_seq(new_sequence(4), "PULSES"),
-        conf);
-        
-    conf = update_entry(
-        CONFIG_MREG,
-        new_entry_seq(new_sequence(4), "MREG"),
-        conf);
-        
-    conf = update_entry(
-        CONFIG_MVAR,
-        new_entry_seq(new_sequence(4), "MVAR"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_DI,
-        new_entry_seq(new_sequence(8), "DI"),
-        conf);
- 
-    conf = update_entry(
-        CONFIG_DQ,
-        new_entry_seq(new_sequence(8), "DQ"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_AI,
-        new_entry_seq(new_sequence(8), "AI"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_AQ,
-        new_entry_seq(new_sequence(8), "AQ"),
-        conf);
-
-    conf = update_entry(
-        CONFIG_PROGRAM,
-        new_entry_seq(new_sequence(2), "PROGRAM"),
-        conf);
-
-    return conf;
-}
 
 //FIXME: support for multiple interfaces
 #ifdef SIM
@@ -594,15 +530,24 @@ app_t configure(const config_t conf, app_t app){
     a->conf = conf;
     hardware_t hw = get_hardware(HW_TYPE);
     hw->status = hw->configure(conf);
-  //TODO: handle NULL errors here      
-    int di = get_sequence_entry(CONFIG_DI, conf)->size / BYTESIZE + 1; 
-    int dq = get_sequence_entry(CONFIG_DQ, conf)->size / BYTESIZE + 1;
-    int ai = get_sequence_entry(CONFIG_AI, conf)->size;
-    int aq = get_sequence_entry(CONFIG_AQ, conf)->size;
-    int nt = get_sequence_entry(CONFIG_TIMER, conf)->size;
-    int ns = get_sequence_entry(CONFIG_PULSE, conf)->size;
-    int nm = get_sequence_entry(CONFIG_MREG, conf)->size;
-    int nr = get_sequence_entry(CONFIG_MVAR, conf)->size;
+  //TODO: handle NULL errors here 
+    sequence_t s = get_sequence_entry(CONFIG_DI, conf);
+    int di = s ? (s->size / BYTESIZE + 1) : 0;
+    s = get_sequence_entry(CONFIG_DQ, conf);
+    int dq = s ? (s->size / BYTESIZE + 1) : 0;
+    s = get_sequence_entry(CONFIG_AI, conf);
+    int ai = s ? s->size : 0;
+    s = get_sequence_entry(CONFIG_AQ, conf);
+    int aq = s ? s->size : 0;
+    s = get_sequence_entry(CONFIG_TIMER, conf);
+    int nt = s ? s->size : 0;
+    s = get_sequence_entry(CONFIG_PULSE, conf);
+    int ns = s ? s->size : 0;
+    s = get_sequence_entry(CONFIG_MREG, conf);
+    int nm = s ? s->size : 0;
+    s = get_sequence_entry(CONFIG_MVAR, conf);
+    int nr = s ? s->size : 0;
+    
     int step = get_numeric_entry(CONFIG_STEP, conf);
     
     plc_t p = new_plc(di, dq, ai, aq, nt, ns, nm, nr, step, hw);

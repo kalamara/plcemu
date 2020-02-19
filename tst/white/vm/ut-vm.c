@@ -200,6 +200,7 @@ int main ()
   //initialization
  if(ADD_TEST(suite_init, ut_config) 
  || ADD_TEST(suite_init, ut_construct)
+ || ADD_TEST(suite_init, ut_start_stop)
      )
   {
 	CU_cleanup_registry ();

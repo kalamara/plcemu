@@ -413,7 +413,12 @@ static void emit_variable(const variable_t var, yaml_emitter_t *emitter) {
 static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
     int i = 0;
     yaml_event_t evt;
-    plc_log("string %s len %d", entry->name, strlen(entry->name));     
+    if(!entry){
+    
+        return;
+    }
+    //plc_log("string %s len %d", entry->name, strlen(entry->name));
+    
     yaml_scalar_event_initialize(
     	&evt,
 	    NULL,
@@ -425,7 +430,7 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
 		YAML_PLAIN_SCALAR_STYLE); 	
 		
 	yaml_emitter_emit(emitter, &evt);
-	log_yml_event(evt);
+	//log_yml_event(evt);
 
 	char buf[CONF_NUM];
 	memset(buf, 0, CONF_NUM);
@@ -504,8 +509,8 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
 		  
 		    sprintf(buf, "%d", entry->e.seq->size);
 			yaml_scalar_event_initialize(
-    		&evt,
-	    	NULL,
+    		        &evt,
+	    	        NULL,
 			(yaml_char_t *)YAML_STR_TAG,
 			(yaml_char_t *)buf,
 			strlen(buf),
@@ -517,7 +522,7 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
 			//emit values as map
 			viter = entry->e.seq->vars;
     		
-    		i = 0;
+    		        i = 0;
 			while(i < entry->e.seq->size){
 			    if(viter) {
 				   emit_variable(viter, emitter);
@@ -526,7 +531,7 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
 			}	
 			
 			yaml_sequence_end_event_initialize(&evt); 	
-    		yaml_emitter_emit(emitter, &evt); 
+    		        yaml_emitter_emit(emitter, &evt); 
     		//log_yml_event(evt);
 			break;
 			
@@ -537,7 +542,7 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
 
 int emit(yaml_emitter_t *emitter, const config_t conf) {
     int r = CONF_OK;     
-   
+        
     yaml_event_t evt;
 
     //doc start

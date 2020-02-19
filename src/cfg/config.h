@@ -16,6 +16,7 @@
 
 typedef enum{
     MAP_ROOT,
+    MAP_HW,
     MAP_USPACE,
     MAP_COMEDI,
     MAP_COMEDI_SUBDEV,
@@ -50,6 +51,13 @@ typedef enum {
     SIM_OUTPUT,
     N_SIM_VARS
 }SIM_VARS;
+
+typedef enum {
+    HW_LABEL,
+    HW_IFACE,
+    N_HW_VARS
+}HW_VARS;
+
 
 typedef enum{
     CONFIG_STEP,

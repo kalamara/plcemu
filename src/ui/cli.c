@@ -160,12 +160,14 @@ config_t cli_parse( char * input, config_t command){
             }
         }
     }//TODO: CONF command
-    char * serialized = serialize_config(command);
-    plc_log("CLI: %s", serialized);
-    if(serialized){
-        free(serialized);
-        serialized = NULL;
-    }
+    /*if(get_numeric_entry(CLI_COM, command)!=COM_NONE){
+        char * serialized = serialize_config(command);
+        plc_log("CLI: %s", serialized);
+        if(serialized){
+                free(serialized);
+                serialized = NULL;
+        }
+    }*/
     return command;
 }
 

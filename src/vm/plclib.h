@@ -24,9 +24,10 @@ typedef enum{
 }STATUSES;
 
 typedef enum{
-    N_ERR = -10, ///ERROR CODES are negative
+    N_ERR = -20, ///ERROR CODES are negative
     ERR_OVFLOW,
     ERR_TIMEOUT,
+    ERR_HARDWARE,
     ERR_BADOPERATOR,
     ERR_BADCOIL,
     ERR_BADINDEX,

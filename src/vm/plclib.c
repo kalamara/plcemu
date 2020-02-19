@@ -1357,8 +1357,14 @@ plc_t plc_start(plc_t p){
     
         return NULL;
     }
+    
+    if(p->hw->status != PLC_OK
+    || p->hw->enable() != PLC_OK
+    ){
+       p->status = ERR_HARDWARE;
+       //p->hw->status = PLC_ERR;
+    } 
     if(p->status == ST_STOPPED){
-        p->hw->enable(); //TODO: handle hardware errors here
         p->update = CHANGED_STATUS;
         p->status = ST_RUNNING;
     }
@@ -1502,6 +1508,9 @@ static plc_t allocate(plc_t plc) {
   
     memset(plc->di, 0, BYTESIZE * plc->ni * sizeof(struct digital_input));
     memset(plc->dq, 0, BYTESIZE * plc->nq * sizeof(struct digital_output));
+    memset(plc->ai, 0,  plc->nai * sizeof(struct analog_io));
+    memset(plc->aq, 0,  plc->naq * sizeof(struct analog_io));
+    
     memset(plc->t, 0, plc->nt * sizeof(struct timer));
     memset(plc->s, 0, plc->ns * sizeof(struct blink));
     memset(plc->m, 0, plc->nm * sizeof(struct mvar));
@@ -1539,7 +1548,7 @@ plc_t new_plc(
     plc->step = step ;
     
     plc->command = 0;
-    plc->status = ST_RUNNING;
+    plc->status = ST_STOPPED;
   
     plc = allocate(plc);
     

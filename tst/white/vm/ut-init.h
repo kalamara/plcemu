@@ -65,7 +65,9 @@ void ut_construct()
 
     CU_ASSERT(plc->step == 100);
     CU_ASSERT(plc->command == 0);
-	CU_ASSERT(plc->status = 1);	
+    CU_ASSERT(plc->status == ST_STOPPED);	
+    
+    clear_plc(plc);
 }
 
 void ut_config(){
@@ -184,7 +186,81 @@ void ut_config(){
     plc = configure_pulse_scale(plc, 1, "105");
     CU_ASSERT(plc->s[1].S == 105);
     CU_ASSERT(plc->status == PLC_OK);    
+
+    clear_plc(plc);
 }
 
+int stub_enable_fails();
+int stub_enable();
+
+void ut_start_stop()
+{
+     extern unsigned char Mock_din;   
+     extern unsigned char Mock_dout;
+//degenerates
+     plc_t r = plc_start(NULL);
+     CU_ASSERT_PTR_NULL(r);
+     plc_t plc = new_plc(8,8,4,4,4,4,4,4,100,NULL);
+     r = plc_start(plc);
+     CU_ASSERT_PTR_NULL(r);
+     
+     r = plc_stop(NULL);
+     CU_ASSERT_PTR_NULL(r);
+     
+     r = plc_stop(plc);
+     CU_ASSERT_PTR_NULL(r);
+     
+     //hardware is not configured correctly
+     plc->hw = get_hardware(HW_SIM);
+     plc->hw->status = PLC_ERR;
+
+     r = plc_start(plc);
+     CU_ASSERT(plc->status == ERR_HARDWARE);
+     
+     //stop should have no effect
+     r = plc_stop(plc);        
+     CU_ASSERT(plc->status == ERR_HARDWARE);
+     
+     //hardware is configured correctly but fails to start
+     plc->hw->enable = stub_enable_fails;
+     plc->hw->status = PLC_OK;
+     plc->status = ST_STOPPED;
+     
+     //stop should have no effect
+     r = plc_stop(plc);        
+     CU_ASSERT(plc->status == ST_STOPPED);
+     
+     r = plc_start(plc);
+     
+     CU_ASSERT(plc->status == ERR_HARDWARE);
+     plc->hw->enable = stub_enable;
+     
+     //status other than ST_STOPPED
+     plc->status = ST_RUNNING;
+        
+     r = plc_start(plc);
+     
+     CU_ASSERT(plc->status == ST_RUNNING);
+     CU_ASSERT(plc->update == 0);
+     
+     //finally all is well
+     plc->status = ST_STOPPED;
+     r = plc_start(plc);
+      
+    //this should reset inputs
+     CU_ASSERT(Mock_din == 0);    
+     CU_ASSERT(plc->status == ST_RUNNING);
+     CU_ASSERT(plc->update == CHANGED_STATUS);
+     
+     plc->update = 0;
+     r = plc_stop(plc);
+     CU_ASSERT(plc->status == ST_STOPPED);
+     CU_ASSERT(plc->update == CHANGED_STATUS);
+     
+     //should reset outputs
+     CU_ASSERT(Mock_dout == 0); 
+      
+     clear_plc(plc);
+}
 #endif //_UT_INIT_H_
 

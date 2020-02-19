@@ -61,6 +61,16 @@ int stub_enable() /* Enable bus communication */
     return r;
 }
 
+int stub_enable_fails() /* Enable bus communication */
+{
+    Mock_din = 0;
+    Mock_ain = 0;
+           
+    int r = PLC_ERR;
+    
+    return r;
+}
+
 int stub_disable() /* Disable bus communication */
 {
     Mock_aout = 0;
@@ -123,5 +133,9 @@ struct hardware Hw_stub = {
     stub_data_write, //data_write
     stub_config, //hw_config
 };
+
+hardware_t get_hardware( int type){
+    return &Hw_stub;    
+}                        
 
 

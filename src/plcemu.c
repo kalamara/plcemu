@@ -87,7 +87,7 @@ app_t init_emu(const config_t conf) {
     
     project_init();
     
-    open_pipe(get_string_entry(CONFIG_HW, conf), a->plc);
+    open_pipe("plcpipe", a->plc);
     
     return a;
 }
@@ -138,7 +138,7 @@ int main(int argc, char **argv)
     char * confstr = "config.yml";
   
     config_t conf = init_config();
-    
+        
     char * cvalue = NULL;
     opterr = 0;
     int c;

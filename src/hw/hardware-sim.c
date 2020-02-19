@@ -23,25 +23,52 @@ unsigned int Nq = 0;
 unsigned int Nai = 0;
 unsigned int Naq = 0;
 
-char SimInFile[MAXSTR];
-char SimOutFile[MAXSTR];
+//char SimInFile[MAXSTR] = "";
+//char SimOutFile[MAXSTR] = "";
 
 struct hardware Sim;
 
 int sim_config(const config_t conf)
 {
-    config_t c = get_recursive_entry(CONFIG_SIM, conf);
-    sprintf(SimInFile, "%s", get_string_entry(SIM_INPUT, c));
-    sprintf(SimOutFile, "%s", get_string_entry(SIM_OUTPUT, c));
-    int r = PLC_OK;
-    //TODO: handle NULL errors here
-    Ni = get_sequence_entry(CONFIG_DI, conf)->size / BYTESIZE + 1; 
-    Nq = get_sequence_entry(CONFIG_DQ, conf)->size / BYTESIZE + 1;
-    Nai = get_sequence_entry(CONFIG_AI, conf)->size;
-    Naq = get_sequence_entry(CONFIG_AQ, conf)->size;
-  
-    Sim.label = get_string_entry(CONFIG_HW, conf);
-    //TODO: perform an early check for hardware errors here
+    int r = PLC_OK;    
+    config_t hw = get_recursive_entry(CONFIG_HW, conf);
+    config_t ifc = get_recursive_entry(HW_IFACE, hw);
+    char * istr = get_string_entry(SIM_INPUT, ifc);
+    if(istr){
+        if(!(Ifd=fopen(istr, "r+"))){
+                plc_log("Failed to open simulation input from %s", istr);
+                r = PLC_ERR;
+        } else {
+                plc_log("Opened simulation input from %s", istr);
+        }
+    }
+    char * ostr = get_string_entry(SIM_OUTPUT, ifc);
+    if(ostr){
+         if(!(Qfd=fopen(ostr, "w+"))){
+             plc_log("Failed to open simulation output to %s", ostr);
+             r = PLC_ERR;
+        } else {
+            plc_log("Opened simulation output to %s", ostr);
+        }
+    }
+    
+    sequence_t s = get_sequence_entry(CONFIG_DI, conf);
+    if(s){
+        Ni = s->size / BYTESIZE + 1; 
+    }
+    s = get_sequence_entry(CONFIG_DQ, conf);
+    if(s){
+        Nq = s->size / BYTESIZE + 1;
+    }
+    s = get_sequence_entry(CONFIG_AI, conf);
+    if(s){
+        Nai = s->size;
+    }
+    s = get_sequence_entry(CONFIG_AQ, conf);
+    if(s){
+        Naq = s->size;
+    }    
+    Sim.label = get_string_entry(HW_LABEL, hw);
         
     return r;    
 }
@@ -50,20 +77,7 @@ int sim_enable() /* Enable bus communication */
 {
     int r = PLC_OK;
     /*open input and output streams*/
-    if(!(Ifd=fopen(SimInFile, "r+")))
-    {
-        plc_log("Failed to open simulation input from %s", SimInFile);
-        r = PLC_ERR;
-    } else {
-        plc_log("Opened simulation input from %s", SimInFile);
-    }
-    if(!(Qfd=fopen(SimOutFile, "w+")))
-    {
-        plc_log("Failed to open simulation output to %s", SimOutFile);
-        r = PLC_ERR;
-    } else {
-        plc_log("Opened simulation output to %s", SimOutFile);
-    }
+    
     if(!(BufIn = (char * )malloc(Ni))){
         r = PLC_ERR;
     } else {
@@ -91,13 +105,11 @@ int sim_disable() /* Disable bus communication */
 {
     int r = PLC_OK;
     /*close streams*/
-    if( !Ifd
-    ||  !fclose(Ifd)){
+    if(Ifd && !fclose(Ifd)){
         r = PLC_ERR;
     }
     plc_log("Closed simulation input");
-    if( !Qfd
-    ||  !fclose(Qfd)){
+    if(Qfd && !fclose(Qfd)){
         r = PLC_ERR;
     }
     plc_log("Closed simulation output"); 
@@ -117,30 +129,30 @@ int sim_fetch()
     unsigned int digital = Ni;
     unsigned int analog = Nai;
     int bytes_read = 0;
-    
-    bytes_read = fread(BufIn, 
+    if(Ifd){
+        bytes_read = fread(BufIn, 
                         sizeof(BYTE), 
                         digital, 
-                        Ifd?Ifd:stdin);
-    int i = 0;
-    for(; i < bytes_read; i++){
-        if(BufIn[i] >= ASCIISTART){
-            BufIn[i] -= ASCIISTART;
+                        Ifd ? Ifd : stdin);
+        int i = 0;
+        for(; i < bytes_read; i++){
+            if(BufIn[i] >= ASCIISTART){
+                BufIn[i] -= ASCIISTART;
+            }
         }
-    }
-    bytes_read += fread(AdcIn, 
+        bytes_read += fread(AdcIn, 
                         sizeof(BYTE), 
                         LONG_BYTES*analog, 
-                        Ifd?Ifd:stdin);
+                        Ifd ? Ifd : stdin);
    
-    if(bytes_read < digital + LONG_BYTES*analog){
+        if(bytes_read < digital + LONG_BYTES*analog){
         //plc_log("failed to read from %s, reopening", SimInFile);
-        if(Ifd
-        && feof(Ifd)){
-            rewind(Ifd);
-        } else {
-            sim_disable();
-            sim_enable();
+                if(feof(Ifd)){
+                    rewind(Ifd);
+                } else {
+                sim_disable();
+                sim_enable();
+                }
         }
     }
     return bytes_read;
@@ -151,16 +163,18 @@ int sim_flush()
     int bytes_written = 0;
     unsigned int digital = Nq;
     unsigned int analog = Naq;
-    bytes_written = fwrite(BufOut, 
+    if(Qfd){
+        bytes_written = fwrite(BufOut, 
                         sizeof(BYTE), 
                         digital, 
-                        Qfd?Qfd:stdout);
-    bytes_written += fwrite(AdcOut, 
+                        Qfd);
+        bytes_written += fwrite(AdcOut, 
                             sizeof(BYTE), 
                             analog * LONG_BYTES, 
-                            Qfd?Qfd:stdout);
-    fputc('\n',Qfd?Qfd:stdout);
-    fflush(Qfd);
+                            Qfd );
+        fputc('\n', Qfd );
+        fflush(Qfd);
+    }
     return bytes_written;
 }
 
