@@ -4,6 +4,7 @@ UTEST = ut-app
 SRCS = app-stubs.c \
 ut-app.c \
 config.c \
+schema.c \
 app.c \
 cli.c
 

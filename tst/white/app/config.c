@@ -1,5 +1,16 @@
-#include "util.h"
 #include "config.h"
+
+char * strdup_r(char * dest, const char * src) {
+//strdup with realloc
+
+    char * r = (!dest)?(char *)malloc(strlen(src)):realloc(
+                                            (void*)dest, strlen(src));
+        
+    memset(r, 0, strlen(src));
+    sprintf(r, "%s", src);
+    
+    return r;
+}
 
 entry_t new_entry_int(int i, char * name) {
 	entry_t r = (entry_t)malloc(sizeof(struct entry));
@@ -123,7 +134,11 @@ int get_numeric_entry(int key, const config_t conf){
 
 config_t set_numeric_entry(int key, int val, config_t conf){
     config_t c = conf;
+    
     entry_t e = get_entry(key, c);
+    if(!e){
+        return NULL;
+    }
     e->e.scalar_int = val;
     conf->map[key] = e;
     
@@ -177,6 +192,20 @@ config_t get_recursive_entry(int key, const config_t conf){
         return NULL;    
     }    
 }
+
+config_t set_recursive_entry(int key, const config_t val, config_t conf){
+    config_t c = conf;
+   
+    entry_t e = get_entry(key, c);
+    if(!e){
+        return NULL;
+    }
+    e->e.conf = val;
+    conf->map[key] = e;
+    
+    return c;
+}
+
 
 //TODO: in a c++ impl. this would be a hashmap
 param_t new_param(const char * key, 
@@ -425,13 +454,62 @@ config_t resize_sequence(config_t config, int sequence, int size){
 
 config_t copy_sequences(const config_t conf, config_t com){
     
-    int i = CONFIG_PROGRAM;
-    for(; i < N_CONFIG_VARIABLES; i++){
-        com = update_entry(i,
-            copy_entry(get_entry(i, conf)),
-            com);
+    if(!conf || !com){
+    
+        return NULL;
+    }
+    int i = 0;    
+    for(; i < conf->size; i++){
+        entry_t en = get_entry(i, conf);
+        if(en && en->type_tag == ENTRY_SEQ){
+            com = update_entry(i,
+                copy_entry(en),
+                com);
+        }
     }
     return com;
 }
 
+config_t init_config(const struct entry schema[], unsigned int size){
+ 
+    config_t conf = new_config(size);
+    int i = 0;
+    for(; i < size; i++){
+        const entry_t iter = &(schema[i]);
+        int sz = 0;
+        if(iter){
+            switch(iter->type_tag){
+            case ENTRY_INT:
+                conf = update_entry(i,
+                            new_entry_int(iter->e.scalar_int, 
+                                          iter->name),
+                            conf);
+                break;
+            case ENTRY_STR:
+                conf = update_entry(i,
+                            new_entry_str(iter->e.scalar_str, 
+                                          iter->name), 
+                            conf);
+                break;             
+            case ENTRY_MAP:
+                conf = update_entry(i,
+                            new_entry_map(copy_config(iter->e.conf), 
+                                          iter->name),
+                            conf);
+                break;
+            case ENTRY_SEQ:
+                if(iter->e.seq){
+                    sz = iter->e.seq->size;
+                }
+                conf = update_entry(i,
+                            new_entry_seq(new_sequence(sz),
+                                          iter->name),
+                            conf); 
+                break;                                  
+            default: break;
+            }
+        }
+    }
+    return conf;
+}
 

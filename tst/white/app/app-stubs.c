@@ -16,12 +16,6 @@ unsigned char Mock_op = 0xff;
 int Mock_idx = -1;
 char MsgStr[256];
 
-char * strdup_r(char * dest, const char * src) {
-    char * r =  strdup(src);
-    dest = r;
-    return r;
-}
-
 void plc_log(const char * msg, ...)
 {
     va_list arg;

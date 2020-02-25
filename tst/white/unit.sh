@@ -34,6 +34,9 @@ link ../../src/ui/cli.c ./app/cli.c
 unlink ./app/config.c
 link ../../src/cfg/config.c ./app/config.c
 
+unlink ./app/schema.c
+link ../../src/cfg/schema.c ./app/schema.c
+
 unlink ./app/app.c
 link ../../src/app.c ./app/app.c
 

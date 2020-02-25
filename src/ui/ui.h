@@ -5,8 +5,13 @@
  *@file ui.h
  *@brief main user interface header
 */
-#define CLI_COM 0 //commands always go to first payload entry
-#define CLI_ARG 1 //optional arguments start at second payload entry
+
+typedef enum 
+{/// CLI schema
+    CLI_COM,//commands always go to first payload entry
+    CLI_ARG, //optional arguments start at second payload entry
+    N_PAYLOADS
+} CLI_PAYLOADS;
 
 typedef enum
 {///CLI commands

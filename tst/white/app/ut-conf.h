@@ -1,157 +1,12 @@
 #ifndef _UT_CONF_H_ 
 #define _UT_CONF_H_
 
-static config_t init_test_config(){
- // in a c++ implementation this all can be done automatically 
- //using a hashmap
-    config_t conf = new_config(N_CONFIG_VARIABLES);
-   
-    config_t uspace = new_config(N_USPACE_VARS);
-            
-    uspace = update_entry(
-        USPACE_BASE,
-	    new_entry_int(50176, "BASE"),
-	    uspace);
-	
-	uspace = update_entry(
-	    USPACE_WR, 
-	    new_entry_int(0, "WR"),
-	    uspace);
-	    
-	uspace = update_entry(
-	    USPACE_RD, 
-	    new_entry_int(8, "RD"),
-	    uspace);
-	
-	config_t subdev = new_config(N_SUBDEV_VARS);
-	
-    subdev = update_entry(
-        SUBDEV_IN,
-	    new_entry_int(0, "IN"),
-	    subdev);
-	    
-	subdev = update_entry(
-	    SUBDEV_OUT,
-	    new_entry_int(1, "OUT"),
-	    subdev);
-	    
-    subdev = update_entry(
-        SUBDEV_ADC, 
-	    new_entry_int(2, "ADC"),
-	    subdev);
-	    
-	subdev = update_entry(
-	    SUBDEV_DAC, 
-	    new_entry_int(3, "DAC"),
-	    subdev);
-	
-	config_t comedi = new_config(N_COMEDI_VARS);
-	
-	comedi = update_entry(
-	    COMEDI_FILE,
-	    new_entry_int(0, "FILE"),
-	    comedi);
-	    
-	comedi = update_entry(
-	    COMEDI_SUBDEV, 
-	    new_entry_map(subdev, "SUBDEV"),
-	    comedi);
-    
-    config_t sim = new_config(N_SIM_VARS);
-    
-    sim = update_entry(
-        SIM_INPUT,
-        new_entry_str("sim.in", "INPUT"), 
-        sim);
-        
-    sim = update_entry(
-        SIM_OUTPUT,
-        new_entry_str("sim.out", "OUTPUT"),
-        sim);    
-
-    conf = update_entry(
-        CONFIG_STEP,
-        new_entry_int(1, "STEP"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_PIPE,
-        new_entry_str("plcpipe", "PIPE"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_HW,
-        new_entry_str("STDI/O", "HW"),
-        conf);
-        
-    conf = update_entry(
-        CONFIG_USPACE,
-        new_entry_map(uspace, "USPACE"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_COMEDI,
-        new_entry_map(comedi, "COMEDI"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_SIM,
-        new_entry_map(sim, "SIM"),
-        conf);
-
-   /*******************************************/
-  
-    conf = update_entry(
-        CONFIG_TIMER,
-        new_entry_seq(new_sequence(4), "TIMERS"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_PULSE,
-        new_entry_seq(new_sequence(4), "PULSES"),
-        conf);
-        
-    conf = update_entry(
-        CONFIG_MREG,
-        new_entry_seq(new_sequence(4), "MREG"),
-        conf);
-        
-    conf = update_entry(
-        CONFIG_MVAR,
-        new_entry_seq(new_sequence(4), "MVAR"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_DI,
-        new_entry_seq(new_sequence(8), "DI"),
-        conf);
- 
-    conf = update_entry(
-        CONFIG_DQ,
-        new_entry_seq(new_sequence(8), "DQ"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_AI,
-        new_entry_seq(new_sequence(8), "AI"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_AQ,
-        new_entry_seq(new_sequence(8), "AQ"),
-        conf);
-
-    conf = update_entry(
-        CONFIG_PROGRAM,
-        new_entry_seq(new_sequence(2), "PROGRAM"),
-        conf);
-
-    return conf;
-}
-
+extern struct entry ConfigSchema[];
+extern struct entry HwSchema[];
 void ut_conf()
 {
-   config_t conf = init_config();
+   
+   config_t conf = init_config(ConfigSchema, N_CONFIG_VARIABLES);
   //defaults
 
   //bullshit should return NULL
@@ -161,40 +16,14 @@ void ut_conf()
     got = get_entry(CONFIG_STEP, conf);
     CU_ASSERT(got->type_tag == ENTRY_INT);
     CU_ASSERT_STRING_EQUAL(got->name, "STEP");
-    CU_ASSERT(got->e.scalar_int == 1);
+    CU_ASSERT(got->e.scalar_int == 100);
     
-    got = get_entry(CONFIG_PIPE, conf);
-    CU_ASSERT(got->type_tag == ENTRY_STR);
-    CU_ASSERT_STRING_EQUAL(got->name, "PIPE");
-    CU_ASSERT_STRING_EQUAL(got->e.scalar_str, "plcpipe");
-    
-    got = get_entry(
-            SIM_INPUT, 
-            get_entry(
-                CONFIG_SIM, 
-                conf)->e.conf);
-    
-    CU_ASSERT(got->type_tag == ENTRY_STR);
-    CU_ASSERT_STRING_EQUAL(got->name, "INPUT");
-    CU_ASSERT_STRING_EQUAL(got->e.scalar_str, "sim.in");
-    
-    got = get_entry(
-            SUBDEV_IN, 
-            get_entry(
-                COMEDI_SUBDEV,
-                get_entry(
-                     CONFIG_COMEDI,
-                     conf)->e.conf)->e.conf);
-    
-    CU_ASSERT(got->type_tag == ENTRY_INT);
-    CU_ASSERT_STRING_EQUAL(got->name, "IN");
-    CU_ASSERT_EQUAL(got->e.scalar_int, 0);
     
     got = get_entry(CONFIG_TIMER, conf);
     CU_ASSERT(got->type_tag == ENTRY_SEQ);
     CU_ASSERT_STRING_EQUAL(got->name, "TIMERS");
-    CU_ASSERT(got->e.seq->size == 4);
-    CU_ASSERT_PTR_NULL(got->e.seq->vars[3].name);
+    CU_ASSERT(got->e.seq->size == 2);
+    CU_ASSERT_PTR_NULL(got->e.seq->vars[1].name);
     
     //get by value
     int got_key = get_key("", conf);
@@ -203,26 +32,22 @@ void ut_conf()
     
     got_key = get_key("HW", conf);
     CU_ASSERT(got_key == CONFIG_HW);
-    clear_config(&conf);
+    clear_config(conf);
 }
 
 void ut_store()
 {
-    config_t conf = init_config();
+    config_t conf = init_config(ConfigSchema, N_CONFIG_VARIABLES);
     config_t updated = store_value(N_CONFIG_VARIABLES, "",  conf);
     CU_ASSERT(updated->err == PLC_ERR);
     updated->err = PLC_OK;
-  
+/*  
     updated = store_value(CONFIG_HW, "simulation",  conf);
     CU_ASSERT(updated->err == PLC_OK);
     CU_ASSERT_STRING_EQUAL(
     get_entry(CONFIG_HW,updated)->e.scalar_str, "simulation");
-  
-    updated = store_value(CONFIG_PIPE, "pipe",  conf);
-    CU_ASSERT(updated->err == PLC_OK);
-    CU_ASSERT_STRING_EQUAL(
-    get_entry(CONFIG_PIPE,conf)->e.scalar_str, "pipe");
 
+*/
     updated = store_value(CONFIG_STEP, "1000000",  conf);
     CU_ASSERT(
         get_entry(CONFIG_STEP, conf)->e.scalar_int == 1000000);
@@ -230,21 +55,10 @@ void ut_store()
     CU_ASSERT(updated->err == PLC_OK);
     
 /*store in a config within a config*/
-    updated = store_value(
-        USPACE_BASE, 
-        "12345678",  
-        (get_entry(CONFIG_USPACE, conf)->e.conf));
 
-    CU_ASSERT(updated->err == PLC_OK);
-    CU_ASSERT(
-        get_entry(
-            USPACE_BASE,
-            get_entry(
-                CONFIG_USPACE, 
-                conf)->e.conf)->e.scalar_int == 12345678);
 
 /*store in a sequence*/
-  updated = store_seq_value(-1, 0, 0, "", conf);
+  updated = store_seq_value(NULL, 0, NULL, "", conf);
 
   CU_ASSERT(updated->err == PLC_ERR);
   updated->err = PLC_OK;
@@ -256,7 +70,7 @@ void ut_store()
     "1.0");
   CU_ASSERT(updated->err == PLC_OK);
   seq = conf->map[CONFIG_AQ]->e.seq;
-  updated = store_seq_value(CONFIG_AQ, 0, "", NULL, conf);
+  updated = store_seq_value(seq, CONFIG_AQ, "", NULL, conf);
   CU_ASSERT(updated->err == PLC_ERR);  
   clear_config(conf);
     
@@ -403,31 +217,28 @@ PULSES:\n\
 */
 void ut_get(){
 
-    config_t conf = init_config();
+    config_t conf = init_config(ConfigSchema, N_CONFIG_VARIABLES);
     sequence_t seq =  get_sequence_entry(CONFIG_AI, conf);
-    conf = store_seq_value(seq, 3, "MAX", "1.0", conf);
-    conf = store_seq_value(seq, 3, "ID", "var1", conf);
+    conf = store_seq_value(seq, 1, "MAX", "1.0", conf);
+    conf = store_seq_value(seq, 1, "ID", "var1", conf);
  
     //bullshit should return -1
     int step = get_numeric_entry(-523, conf);
     CU_ASSERT(step == CONF_ERR);
     
     step = get_numeric_entry(CONFIG_STEP, conf);
-    CU_ASSERT(step == 1);
+    CU_ASSERT(step == 100);
     
     //wrong type should return NULL
     char * hw = get_string_entry(CONFIG_STEP, conf);
     CU_ASSERT(hw == NULL);
-    
-    hw = get_string_entry(CONFIG_HW, conf);
-    CU_ASSERT_STRING_EQUAL(hw, "STDI/O");
-    
+   
     
     int i = 0;
     char * name = NULL;
     char * max = NULL;
     for(; i < seq->size; i++){
-        if(i == 3){
+        if(i == 1){
             name = seq->vars[i].name;
             CU_ASSERT_STRING_EQUAL(name, "var1");
             max = get_param_val("MAX", seq->vars[i].params);
@@ -438,7 +249,31 @@ void ut_get(){
     variable_t v = get_variable("var1", seq);
     max = get_param_val("MAX", v->params);
     CU_ASSERT_STRING_EQUAL(max, "1.0")
+    clear_config(conf);
 }    
+
+void ut_set(){
+    config_t conf = init_config(ConfigSchema, N_CONFIG_VARIABLES);
+//garbage in garbage out
+    config_t res = set_numeric_entry(-1, 2, NULL);
+    CU_ASSERT_PTR_NULL(res);
+//numeric happy path    
+    res = set_numeric_entry(CONFIG_STEP, 2, conf);
+    int step = get_numeric_entry(CONFIG_STEP, res);
+    CU_ASSERT(step == 2);
+//more garbage in garbage out    
+    res = set_recursive_entry(CONFIG_HW, NULL, NULL);
+    CU_ASSERT_PTR_NULL(res);
+//set sub config    
+    config_t hw = init_config(HwSchema, N_HW_VARS);
+    res = set_recursive_entry(CONFIG_HW, hw, conf);
+    config_t got = get_recursive_entry(CONFIG_HW, conf);
+    char * label = get_string_entry(HW_LABEL, got);
+    
+    CU_ASSERT_STRING_EQUAL(label, "DRY");
+    clear_config(conf);    
+    clear_config(hw);
+}
 
 void ut_copy(){
 
@@ -458,19 +293,15 @@ void ut_copy(){
     CU_ASSERT_STRING_EQUAL(seqond->vars[0].params->key, "name");
     CU_ASSERT_STRING_EQUAL(seqond->vars[0].params->next->value, "m");
         
-    config_t conf = init_config();
+    config_t conf = init_config(ConfigSchema, N_CONFIG_VARIABLES);
     
     entry_t numeric = copy_entry(get_entry(CONFIG_STEP, conf));
-    CU_ASSERT(numeric->e.scalar_int == 1);
-    
-    entry_t string = copy_entry(get_entry(CONFIG_HW, conf));
-    CU_ASSERT_STRING_EQUAL(string->e.scalar_str, "STDI/O");
+    CU_ASSERT(numeric->e.scalar_int == 100);
     
     entry_t sequence = copy_entry(get_entry(CONFIG_AI, conf));
     CU_ASSERT(sequence->type_tag == ENTRY_SEQ);
-    CU_ASSERT(sequence->e.seq->size == 8);
-    
-    entry_t map = copy_entry(get_entry(CONFIG_SIM, conf));
+    CU_ASSERT(sequence->e.seq->size == 2);
+    clear_config(conf);    
 }
 
     

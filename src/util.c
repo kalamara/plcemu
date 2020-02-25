@@ -3,11 +3,6 @@
 
 #include "data.h"
 
-/*
-#include "instruction.h"
-#include "rung.h"
-#include "plclib.h"
-*/
 #include "config.h"
 #include "ui.h"
 
@@ -15,18 +10,6 @@
 
 extern int UiReady;
 FILE * ErrLog = NULL;
-
-char * strdup_r(char * dest, const char * src) {
-//strdup with realloc
-
-    char * r = (!dest)?(char *)malloc(strlen(src)):realloc(
-                                            (void*)dest, strlen(src));
-        
-    memset(r, 0, strlen(src));
-    sprintf(r, "%s", src);
-    
-    return r;
-}
 
 void plc_log(const char * msg, ...) {
    va_list arg;

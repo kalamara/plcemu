@@ -9,6 +9,7 @@
 #include "CUnit/Automated.h"
 
 #include "config.h"
+#include "schema.h"
 #include "hardware.h"
 #include "data.h"
 #include "instruction.h"
@@ -84,6 +85,7 @@ int main ()
   || ADD_TEST(suite_conf, ut_store)
 //  || ADD_TEST(suite_conf, ut_process)
   || ADD_TEST(suite_conf, ut_get)
+  || ADD_TEST(suite_conf, ut_set)
   || ADD_TEST(suite_conf, ut_copy)
   ){
 	CU_cleanup_registry ();

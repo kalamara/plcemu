@@ -1,4 +1,5 @@
 #include "config.h"
+#include "schema.h"
 #include "hardware.h"
 #include "util.h"
 #include "data.h"
@@ -9,85 +10,7 @@
 #include "plcemu.h"
 #include "app.h"
 
-config_t init_config(){
- // in a c++ implementation this all can be done automatically 
- //using a hashmap
-    config_t conf = new_config(N_CONFIG_VARIABLES);
-   
-   
-
-    config_t hw = new_config(N_HW_VARS);
-
-    hw = update_entry(
-        HW_LABEL,
-        new_entry_str("DRY", "LABEL"), 
-        hw);
-    
-   /* hw = update_entry(
-        HW_IFACE,
-        new_entry_map(NULL, "IFACE"), 
-        hw);
- */
-    conf = update_entry(
-        CONFIG_HW,
-        new_entry_map(hw, "HW"),
-        conf);
-        
-
-    conf = update_entry(
-        CONFIG_STEP,
-        new_entry_int(100, "STEP"),
-        conf);
- 
-   /*******************************************/
-  
-    conf = update_entry(
-        CONFIG_TIMER,
-        new_entry_seq(new_sequence(4), "TIMERS"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_PULSE,
-        new_entry_seq(new_sequence(4), "PULSES"),
-        conf);
-        
-    conf = update_entry(
-        CONFIG_MREG,
-        new_entry_seq(new_sequence(4), "MREG"),
-        conf);
-        
-    conf = update_entry(
-        CONFIG_MVAR,
-        new_entry_seq(new_sequence(4), "MVAR"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_DI,
-        new_entry_seq(new_sequence(8), "DI"),
-        conf);
- 
-    conf = update_entry(
-        CONFIG_DQ,
-        new_entry_seq(new_sequence(8), "DQ"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_AI,
-        new_entry_seq(new_sequence(8), "AI"),
-        conf);
-    
-    conf = update_entry(
-        CONFIG_AQ,
-        new_entry_seq(new_sequence(8), "AQ"),
-        conf);
-
-    conf = update_entry(
-        CONFIG_PROGRAM,
-        new_entry_seq(new_sequence(2), "PROGRAM"),
-        conf);
-
-    return conf;
-}
+extern struct entry ConfigSchema[];
 
 static plc_t declare_names(int operand,
                     const variable_t var,                      
@@ -508,11 +431,7 @@ static config_t get_pulse_values(const plc_t plc,
 #endif //SIM
 int Lookup[N_CONFIG_VARIABLES] = {
     PLC_ERR, //CONFIG_STEP,
-    PLC_ERR, //CONFIG_PIPE,
     PLC_ERR, //CONFIG_HW,
-    PLC_ERR, //CONFIG_USPACE,
-    PLC_ERR, //CONFIG_COMEDI,
-    PLC_ERR, //CONFIG_SIM,
     PLC_ERR, //CONFIG_PROGRAM,
         OP_REAL_INPUT,  //CONFIG_AI
         OP_REAL_OUTPUT, //CONFIG_AQ
@@ -639,6 +558,7 @@ app_t apply_command(const config_t com,
     int s = CONFIG_PROGRAM;
     int v = -1;
     plc_t p = NULL;
+    config_t arg = get_recursive_entry(CLI_ARG, com);
     if(a != NULL){
         switch(get_numeric_entry(CLI_COM, com)){
             case COM_START:
@@ -655,21 +575,11 @@ app_t apply_command(const config_t com,
                 break;
         
             case COM_LOAD://TODO: file parsing should be done in the UI and 
-            //copied over here (with multiple edit commands, so this one 
-            //will be deprecated)
+            //copied over here 
             
                 a->plc = plc_stop(a->plc);
-                a->conf = init_config();
-                cvalue = get_string_entry(CLI_ARG, com);
-                if( cvalue == NULL ||
-                    cvalue[0] == 0){
-                    cvalue = confstr;
-                }
-                if ((load_config(cvalue, a->conf))->err < PLC_OK) {
-                    plc_log("Invalid configuration file %s\n", cvalue);
-                } else {
-                    a = configure(a->conf, a);
-                }    
+                a->conf = copy_config(arg);
+                    
                 break;
             
             case COM_SAVE://TODO: file saving whould be done in the UI, 
@@ -677,12 +587,8 @@ app_t apply_command(const config_t com,
             //but configuration should be also backed up in the PLC
         
                 a->plc = plc_stop(a->plc);
-                cvalue = get_string_entry(CLI_ARG, com);
-                if( cvalue == NULL ||
-                    cvalue[0] == 0){
-                    cvalue = confstr;
-                }
-                if ((save_config(cvalue, a->conf)) < PLC_OK) {
+                
+                if ((save_config(confstr, a->conf)) < PLC_OK) {
                     plc_log("Invalid configuration file %s\n", cvalue);
                 }
                 break;    
@@ -690,7 +596,7 @@ app_t apply_command(const config_t com,
             case COM_FORCE:         
             
                 for(s = CONFIG_PROGRAM; s < N_CONFIG_VARIABLES; s++){
-                    seq = get_sequence_entry(s, com); 
+                    seq = get_sequence_entry(s, arg); 
                     for(v = 0; seq && v < seq->size; v++){
                     //filter sequences who have a param "FORCE"
                         val = get_param_val("FORCE", seq->vars[v].params);
@@ -710,7 +616,7 @@ app_t apply_command(const config_t com,
             case COM_UNFORCE:
             
                 for(s = CONFIG_PROGRAM; s < N_CONFIG_VARIABLES; s++){
-                    seq = get_sequence_entry(s, com); 
+                    seq = get_sequence_entry(s, arg); 
                     for(v = 0; seq && v < seq->size; v++){
                 //filter sequences who have a param "FORCE"
                         val = get_param_val("FORCE", seq->vars[v].params);
@@ -728,15 +634,15 @@ app_t apply_command(const config_t com,
                 break;
              case COM_EDIT:
                 //TODO: filter sequences who have an updated variable                    
-                a->plc = configure_di(com, a->plc);
-                a->plc = configure_dq(com, a->plc);
-                a->plc = configure_ai(com, a->plc);
-                a->plc = configure_aq(com, a->plc);
-                a->plc = configure_counters(com, a->plc);
-                a->plc = configure_reals(com, a->plc);
-                a->plc = configure_timers(com, a->plc);
-                a->plc = configure_pulses(com, a->plc);
-                a->conf = copy_sequences(com, a->conf);
+                a->plc = configure_di(arg, a->plc);
+                a->plc = configure_dq(arg, a->plc);
+                a->plc = configure_ai(arg, a->plc);
+                a->plc = configure_aq(arg, a->plc);
+                a->plc = configure_counters(arg, a->plc);
+                a->plc = configure_reals(arg, a->plc);
+                a->plc = configure_timers(arg, a->plc);
+                a->plc = configure_pulses(arg, a->plc);
+                a->conf = copy_sequences(arg, a->conf);
                 break;
             //TODO: new command: CONFIGURE to set up the hardware and register sizes
             default: break;

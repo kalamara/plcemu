@@ -10,8 +10,6 @@ typedef struct app {
     config_t conf;
 } * app_t;
 
-config_t init_config();
-
 /**
  *@brief apply configuration to application
  *@param configuration

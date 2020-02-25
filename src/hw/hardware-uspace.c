@@ -8,6 +8,7 @@
 #include "util.h"
 #include "config.h"
 #include "hardware.h"
+#include "schema.h"
 
 int Io_base = 0;
 int Wr_offs = 0;
@@ -17,7 +18,7 @@ struct hardware Uspace;
 
 int usp_config(const config_t conf)
 {
-    config_t u = get_recursive_entry(CONFIG_USPACE, conf);
+    config_t u = get_recursive_entry(CONFIG_HW, conf);//TODO: this will be rewritten
     Io_base = get_numeric_entry(USPACE_BASE, u);
     Wr_offs = get_numeric_entry(USPACE_WR, u);
     Rd_offs = get_numeric_entry(USPACE_RD, u);

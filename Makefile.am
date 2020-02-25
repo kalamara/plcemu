@@ -22,6 +22,7 @@ plcemu_SOURCES= src/plcemu.c src/plcemu.h \
                 src/hw/hardware-comedi.c \
                 src/cfg/config.c src/cfg/config.h \
                 src/cfg/config-yml.c \
+                src/cfg/schema.c src/cfg/schema.h \
                 src/util.c src/util.h \
                 src/ui/ui.h src/ui/cli.c\
                 src/project.h src/project.c
@@ -33,7 +34,9 @@ bin_PROGRAMS+=cli
 cli_SOURCES=src/ui/cli-zmq.c \
             src/ui/cli.c \
             src/ui/ui-zmq.c \
-            src/config.c src/config.h \
+            src/cfg/config.c src/cfg/config.h \
+            src/cfg/config-yml.c \
+            src/cfg/schema.c src/cfg/schema.h \
             src/util.c src/util.h 
 
 else

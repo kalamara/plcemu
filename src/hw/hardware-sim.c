@@ -7,6 +7,7 @@
 #include "util.h"
 
 #include "config.h"
+#include "schema.h"
 #include "hardware.h"
 
 #define ASCIISTART 0x30

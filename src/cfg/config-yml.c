@@ -1,33 +1,26 @@
 #include <yaml.h>
-#include "util.h"
 #include "config.h"
 
-/*
-static void yaml_config_error(yaml_parser_t parser){
-
-    //print line
-}
-*/
 static void yaml_parser_error(yaml_parser_t parser){
 
      switch (parser.error)
      {
         case YAML_MEMORY_ERROR:
-            plc_log( 
+            LOGGER( 
             "Memory error: Not enough memory for parsing");
             break;
 
         case YAML_READER_ERROR:
             if (parser.problem_value != -1) {
-                plc_log( 
-                "Reader error: %s: #%X at %d", 
+                LOGGER( 
+                "Reader error: %s: #%X at %ld", 
                 parser.problem,
                 parser.problem_value, 
                 parser.problem_offset);
             }
             else {
-                plc_log( 
-                "Reader error: %s at %d", 
+                LOGGER( 
+                "Reader error: %s at %ld", 
                 parser.problem,
                 parser.problem_offset);
             }
@@ -35,9 +28,9 @@ static void yaml_parser_error(yaml_parser_t parser){
 
         case YAML_SCANNER_ERROR:
             if (parser.context) {
-                plc_log( 
-                "Scanner error: %s at line %d, column %d"
-                        "%s at line %d, column %d", 
+                LOGGER( 
+                "Scanner error: %s at line %ld, column %ld"
+                        "%s at line %ld, column %ld", 
                         parser.context,
                         parser.context_mark.line+1,
                         parser.context_mark.column+1,
@@ -46,8 +39,8 @@ static void yaml_parser_error(yaml_parser_t parser){
                         parser.problem_mark.column+1);
             }
             else {
-                plc_log( 
-                "Scanner error: %s at line %d, column %d",
+                LOGGER( 
+                "Scanner error: %s at line %ld, column %ld",
                         parser.problem, parser.problem_mark.line+1,
                         parser.problem_mark.column+1);
             }
@@ -55,9 +48,9 @@ static void yaml_parser_error(yaml_parser_t parser){
 
         case YAML_PARSER_ERROR:
             if (parser.context) {
-                plc_log( 
-                "Parser error: %s at line %d, column %d"
-                        "%s at line %d, column %d", 
+                LOGGER( 
+                "Parser error: %s at line %ld, column %ld"
+                        "%s at line %ld, column %ld", 
                         parser.context,
                         parser.context_mark.line+1,
                         parser.context_mark.column+1,
@@ -66,8 +59,8 @@ static void yaml_parser_error(yaml_parser_t parser){
                         parser.problem_mark.column+1);
             }
             else {
-                plc_log( 
-                "Parser error: %s at line %d, column %d",
+                LOGGER( 
+                "Parser error: %s at line %ld, column %ld",
                         parser.problem, 
                         parser.problem_mark.line+1,
                         parser.problem_mark.column+1);
@@ -76,7 +69,7 @@ static void yaml_parser_error(yaml_parser_t parser){
 
         default:
             /* Couldn't happen. */
-            plc_log( 
+            LOGGER( 
             "Internal error\n");
             break;
     }
@@ -87,43 +80,43 @@ static int log_yml_event(yaml_event_t event){
     switch(event.type){ 
     
         case YAML_NO_EVENT: 
-        	plc_log("No event!"); 
+        	LOGGER("No event!"); 
             break;
     /* Stream start/end */
         case YAML_STREAM_START_EVENT: 
-        	plc_log("STREAM START"); 
+        	LOGGER("STREAM START"); 
             break;
         case YAML_STREAM_END_EVENT: 
-        	plc_log("STREAM END");   
+        	LOGGER("STREAM END");   
             break;
     /* Block delimeters */
         case YAML_DOCUMENT_START_EVENT: 
-        	plc_log("Start Document"); 
+        	LOGGER("Start Document"); 
             break;
         case YAML_DOCUMENT_END_EVENT: 
-        	plc_log("End Document");   
+        	LOGGER("End Document");   
             break;
         case YAML_SEQUENCE_START_EVENT: 
-        	plc_log("Start Sequence"); 
+        	LOGGER("Start Sequence"); 
             break;
         case YAML_SEQUENCE_END_EVENT: 
-        	plc_log("End Sequence");
+        	LOGGER("End Sequence");
             break;
         case YAML_MAPPING_START_EVENT: 
-        	plc_log("Start Mapping");         
+        	LOGGER("Start Mapping");         
             break;
         case YAML_MAPPING_END_EVENT: 
-        	plc_log("End Mapping");      
+        	LOGGER("End Mapping");      
             break;
     /* Data */
         case YAML_ALIAS_EVENT:  
-        	plc_log("Got alias (anchor %s)", event.data.alias.anchor); 
+        	LOGGER("Got alias (anchor)");// event.data.alias.anchor); 
             break;
         case YAML_SCALAR_EVENT: 
-        	plc_log("Got scalar (value %s)", event.data.scalar.value); 
+        	LOGGER("Got scalar (value)");//, event.data.scalar.value); 
         	break;
         default:
-            plc_log("default?");
+            LOGGER("default?\n");
     }
     return CONF_OK;
 }
@@ -304,7 +297,7 @@ config_t process(int sequence,
          }
          if(config->err < CONF_OK) {
              done = CONF_T;
-             plc_log("Could not parse event:");
+             LOGGER("Could not parse event:");
              log_yml_event(event);
          }            
          //log_yml_event(event);                                  
@@ -417,9 +410,9 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
     
         return;
     }
-    //plc_log("string %s len %d", entry->name, strlen(entry->name));
+    LOGGER("string %s len %ld", entry->name, strlen(entry->name));
     
-    yaml_scalar_event_initialize(
+    int r = yaml_scalar_event_initialize(
     	&evt,
 	    NULL,
 		(yaml_char_t *)YAML_STR_TAG,
@@ -429,8 +422,8 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
 		CONF_T, 
 		YAML_PLAIN_SCALAR_STYLE); 	
 		
-	yaml_emitter_emit(emitter, &evt);
-	//log_yml_event(evt);
+	r = yaml_emitter_emit(emitter, &evt);
+	if(r == 0) { log_yml_event(evt); }
 
 	char buf[CONF_NUM];
 	memset(buf, 0, CONF_NUM);
@@ -441,7 +434,7 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
 	
 		case ENTRY_STR:
 		
-			yaml_scalar_event_initialize(
+			r = yaml_scalar_event_initialize(
     		&evt,
 	    	NULL,
          	(yaml_char_t *)YAML_STR_TAG,
@@ -450,15 +443,15 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
 			CONF_T,
 			CONF_T, 
 			YAML_PLAIN_SCALAR_STYLE); 	
-		
-			yaml_emitter_emit(emitter, &evt); 
-			//log_yml_event(evt);		
+		        
+			r = yaml_emitter_emit(emitter, &evt); 
+			if(r == 0) { log_yml_event(evt); }		
 			break;
 		
 		case ENTRY_INT:
 			
 			sprintf(buf, "%d", entry->e.scalar_int);
-			yaml_scalar_event_initialize(
+			r = yaml_scalar_event_initialize(
     		&evt,
 	    	NULL,
 			(yaml_char_t *)YAML_INT_TAG,
@@ -467,24 +460,24 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
 			CONF_T,
 			CONF_T, 
 			YAML_PLAIN_SCALAR_STYLE); 	
-		
-			yaml_emitter_emit(emitter, &evt);
-			//log_yml_event(evt); 		
+		        
+			r = yaml_emitter_emit(emitter, &evt);
+			if(r == 0) { log_yml_event(evt); }		
 			break;
 				 
 		case ENTRY_MAP:
 		
-		    yaml_mapping_start_event_initialize(
+		    r = yaml_mapping_start_event_initialize(
     			&evt,
     			NULL,
     			(yaml_char_t *)YAML_MAP_TAG,
     			CONF_F,
     			YAML_BLOCK_MAPPING_STYLE);
-    	 	    
-    		yaml_emitter_emit(emitter, &evt);
-    		//log_yml_event(evt);
-    		iter = *(entry->e.conf->map);
-    		
+    	 	
+    		r = yaml_emitter_emit(emitter, &evt);
+    		if(r == 0) { log_yml_event(evt); }
+    		if(entry->e.conf){
+    		        iter = *(entry->e.conf->map);
 			while(i < entry->e.conf->size){
 			    if(iter != NULL) {
 				    emit_entry(iter, emitter);  
@@ -492,23 +485,25 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
 				iter = (entry->e.conf->map)[++i];
 			}	
 			yaml_mapping_end_event_initialize(&evt); 	
-    		yaml_emitter_emit(emitter, &evt); 
+            		yaml_emitter_emit(emitter, &evt); 
+                }
     		//log_yml_event(evt);
 			break;
 		
 		case ENTRY_SEQ:
-		  yaml_sequence_start_event_initialize(
+		  r = yaml_sequence_start_event_initialize(
     			&evt,
     			NULL,
     			(yaml_char_t *)YAML_SEQ_TAG,
     			CONF_T,
     			YAML_BLOCK_SEQUENCE_STYLE);
-    		//log_yml_event(evt);
-    	    yaml_emitter_emit(emitter, &evt); 	
+    		
+    	        r = yaml_emitter_emit(emitter, &evt); 	
+    	        if(r == 0) { log_yml_event(evt); }
 		//emit size as int
 		  
 		    sprintf(buf, "%d", entry->e.seq->size);
-			yaml_scalar_event_initialize(
+			r = yaml_scalar_event_initialize(
     		        &evt,
 	    	        NULL,
 			(yaml_char_t *)YAML_STR_TAG,
@@ -530,9 +525,10 @@ static void emit_entry(const entry_t entry, yaml_emitter_t *emitter) {
 				viter = &(entry->e.seq->vars)[++i];
 			}	
 			
-			yaml_sequence_end_event_initialize(&evt); 	
-    		        yaml_emitter_emit(emitter, &evt); 
-    		//log_yml_event(evt);
+			yaml_sequence_end_event_initialize(&evt); 
+				
+    		        r = yaml_emitter_emit(emitter, &evt); 
+    		        if(r == 0) { log_yml_event(evt); }
 			break;
 			
 		default:break;
@@ -552,7 +548,7 @@ int emit(yaml_emitter_t *emitter, const config_t conf) {
                                         NULL, 
                                         CONF_F); 
 	yaml_emitter_emit(emitter, &evt); 		
-   // log_yml_event(evt);
+    //log_yml_event(evt);
     
     yaml_mapping_start_event_initialize(&evt,
     	                                NULL,
@@ -560,7 +556,7 @@ int emit(yaml_emitter_t *emitter, const config_t conf) {
     	                                CONF_F,
     	                                YAML_BLOCK_MAPPING_STYLE);
     yaml_emitter_emit(emitter, &evt);
-   // log_yml_event(evt);
+    //log_yml_event(evt);
 
     entry_t iter = conf->map[0];
     int i = 0;
@@ -589,7 +585,7 @@ int print_config_to_emitter(yaml_emitter_t emitter,
     yaml_event_t event;
     
     int r = CONF_OK;
-    yaml_stream_start_event_initialize(&event, YAML_UTF8_ENCODING);
+    yaml_stream_start_event_initialize(&event, YAML_ANY_ENCODING);
     r = yaml_emitter_emit(&emitter, &event);
     if(r){
             r = emit(&emitter, conf);
@@ -616,6 +612,7 @@ int print_config(FILE * fcfg, const config_t conf) {
          yaml_emitter_set_output_file(&emitter, fcfg);
     }
     r = print_config_to_emitter(emitter, conf); 
+
     yaml_emitter_delete(&emitter);
     
     return r;
@@ -631,16 +628,15 @@ int save_config(const char * filename, const config_t conf) {
     sprintf(path, "%s", filename);
 
     if ((fcfg = fopen(path, "wb"))) {
-         plc_log("Save configuration to %s ...", path);
- 
-         print_config(fcfg, conf);        
+         LOGGER("Save configuration to %s ...", path);
+         r = print_config(fcfg, conf);        
          if(r < CONF_OK)
-            plc_log( "Configuration error ");
+            LOGGER( "Saving configuration error! ");
             
          fclose(fcfg);
     } else {
         r = CONF_ERR;
-        plc_log("Could not open file %s for write", filename);
+        LOGGER("Could not open file %s for write", filename);
     }
     return r;
 }
@@ -663,15 +659,15 @@ config_t load_config(const char * filename, config_t conf) {
         yaml_parser_error(parser);    
     }
     if ((fcfg = fopen(path, "r"))) {
-        plc_log("Looking for configuration from %s ...", path);
+        LOGGER("Looking for configuration from %s ...", path);
         yaml_parser_set_input_file(&parser, fcfg);
         r = process(CONF_ERR, &parser, conf);
         if(r->err < CONF_OK)
-            plc_log( "Configuration error ");
+            LOGGER( "Configuration error ");
         fclose(fcfg);
     } else {
         r->err = CONF_ERR;
-        plc_log("Could not open file %s", filename);
+        LOGGER("Could not open file %s", filename);
     }
     yaml_parser_delete(&parser);
     return r;
@@ -718,7 +714,7 @@ config_t deserialize_config(const char * buf, const config_t conf) {
         r->err = CONF_ERR;
     }    
     if(r->err < CONF_OK){
-            plc_log( "Configuration error ");
+            LOGGER( "Configuration error ");
     } 
     yaml_parser_delete(&parser);
     

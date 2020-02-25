@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "config.h"
+#include "schema.h"
 #include "hardware.h"
 #include "util.h"
 #include "data.h"
@@ -20,7 +21,7 @@
 #include "app.h"
 #include "plcemu.h"
 /*************GLOBALS************************************************/
-
+extern struct entry ConfigSchema[];
 app_t App;
 
 typedef enum {
@@ -137,7 +138,7 @@ int main(int argc, char **argv)
     int prog = 0;
     char * confstr = "config.yml";
   
-    config_t conf = init_config();
+    config_t conf = init_config(ConfigSchema, N_CONFIG_VARIABLES);
         
     char * cvalue = NULL;
     opterr = 0;
@@ -190,7 +191,8 @@ int main(int argc, char **argv)
     ui_init(App->conf);
     //UiReady=more;
     config_t command = cli_init_command(conf);
-    config_t state = cli_init_state(conf);
+    config_t state = copy_config(conf);
+    ui_draw(state);
     if(conf->err == PLC_OK){
         App->plc = plc_start(App->plc);    
     }

@@ -6,6 +6,7 @@
 #include "rung.h"
 #include "config.h"
 #include "hardware.h"
+#include "schema.h"
 
 struct hardware Comedi;
 

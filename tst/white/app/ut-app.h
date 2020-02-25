@@ -1,5 +1,6 @@
 #ifndef _UT_APP_H_ 
 #define _UT_APP_H_
+extern struct entry ConfigSchema[];
 
 void ut_apply_command()
 {
@@ -7,8 +8,9 @@ void ut_apply_command()
 //degenerates
     app_t r = apply_command(NULL, NULL);
     
-    config_t conf = init_config();
+    config_t conf = init_config(ConfigSchema, N_CONFIG_VARIABLES);
     config_t com = cli_init_command(conf);
+    config_t arg = get_recursive_entry(CLI_ARG, com);
     
     com = set_numeric_entry(CLI_COM, COM_START, com);
     r = apply_command(com, NULL);
@@ -40,18 +42,20 @@ void ut_apply_command()
     CU_ASSERT_STRING_EQUAL(MsgStr, "Invalid force command\n");
     CU_ASSERT_PTR_NULL(Mock_val);
 //force block out of bounds tested in library already     
-//"FORCE DI 2 1"    
-    sequence_t s = edit_seq_param(com, "DI", 2, "FORCE","1");
+//"FORCE DI 1 1"    
+    config_t c = edit_seq_param(arg, "DI", 1, "FORCE","1");
+    com = set_recursive_entry(CLI_ARG, c, com);
     
     r = apply_command(com, a);
     CU_ASSERT_STRING_EQUAL(Mock_val, "1");
     CU_ASSERT(Mock_op == OP_INPUT);
-    CU_ASSERT(Mock_idx == 2);
+    CU_ASSERT(Mock_idx == 1);
     
     com = set_numeric_entry(CLI_COM, COM_UNFORCE, com);
 
-//"UNFORCE DI 2"    
-    s = edit_seq_param(com, "DI", 2, "FORCE","UNFORCE");
+//"UNFORCE DI 1"    
+    c = edit_seq_param(arg, "DI", 1, "FORCE","UNFORCE");
+    com = set_recursive_entry(CLI_ARG, c, com);
     
     r = apply_command(com, a);
     CU_ASSERT_PTR_NULL(Mock_val);
@@ -60,13 +64,14 @@ void ut_apply_command()
     
     com = set_numeric_entry(CLI_COM, COM_EDIT, com);
 
-//"EDIT DI 2 NAME X"    
-    s = edit_seq_param(com, "DI", 2, "ID", "X");
+//"EDIT DI 1 NAME X"    
+    c = edit_seq_param(arg, "DI", 1, "ID", "X");
+    com = set_recursive_entry(CLI_ARG, c, com);
     
     r = apply_command(com, a);
     CU_ASSERT_STRING_EQUAL(Mock_val, "X");
     CU_ASSERT(Mock_op == OP_INPUT);
-    CU_ASSERT(Mock_idx == 2);
+    CU_ASSERT(Mock_idx == 1);
 
 }
     
