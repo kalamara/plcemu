@@ -24,9 +24,6 @@ unsigned int Nq = 0;
 unsigned int Nai = 0;
 unsigned int Naq = 0;
 
-//char SimInFile[MAXSTR] = "";
-//char SimOutFile[MAXSTR] = "";
-
 struct hardware Sim;
 
 int sim_config(const config_t conf)

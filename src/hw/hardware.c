@@ -4,6 +4,7 @@
 extern struct hardware Comedi;
 extern struct hardware Uspace;
 extern struct hardware Sim;
+extern struct hardware Dry;
 
 hardware_t get_hardware( int type){
     switch(type){
@@ -18,7 +19,8 @@ hardware_t get_hardware( int type){
 
         case HW_SIM: 
         	return &Sim;
-        default: return NULL;
+        default: 
+            return &Dry;
     }
 }
 

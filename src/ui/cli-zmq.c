@@ -79,7 +79,7 @@ void * read_cli(void * sock) {
     size_t l = 0;
     char * b = NULL;
     
-    config_t command = cli_init_command(init_config());
+    config_t command = cli_init_command(NULL);
     while(getline((char **)&b, &l, stdin)>=0){
         command = cli_parse(b, command);
         char * serialized = serialize_config(command);

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 set(CMAKE_BUILD_TYPE Debug)
-set(REMOTE-UI ON)
+set(REMOTE-UI OFF)
 
 project("plcemu")
 
@@ -109,6 +109,7 @@ add_executable(${PROJECT_NAME}
     ${PROJECT_SOURCE_DIR}/src/hw/hardware-comedi.c
     ${PROJECT_SOURCE_DIR}/src/hw/hardware-sim.c
     ${PROJECT_SOURCE_DIR}/src/hw/hardware-uspace.c
+    ${PROJECT_SOURCE_DIR}/src/hw/hardware-dry.c
     ${PROJECT_SOURCE_DIR}/src/cfg/schema.c 
     ${PROJECT_SOURCE_DIR}/src/ui/cli.c
     ${PROJECT_SOURCE_DIR}/src/app.c 
@@ -116,8 +117,6 @@ add_executable(${PROJECT_NAME}
     ${PROJECT_SOURCE_DIR}/src/plcemu.c 
     ${PROJECT_SOURCE_DIR}/src/util.c 
 )
-
-
 
 if(${REMOTE-UI})
 
@@ -133,7 +132,7 @@ if(${REMOTE-UI})
         ${PROJECT_SOURCE_DIR}/src/util.c 
     )
     target_link_libraries(
-        cli PUBLIC ${YAML} -lyacs-yml -l${PROJECT_NAME}-ui-std -lm -lpthread
+        cli PUBLIC ${YAML} ${ZMQ} -lyacs-yml -lm -lpthread
     )
 else(${REMOTE-UI})
     add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}-ui-std)
