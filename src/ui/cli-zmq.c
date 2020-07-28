@@ -23,6 +23,7 @@ char * Response_buf = NULL;
 char * Update_buf = NULL;
 
 pthread_t Reader;
+/*
 config_t init_config(){
  //TODO: in a c++ implementation this all can be done automatically 
  //using a hashmap
@@ -72,7 +73,7 @@ config_t init_config(){
         new_entry_seq(new_sequence(2), "PROGRAM"),
         conf);
 }
-
+*/
 void * read_cli(void * sock) {
     
     size_t l = 0;

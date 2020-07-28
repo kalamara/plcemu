@@ -324,6 +324,14 @@ config_t copy_sequences(const config_t from, config_t to);
  */
 config_t resize_sequence(config_t config, int sequence, int size);
 
+/**
+ * @brief initialize a configuration based on a schema
+ * @param the schema, statically allocated
+ * @param size of the schema, number of entries
+ * @return the newly alloc'd configuration, or NULL
+ */
+config_t init_config(const struct entry schema[],  unsigned int size);
+
 /********these are abstract, implementation is required per serialization format (yml/json/cbor)*****/
 
 /**
@@ -367,13 +375,7 @@ char * serialize_config(const config_t conf);
 config_t deserialize_config(const char * buf, 
                             const config_t conf);         
  
-/**
- * @brief initialize a configuration based on a schema
- * @param the schema, statically allocated
- * @param size of the schema, number of entries
- * @return the newly alloc'd configuration, or NULL
- */
-config_t init_config(const struct entry schema[],  unsigned int size);
+
  
 #endif //_CONFIG_H_
 
