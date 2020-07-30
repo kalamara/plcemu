@@ -202,13 +202,13 @@ void ut_start_stop()
      CU_ASSERT_PTR_NULL(r);
      plc_t plc = new_plc(8,8,4,4,4,4,4,4,100,NULL);
      r = plc_start(plc);
-     CU_ASSERT_PTR_NULL(r);
+     CU_ASSERT(r->status == ERR_HARDWARE);
      
      r = plc_stop(NULL);
      CU_ASSERT_PTR_NULL(r);
      
      r = plc_stop(plc);
-     CU_ASSERT_PTR_NULL(r);
+     CU_ASSERT(r->status == ERR_HARDWARE);
      
      //hardware is not configured correctly
      plc->hw = get_hardware(HW_SIM);

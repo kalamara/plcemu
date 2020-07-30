@@ -5,6 +5,6 @@
  *@brief main header
 */
 
-#define PRINTABLE_VERSION 2.1
+#define PRINTABLE_VERSION 2.2
 
 #endif //_PLCEMU_H_

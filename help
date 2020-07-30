@@ -1,62 +1,44 @@
-Curses interface
-PLC-EMU's interface consists of 5 monitoring windows, and a Ladder editor.
-You can switch between windows with the left/right arrows.
-Up/down arrows scroll windows.
+The default UI for version 2.0 onwards is command line based.
 
-F4 starts/stops PLC task.
-F7 loads a program and initialization file
-F8 saves current PLC state as initial state, and current LD task to a file
-that can later be used as a program file.
-F9 displays this help.
-F10 quits.
-Tab gets quickly to editor window.
+This is just a std prompt where the PLC's internal state in YAML format is monitored, while PLC commands can be issued.
 
-Inputs/Outputs window
-Here you can see the current state of I/O.
-When an I/O is green, it is set to 1.(although you can also read the value "1")
-When it is red, it means it has been forced.
+Supported commands:
 
-F1 forces current input/output to 1.
-F2 forces to 0.
-F3 unforces.
-F5 edits comments for single I/Os.
+START
 
-Memory window
-Here you can see the value of internal memory registers.
-Green means that the counter is receiving a pulse.
-Red means that a counter has been disabled, and only its pulse is used 
-as a boolean variable.
+start plc loop
 
-F1 sends a positive pulse to the counter
-F2 stops pulse
-F5 edits comments, value and up/down counting
-F6 enables/disables counting
+STOP
 
-Timers window
-Timers state is displayed here, in the form:
-T[index] X [scale] 	[value]/[preset].
-Green means the timer is counting.
-Red means the timer has reached its preset value, and its output is positive.
-F1 starts timer
-F2 stops it
-F5 edits comments, value, preset, scale i.e. how many cycles are needed to 
-increase value by 1, and whether it is in TON/TOFF mode.
+stop plc loop
 
-Blinkers window
+HELP
 
-Here the current state of blinkers is displayed, in the form
-S[index] X[scale].
-Green means that blinkers'output is 1.
-F5 you can edit comments and scale value
+display help message
 
-Program editor
+QUIT
 
-When the PLC is in STOP mode, you can edit your PLC task in a plain text editor.
-Tabs, Copy/paste, select etc. are not supported-sorry.
-Ctrl-X saves and returns to monitoring windows. 
-If you have an error in your ladder diagram, it will not be executed and an 
-error message will be displayed. 
-In RUN mode, F5 toggles the language interpreter from Ladder to Instruction List and vice versa.
+close the UI
+
+EDIT <sequence><index><key: value>
+
+Edit a configuration for any input, output or other sequence block. The key: value pair can be any of the parameters in the configuration of the specific block.
+
+FORCE<sequence><index><value>
+
+This will force a value on a sequence block for debugging purposes.
+
+UNFORCE<sequence><index>
+
+Reverts the FORCE command.
+
+LOAD<filename>
+
+Load configuration in yml file
+
+SAVE<filename>
+
+Save current configuration, if filename given save as yml file otherwise default config.yml
 
 Program Structure
 

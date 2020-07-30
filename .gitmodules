@@ -1,0 +1,3 @@
+[submodule "nacs"]
+	path = nacs
+	url = https://github.com/kalamara/nacs/

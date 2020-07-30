@@ -1352,13 +1352,13 @@ plc_t plc_load_program_file(const char * path, plc_t plc) {
 }
 
 plc_t plc_start(plc_t p){
-    if(p == NULL
-    || p->hw == NULL){
+    if(p == NULL){
     
-        return NULL;
+        return p;
     }
     
-    if(p->hw->status != PLC_OK
+    if(p->hw == NULL
+    || p->hw->status != PLC_OK
     || p->hw->enable() != PLC_OK
     ){
        p->status = ERR_HARDWARE;
@@ -1372,11 +1372,15 @@ plc_t plc_start(plc_t p){
 }
 
 plc_t plc_stop(plc_t p){
-    if(p == NULL
-    || p->hw == NULL){
+    if(p == NULL){
     
         return NULL;
     }
+    if(p->hw == NULL){
+       p->status = ERR_HARDWARE;
+       
+       return p;
+    } 
     if(p->status == ST_RUNNING){
         memset(p->outputs, 0, p->nq);
         memset(p->real_out, 0, 8*p->naq);

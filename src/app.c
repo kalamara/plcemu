@@ -495,8 +495,22 @@ config_t get_state(const plc_t plc,
                    const config_t state){
     config_t r = state;
     int i = 0;
+    if(!plc || !state){
+    
+        return state;
+    }
     //set status
-    r = set_numeric_entry(0, plc->status, r);
+    switch(plc->status){
+        case ST_RUNNING: 
+            r = set_string_entry(CONFIG_STATUS, "RUNNING", r); 
+            break;
+        case ST_STOPPED: 
+            r = set_string_entry(CONFIG_STATUS, "STOPPED", r); 
+            break;
+            
+        default: r = set_string_entry(CONFIG_STATUS, "ERROR", r); 
+    }
+    
     //assign values    
     if(plc->update & CHANGED_I){
         r = get_dio_values(plc, r, CONFIG_DI);

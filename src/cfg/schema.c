@@ -27,6 +27,13 @@ struct sequence default_seq = {
 };
 
 struct entry ConfigSchema[N_CONFIG_VARIABLES] = {
+    {//CONFIG_STATUS,
+         .type_tag = ENTRY_STR,
+         .name = "STATUS",
+         .e = {
+                .scalar_str = "STOPPED"
+         }
+    },
     {//CONFIG_STEP,
          .type_tag = ENTRY_INT,
          .name = "STEP",
@@ -38,7 +45,7 @@ struct entry ConfigSchema[N_CONFIG_VARIABLES] = {
          .type_tag = ENTRY_MAP,
          .name = "HW",
          .e = {
-              .conf = NULL//&hw_config
+              .conf = &HwSchema
          }
     },
     {//CONFIG_PROGRAM

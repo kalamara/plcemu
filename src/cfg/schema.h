@@ -50,6 +50,7 @@ typedef enum {
 }HW_VARS;
 
 typedef enum{
+    CONFIG_STATUS,
     CONFIG_STEP,
     CONFIG_HW,
      //(runtime updatable) sequences,

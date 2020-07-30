@@ -66,7 +66,7 @@ void dry_data_write(unsigned int index, uint64_t value)
 struct hardware Dry = {
     HW_DRY,
     0, //errorcode
-    "simulated hardware",
+    "no hardware",
     dry_enable,// enable
     dry_disable, //disable
     dry_fetch, //fetch

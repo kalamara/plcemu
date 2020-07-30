@@ -31,7 +31,7 @@ if(NOT PTHREAD)
     message(FATAL ERROR "PTHREAD not found")
 endif(NOT PTHREAD)  
       
-find_library(YACS yacs-yml)
+#find_library(YACS yacs-yml)
 
 include_directories(
 	${PROJECT_SOURCE_DIR}/src
@@ -39,26 +39,15 @@ include_directories(
 	${PROJECT_SOURCE_DIR}/src/hw
 	${PROJECT_SOURCE_DIR}/src/ui
 	${PROJECT_SOURCE_DIR}/src/vm
+	${PROJECT_SOURCE_DIR}/nacs/include
 )
 	
 link_directories(
     ${PROJECT_BINARY_DIR}
     ${PROJECT_BINARY_DIR}/ui
-    ${PROJECT_SOURCE_DIR}/lib
+    ${PROJECT_BINARY_DIR}/nacs
 )	
 
-#TODO: make yacs as subrepo
-#ADD_LIBRARY(${PROJECT_NAME}-yml
-#    SHARED 
-#    include/config.h
-#    src/config.c
-#    src/config-yml.c
-#)
-
-#target_link_libraries(
-#    ${PROJECT_NAME}-yml PUBLIC ${YAML}    
-#)	
-#    
 
 # test targets
 if(CUNIT)
@@ -88,12 +77,13 @@ if(CUNIT)
     )
 
     target_link_libraries(
-        test_app PUBLIC ${CUNIT} ${YAML} -lyacs-yml -lgcov 
+        test_app PUBLIC ${CUNIT} ${YAML} -lnacs-yml -lgcov 
        
     )
 endif(CUNIT)    
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/ui ${PROJECT_BINARY_DIR}/ui)
+add_subdirectory(${PROJECT_SOURCE_DIR}/nacs ${PROJECT_BINARY_DIR}/nacs)
 
 #console version
 add_executable(${PROJECT_NAME}
@@ -117,12 +107,13 @@ add_executable(${PROJECT_NAME}
     ${PROJECT_SOURCE_DIR}/src/plcemu.c 
     ${PROJECT_SOURCE_DIR}/src/util.c 
 )
+add_dependencies(${PROJECT_NAME} nacs-yml)
 
 if(${REMOTE-UI})
 
     add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}-ui-zmq)
     target_link_libraries(
-        ${PROJECT_NAME} PUBLIC ${YAML} ${ZMQ} -lyacs-yml -l${PROJECT_NAME}-ui-zmq -lm -lpthread
+        ${PROJECT_NAME} PUBLIC ${YAML} ${ZMQ} -lnacs-yml -l${PROJECT_NAME}-ui-zmq -lm -lpthread
     )
     add_executable(cli
         ${PROJECT_SOURCE_DIR}/src/ui/cli-zmq.c
@@ -132,12 +123,12 @@ if(${REMOTE-UI})
         ${PROJECT_SOURCE_DIR}/src/util.c 
     )
     target_link_libraries(
-        cli PUBLIC ${YAML} ${ZMQ} -lyacs-yml -lm -lpthread
+        cli PUBLIC ${YAML} ${ZMQ} -lnacs-yml -lm -lpthread
     )
 else(${REMOTE-UI})
     add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}-ui-std)
     target_link_libraries(
-        ${PROJECT_NAME} PUBLIC ${YAML} -lyacs-yml -l${PROJECT_NAME}-ui-std -lm -lpthread
+        ${PROJECT_NAME} PUBLIC ${YAML} -lnacs-yml -l${PROJECT_NAME}-ui-std -lm -lpthread
     ) 
 endif(${REMOTE-UI})    
 

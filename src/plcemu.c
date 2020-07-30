@@ -192,10 +192,11 @@ int main(int argc, char **argv)
     //UiReady=more;
     config_t command = cli_init_command(conf);
     config_t state = copy_config(conf);
+    ui_display_message("PLC initialized:");
     ui_draw(state);
-    if(conf->err == PLC_OK){
-        App->plc = plc_start(App->plc);    
-    }
+    //if(conf->err == PLC_OK){
+    //    App->plc = plc_start(App->plc);    
+    //}
     while (get_numeric_entry(CLI_COM, command)!=COM_QUIT) {
         
         if(App->plc->update != 0){
