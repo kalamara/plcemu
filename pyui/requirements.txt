@@ -1,5 +1,5 @@
 pkg-resources==0.0.0
 PyQt5==5.9.2
-PyYAML==5.1.2
+PyYAML==5.4
 pyzmq==18.1.0
 sip==4.19.8
