@@ -1,5 +1,2 @@
-cd build
-cmake ../ -G "Unix Makefiles"
-cmake .
-cd ..
+cmake -S . -B build -G "Unix Makefiles"
 

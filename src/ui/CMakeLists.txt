@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.22)
 
 set(CMAKE_BUILD_TYPE Debug)
 
@@ -23,7 +23,8 @@ add_library(${PROJECT_NAME}-std
     ${PROJECT_SOURCE_DIR}/cli.c
     ${PROJECT_SOURCE_DIR}/ui-std.c
     )
-    
+if(${REMOTE-UI})    
+message("Building remote UI client...")
 # remote ui
 add_library(${PROJECT_NAME}-zmq
     SHARED
@@ -32,5 +33,5 @@ add_library(${PROJECT_NAME}-zmq
 )
 
 target_link_libraries(${PROJECT_NAME}-zmq ${ZMQ})
-
+endif(${REMOTE-UI})  
 
