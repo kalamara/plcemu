@@ -911,12 +911,12 @@ int instruct(plc_t p, rung_t r, unsigned int *pc)
 }
 
 rung_t mk_rung(const char * name, plc_t p) {
-    rung_t r = (rung_t)malloc(sizeof(struct rung));
-    memset(r, 0, sizeof(struct rung));
+    rung_t r = (rung_t)calloc(1, sizeof(struct rung));
+    
     r->id = strdup(name);
     if(p->rungs == NULL){//lazy allocation
-       p->rungs = (rung_t *)malloc(MAXRUNG*sizeof(rung_t));
-       memset(p->rungs, 0, MAXRUNG*sizeof(rung_t));
+       p->rungs = (rung_t *)calloc(MAXRUNG, sizeof(rung_t));
+       
     }
     p->rungs[p->rungno++] = r;
     
@@ -1486,40 +1486,23 @@ plc_t plc_func(plc_t p) {
 static plc_t allocate(plc_t plc) {
 /*******************initialize***************/    
 
-    plc->inputs = (BYTE *) malloc(plc->ni);
-    plc->outputs = (BYTE *) malloc(plc->nq);
-    plc->real_in = (uint64_t *) malloc(plc->nai * sizeof(uint64_t));
-    plc->real_out = (uint64_t *) malloc(plc->naq * sizeof(uint64_t));
-    plc->di = (di_t) malloc(
-            BYTESIZE * plc->ni * sizeof(struct digital_input));
-    plc->dq = (do_t) malloc(
-            BYTESIZE * plc->nq * sizeof(struct digital_output));
+    plc->inputs = (BYTE *) calloc(1, plc->ni);
+    plc->outputs = (BYTE *) calloc(1, plc->nq);
+    plc->real_in = (uint64_t *) calloc(plc->nai, sizeof(uint64_t));
+    plc->real_out = (uint64_t *) calloc(plc->naq,  sizeof(uint64_t));
+    plc->di = (di_t) calloc(BYTESIZE * plc->ni, sizeof(struct digital_input));
+    plc->dq = (do_t) calloc(BYTESIZE * plc->nq, sizeof(struct digital_output));
     
-    plc->t = (dt_t) malloc(plc->nt * sizeof(struct timer));
-    plc->s = (blink_t) malloc(plc->ns * sizeof(struct blink));
-    plc->m = (mvar_t) malloc(plc->nm * sizeof(struct mvar));
-    plc->mr = (mreal_t) malloc(plc->nmr * sizeof(struct mreal));
+    plc->t = (dt_t) calloc(plc->nt,  sizeof(struct timer));
+    plc->s = (blink_t) calloc(plc->ns, sizeof(struct blink));
+    plc->m = (mvar_t) calloc(plc->nm, sizeof(struct mvar));
+    plc->mr = (mreal_t) calloc(plc->nmr, sizeof(struct mreal));
    
-    plc->ai = (aio_t) malloc(
-             plc->nai * sizeof(struct analog_io));
-    plc->aq = (aio_t) malloc(
-             plc->naq * sizeof(struct analog_io));
+    plc->ai = (aio_t) calloc(
+             plc->nai, sizeof(struct analog_io));
+    plc->aq = (aio_t) calloc(
+             plc->naq, sizeof(struct analog_io));
    
-    memset(plc->real_in, 0, plc->nai*sizeof(uint64_t));
-    memset(plc->real_out, 0, plc->naq*sizeof(uint64_t));
-    memset(plc->inputs, 0, plc->ni);
-    memset(plc->outputs, 0, plc->nq);
-  
-    memset(plc->di, 0, BYTESIZE * plc->ni * sizeof(struct digital_input));
-    memset(plc->dq, 0, BYTESIZE * plc->nq * sizeof(struct digital_output));
-    memset(plc->ai, 0,  plc->nai * sizeof(struct analog_io));
-    memset(plc->aq, 0,  plc->naq * sizeof(struct analog_io));
-    
-    memset(plc->t, 0, plc->nt * sizeof(struct timer));
-    memset(plc->s, 0, plc->ns * sizeof(struct blink));
-    memset(plc->m, 0, plc->nm * sizeof(struct mvar));
-    memset(plc->mr, 0, plc->nmr * sizeof(struct mreal));
-    
     return plc;
 }
 

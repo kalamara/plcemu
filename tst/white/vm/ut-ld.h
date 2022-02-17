@@ -266,8 +266,8 @@ void ut_parse_ld_program()
     r = parse_ld_program("1or3.ld", lines, &p);
     CU_ASSERT(p.status == PLC_OK);
     CU_ASSERT_STRING_EQUAL(p.rungs[0]->id, "1or3.ld");
-    char code[3*MAXBUF];
-    memset(code, 0, 3*MAXBUF);
+    char code[3*MAXSTR];
+    memset(code, 0, 3*MAXSTR);
     sprintf(code, "%s%s%s", lines[0], lines[1], lines[2]);  
     //printf("--------->%s\n<-----", p.rungs[0]->code->line);
     //should truncate whitespaces

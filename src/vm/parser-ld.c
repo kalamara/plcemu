@@ -367,16 +367,17 @@ static unsigned int program_length(const char lines[][MAXSTR],
 
 ld_line_t * construct_program(const char lines[][MAXSTR], 
                               unsigned int length) {
-    ld_line_t * program = (ld_line_t *)malloc(length*sizeof(ld_line_t));
-    memset(program, 0, length*sizeof(ld_line_t));
+    ld_line_t * program = (ld_line_t *)calloc(length, sizeof(ld_line_t));
     
     int i = 0; 
     for(; i < length; i++) {/* for each line construct ld_line*/
         if(lines != NULL) {
-            ld_line_t line  = (ld_line_t)malloc(sizeof(struct ld_line)); 
+            ld_line_t line  = (ld_line_t)calloc(1, sizeof(struct ld_line)); 
             line->cursor = 0;
             line->status = STATUS_UNRESOLVED;
-            line->buf = strdup(lines[i]);
+            line->buf = (char *)calloc(1, MAXSTR);
+            memcpy(line->buf, lines[i],MAXSTR);
+            
             line->stmt = NULL;
             program[i] = line;
         }

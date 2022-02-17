@@ -13,8 +13,8 @@ item_t mk_identifier(const BYTE operand,
                      const BYTE byte,
                      const BYTE bit)
 {
-    item_t r = (item_t)malloc(sizeof(struct item));
-    memset(r, 0 , sizeof(struct item));
+    item_t r = (item_t)calloc(1, sizeof(struct item));
+    //memset(r, 0 , sizeof(struct item));
     r->tag = TAG_IDENTIFIER;
     r->v.id.operand = operand;
     r->v.id.byte = byte;
@@ -27,8 +27,8 @@ item_t mk_expression(const item_t a,
                      const BYTE op,
                      const BYTE mod)
 {
-    item_t r = (item_t)malloc(sizeof(struct item));
-    memset(r, 0 , sizeof(struct item));
+    item_t r = (item_t)calloc(1, sizeof(struct item));
+    //memset(r, 0 , sizeof(struct item));
     r->tag = TAG_EXPRESSION;
     r->v.exp.op = op;
     r->v.exp.mod = mod;
@@ -41,8 +41,8 @@ item_t mk_assignment(const item_t identifier,
                      const item_t expression,
                      const BYTE type)
 {
-    item_t r = (item_t)malloc(sizeof(struct item));
-    memset(r, 0 , sizeof(struct item));
+    item_t r = (item_t)calloc(1, sizeof(struct item));
+    //memset(r, 0 , sizeof(struct item));
     r->tag = TAG_ASSIGNMENT;
     r->v.ass.left = identifier;
     r->v.ass.right = expression;
