@@ -19,13 +19,6 @@ if(${REMOTE-UI})
     endif(NOT ZMQ)        
 endif(${REMOTE-UI})    
 
-find_library(COMEDI comedi)
-if(COMEDI)
-    add_compile_definitions(COMEDI)
-else(COMEDI)
-    message(WARNING "COMEDI drivers not found")    
-endif(COMEDI)
-
 find_library(PTHREAD pthread)
 if(NOT PTHREAD)
     message(FATAL ERROR "PTHREAD not found")
@@ -36,38 +29,25 @@ endif(NOT PTHREAD)
 include_directories(
 	${PROJECT_SOURCE_DIR}/src
 	${PROJECT_SOURCE_DIR}/src/cfg
-	${PROJECT_SOURCE_DIR}/src/hw
 	${PROJECT_SOURCE_DIR}/src/ui
-	${PROJECT_SOURCE_DIR}/src/vm
 	${PROJECT_SOURCE_DIR}/nacs/include
+    ${PROJECT_SOURCE_DIR}/librelogic/include
 )
 	
 link_directories(
     ${PROJECT_BINARY_DIR}
     ${PROJECT_BINARY_DIR}/ui
     ${PROJECT_BINARY_DIR}/nacs
+    ${PROJECT_BINARY_DIR}/librelogic
 )	
+
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/ui ${PROJECT_BINARY_DIR}/ui)
 add_subdirectory(${PROJECT_SOURCE_DIR}/nacs ${PROJECT_BINARY_DIR}/nacs)
+add_subdirectory(${PROJECT_SOURCE_DIR}/librelogic/src ${PROJECT_BINARY_DIR}/librelogic)
+
 
 # test targets
 if(CUNIT)
-    add_executable(test_vm
-        ${PROJECT_SOURCE_DIR}/tst/white/vm/ut-vm.c
-        ${PROJECT_SOURCE_DIR}/tst/white/vm/vm-stubs.c
-        ${PROJECT_SOURCE_DIR}/src/vm/data.c
-        ${PROJECT_SOURCE_DIR}/src/vm/instruction.c
-        ${PROJECT_SOURCE_DIR}/src/vm/rung.c
-        ${PROJECT_SOURCE_DIR}/src/vm/plclib.c
-        ${PROJECT_SOURCE_DIR}/src/vm/parser-il.c
-        ${PROJECT_SOURCE_DIR}/src/vm/parser-ld.c
-        ${PROJECT_SOURCE_DIR}/src/vm/parser-tree.c
-        ${PROJECT_SOURCE_DIR}/src/vm/codegen.c
-    )
-
-    target_link_libraries(
-    test_vm PUBLIC ${CUNIT} -lgcov    
-    )	
 
     add_executable(test_app
         ${PROJECT_SOURCE_DIR}/tst/white/app/app-stubs.c 
@@ -78,29 +58,15 @@ if(CUNIT)
     )
 
     target_link_libraries(
-        test_app PUBLIC ${CUNIT} ${YAML} -lnacs-yml -lgcov 
+        test_app PUBLIC ${CUNIT} ${YAML} -llogic -lnacs-yml -lgcov 
        
     )
-    add_dependencies(test_app  nacs-yml)
+    add_dependencies(test_app  nacs-yml logic)
 endif(CUNIT)    
-
-
 
 #console version
 add_executable(${PROJECT_NAME}
-    ${PROJECT_SOURCE_DIR}/src/vm/data.c
-    ${PROJECT_SOURCE_DIR}/src/vm/instruction.c
-    ${PROJECT_SOURCE_DIR}/src/vm/rung.c
-    ${PROJECT_SOURCE_DIR}/src/vm/plclib.c
-    ${PROJECT_SOURCE_DIR}/src/vm/parser-il.c
-    ${PROJECT_SOURCE_DIR}/src/vm/parser-ld.c
-    ${PROJECT_SOURCE_DIR}/src/vm/parser-tree.c
-    ${PROJECT_SOURCE_DIR}/src/vm/codegen.c
-    ${PROJECT_SOURCE_DIR}/src/hw/hardware.c
-    ${PROJECT_SOURCE_DIR}/src/hw/hardware-comedi.c
-    ${PROJECT_SOURCE_DIR}/src/hw/hardware-sim.c
-    ${PROJECT_SOURCE_DIR}/src/hw/hardware-uspace.c
-    ${PROJECT_SOURCE_DIR}/src/hw/hardware-dry.c
+
     ${PROJECT_SOURCE_DIR}/src/cfg/schema.c 
     ${PROJECT_SOURCE_DIR}/src/ui/cli.c
     ${PROJECT_SOURCE_DIR}/src/app.c 
@@ -108,13 +74,13 @@ add_executable(${PROJECT_NAME}
     ${PROJECT_SOURCE_DIR}/src/plcemu.c 
     ${PROJECT_SOURCE_DIR}/src/util.c 
 )
-add_dependencies(${PROJECT_NAME} nacs-yml)
+add_dependencies(${PROJECT_NAME} nacs-yml logic)
 
 if(${REMOTE-UI})
     message("Building remote UI client...")
     add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}-ui-zmq)
     target_link_libraries(
-        ${PROJECT_NAME} PUBLIC ${YAML} ${ZMQ} -lnacs-yml -l${PROJECT_NAME}-ui-zmq -lm -lpthread
+        ${PROJECT_NAME} PUBLIC ${YAML} ${ZMQ} -lnacs-yml -llogic -l${PROJECT_NAME}-ui-zmq -lm -lpthread
     )
     add_executable(cli
         ${PROJECT_SOURCE_DIR}/src/ui/cli-zmq.c
@@ -130,7 +96,7 @@ else(${REMOTE-UI})
     message("Building std client...")
     add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}-ui-std)
     target_link_libraries(
-        ${PROJECT_NAME} PUBLIC ${YAML} -lnacs-yml -l${PROJECT_NAME}-ui-std -lm -lpthread
+        ${PROJECT_NAME} PUBLIC ${YAML} -llogic -lnacs-yml -l${PROJECT_NAME}-ui-std -lm -lpthread
     ) 
 endif(${REMOTE-UI})    
 

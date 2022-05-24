@@ -3,139 +3,54 @@ PLC-EMU is a Programmable Logic Controller EMUlator for automation applications 
 ### Table of contents
 [OVERVIEW](#OVERVIEW)   
 [DEPENDENCIES](#DEPENDENCIES)   
-[Hardware](#Hardware)   
-[Comedi](#Comedi)   
-[User space](#Userspace)   
-[Simulation](#Simulation)   
 [YAML](#YAML)   
 [Messaging](#Messaging )   
-[Unit testing](#Unittesting )  
-[CAPABILITIES](#CAPABILITIES)  
 [INSTALLATION](#INSTALLATION)   
 [CONFIGURATION](#CONFIGURATION)   
-[PROGRAMMING](#PROGRAMMING)  
-[Ladder Diagram](#LadderDiagram )    
-[Instruction List](#InstructionList )   
 [INTERFACE](#INTERFACE)    
 [Command Line](#CommandLine )    
 [Distributed UI](#DistributedUI )  
 [ISSUES](#ISSUES)  
 
-<a name="OVERVIEW"/> 
-
 # OVERVIEW
 
 PLC-EMU stands for Programmable Logic Controller EMUlator. This means PLC-EMU is a tool for emulating PLCs on a Linux box, using I/O cards. This way you can build a cheap alternative to PLC's, for use with automation applications. 
 
-<a name="DEPENDENCIES"/> 
-
 # DEPENDENCIES
 
-<a name="Hardware"/> 
+## LibreLogic
+PLC-EMU is based around LibreLogic, a free PLC library.
+See https://github.com/kalamara/librelogic for reference.
 
-## Hardware
-First of all, you need to install one or more digital I/O cards. 
 
-PLC-EMU works in two modes: through comedi, and in user space.
+## NACS
+The project configuration is done with NACS, Not Another Configuration System.
+See https://github.com/kalamara/nacs for reference.
 
-Additionally, File Simulation mode is supported in case no hardware is available.
-
-<a name="Comedi"/> 
-
-### Comedi
-In Comedi mode, all you need to do is install and set up the apropriate Comedi driver for your card, and copy the setup values to PLC-EMU's config file.
-Consult www.comedi.org for a list of compatible cards, and instructions on comedi.
-
-<a name="Userspace"/> 
-
-### User space
-In user-space mode, you need to know the base IO address space of your cards, 
-and which area of it the card uses for reading (read offset) and writing (write 
-offset). For pci cards, run 
-
-> lspci -vvv 
-
-to find out the base address. The rest should be found in the cards' manual.
-
-<a name="Simulation"/> 
-
-### Simulation
-In File Simulation mode, PLC-emu can be configured to read input bytes from 
-an ASCII text file and send outputs to another text file.
-
-<a name="YAML"/> 
-
-## YAML
-PLC-EMU configuration files are in YAML format, and so PLC-EMU v. 2 onwards depends on libYAML.
-See the official project page https://github.com/yaml/libyaml for details.
-
-<a name="Messaging"/> 
 
 ## Messaging 
 From version 2 onwards there are extensions for network distribution. Serialization of all network messages is done in YAML format, and the messaging layer is implemented using ZeroMQ. 
 Although networking extensions are disabled by default, to enable networking ZeroMQ is required.
 See http://zeromq.org/ for details.
 
-<a name="Unittesting"/> 
+## Build system
+CMAKE 2.22 is required. 
+ninja is used but other build tools can also be supported.
+Compilation is done currently on GCC 9 
 
-## Unit testing
-The PLC core library comes with a harness of hundreds of unit tests, however these tests require CUnit to run.
-See http://cunit.sourceforge.net/
+## Operating system
 
-<a name="CAPABILITIES"/> 
-
-# CAPABILITIES
-
-PLC's are real time controllers whose function is to periodically read inputs, run several real time 
-tasks, and control outputs, in a steady time period, which in commercial PLC's 
-varies usually from 2 to 10 milliseconds. PLC's are the standard platform for 
-automation applications, and can they can be programmed in one or more 
-of the 4 programming languages as defined by IEC116131-3: 
-Instruction List, Ladder Diagram, Function
-Block Diagram, or Structured Text.
-
-PLC-EMU emulates this function: In a configurable time cycle, it will read the 
-inputs from your card, run a task as programmed by the user, and send the 
-appropriate outputs back to the card. 
-
-Apart from inputs and outputs, PLC-EMU also holds an internal "address space"
-of a user-defined number of memory variables which you may use in your programs.
-
-It also supports Timer and Blinking Timer (Pulse) registers, whose number and function 
-can as well be configured by the user.
-
-<a name="INSTALLATION"/> 
+Currently only Linux is supported.
 
 # INSTALLATION 
 Checkout a snapshot from github, or alternatively
 download the tarball from www.sourceforge.net/projects/plcemu and unzip the source files in a directory. 
 
-Then run in superuser mode
-
->./configure;
->make;
->make install 
+Then run 
+./Config.sh to configure the sources and then ./Build.sh to build. 
 
 This should create an executable named "plcemu" and a text file named "config.yml"
 
-If you dont have the comedi libraries, run configure with the option:
-
->/.configure --enable-uspace
-
-Note that you dont need this if you have 
-the comedi libraries, but you havent set up comedi for some reason.
-
-If you don't have actual hardware, run configure with the option
-
->/.configure --enable-sim 
-
-for text simulation mode.
-
-If you want to enable the distributed user interface, you can configure with the option
-
->/.configure --enable-ui 
-
-<a name="Hardware"/> 
 
 # CONFIGURATION
 
@@ -248,198 +163,6 @@ The rest are block - specific parameters.
 These parameters can be edited in runtime.
 
 
-<a name="PROGRAMMING"/> 
-
-# PROGRAMMING
-
-You can edit a text file with a task in LD or IL in your favorite text editor and then load it into PLC-EMU (see below).
-
-<a name="LadderDiagram"/> 
-
-### Ladder Diagram
-.ld files are in Ladder diagram format.
-The version of LD PLC-EMU supports, consists of the following operators and 
-operands.
-
-<a name="Operators"/>
-
-#### Operators
-These are the accepted symbols that can exist along with the operands.
-
-'-' propagates a boolean state horizontally, from left to right. 
-Thus, it works as a logical "AND". 
-
-'+' changes line and can join states of up to 3 different lines, 
-like a logical "OR" .
-
-'|' propagates a state vertically, both ways between aligned "+" nodes.
-
-'!' negates the state of the following operand like a logical "NOT"
-
-'(' open contact. this propagates a state directly to an output. the following operand must be an output.
-
-')' negate contact. this propagates the opposite of a state to an output. the following operand must be an output.
-
-'[' set coil. if this is ON, thestate of an output is set. the following operand must be an output.
-
-']' reset coil. if this is ON, thestate of an output is reset. the following operand must be an output.
-
-';' end of line. anything after that is considered "comments".
-
-Blank characters interrupt lines, so be careful.
-
-<a name="Inputoperands"/>
-
-#### Input operands 
-These can appear anywhere in a line before a '(', followed by a valid 
-non negative index. Valid values of indexes are dependant on the operand and
-the configuration. This means, that if you have 16 timers and 64 inputs, you
-can write t14 and i62, but not t45 or i567.
-In every cycle, their values are polled and propagated to the diagram. 
-Accepted symbols (case sensitive) are:
-
-'i' digital input state
-
-'q' digital output state
-
-'r' rising edge of digital input
-
-'f' falling edge of digital input
-
-'m' pulse state of counter
-
-'t' output of timer
-
-'b' output of blinker
-
-'c' true, if serial input byte equals following index
-
-<a name="Outputoperands"/>
-
-#### Output operands
-These symbols must follow operator '(' and be followed by a valid index.
-Each output operand should appear only once.
-
-'Q' digital output
-
-'M' pulse of counter
-
-'T' timer 
-
-'W' write following number to serial output.
-
-<a name="LD Example : Triple Majority Circuit"/>
-
-### LD Example : Triple Majority Circuit
-
-    ; triple majority circuit
-    ; https://en.wikipedia.org/wiki/Triple_modular_redundancy
-
-     i0---i1----+---------(Q0
-     i2---i0----+
-     i1---i2----+
-
-<a name="InstructionList"/> 
-
-###  Instruction List
-
-Alternatively, you can define a IEC61131-3 compatible Instruction List program in .il files. 
-Currently, subroutines are not implemented. 
-Just like standard Instruction List, all instructions store their result to an internal Accumulator register, while "ST" stores the Accumulator's value to its operand.
-A line of an IL program, shall follow the format:
-
-    [label:]<operator>[<modifier>[%<operand\><byte>[</bit>]]|<label>][;comment]
-Supported Operators are:
-    ) close parenthesis (pop instruction from stack)
-    S set output
-    R reset output
-    AND
-    OR
-    XOR
-    LD load
-    ST store
-    ADD
-    SUB	subtract
-    MUL	multiply
-    DIV	divide
-    GT	>
-    GE	>=
-    NE	<>
-    EQ	==
-    LE	<=
-    LT	<
-    JMP	jump to label
-Modifier symbols recognized are:
-    (	open parenthesis (push instruction to stack)
-    !	negate
-    ?	conditional
-Operands are the same as in LD, with the difference that it is assumed that they are Words (unsigned Integers), unless noted otherwise with the symbol '/'. As defined in the IEC standard, each instruction supports its own set of data types and modifiers, according to the following scheme:
-
-Instruction |Modifiers      |Data Types
------------ | ------------- | -----------
-)           |N/A            |N/A
-S 	    |N/A	    |BOOL
-R 	    |N/A	    |BOOL
-AND 	    |!,(	    |BOOL/WORD
-OR	    |!,(	    |BOOL/WORD
-XOR	    |!,(	    |BOOL/WORD
-LD 	    |!		    |BOOL/WORD
-ST 	    |!		    |BOOL/WORD
-ADD	    |(		    |BOOL/WORD
-SUB	    |(		    |BOOL/WORD
-MUL	    |(		    |BOOL/WORD
-DIV	    |(		    |BOOL/WORD
-GT	    |(		    |BOOL/WORD
-GE	    |(		    |BOOL/WORD
-NE	    |(		    |BOOL/WORD
-EQ	    |(		    |BOOL/WORD
-LE	    |(		    |BOOL/WORD
-LT	    |(		    |BOOL/WORD
-JMP	    |?		    |CHARACTER STRING
-
-<a name="IL Example : GCD"/> 
-
-### IL Example : GCD
-
-   ; greatest common divisor
-   ; https://en.wikipedia.org/wiki/Euclidean_algorithm
-
-    LD %i0
-    ST %m0
-    EQ %m3
-    JMP?end
-    
-    LD %i1
-    ST %m1
-    EQ %m3
-    JMP?end
-    
-    while:LD %m0    ; A
-    EQ %m1          ; A == B
-    JMP?endwhile    ; while(A != B)
-        LD %m0
-        LT %m1      ; A < B
-        JMP?reverse
-        LD %m0
-        SUB %m1     ; A - B
-        ST %m0      ; A = A - B
-    JMP while
-    reverse:LD %m1  ; B
-        SUB %m0     ; B - A
-        ST %m1      ; B = B - A
-    JMP while
-    endwhile:LD %m0 ; 
-    ST %q0 ; output gcd 
-    end: LD %m3;
-
-<a name="C API"/> 
-
-## C API
-
-TBD
-
-<a name="INTERFACE"/> 
-
 # INTERFACE
 
 Executing plcemu from the command line
@@ -449,7 +172,6 @@ Executing plcemu from the command line
     -c uses a configuration file like the one described in section 5, other than config.yml
     -h displays this help file
 
-<a name="CommandLine"/> 
 
 ## Command Line    
 The default UI for version 2.0 onwards is command line based.
@@ -487,30 +209,15 @@ This will force a value on a sequence block for debugging purposes.
 
 Reverts the FORCE command.
 
-<a name="DistributedUI"/> 
 
 ### Distributed UI
 Optionally any kind of UI and any number of UI instances can be connected over zeromq sockets, locally or remotely. 
 The UI should continuously receive the PLC state in YML format in a PUB / SUB configuration, and asynchronously send commands in a REQUEST / REPLY fashion.
-To enable remote UI, run 
->/.configure --enable-sim 
 
-<a name="Example UI client"/> 
 
 #### Example UI client
 See cli-zmq.c for an example command line remote UI client that implements the same functionality as the default command line interface.
 
-<a name="Legacy"/> 
-
 ### Legacy (ncurses)
 There are plans for reimplementing a ncurses based zeromq client with the same functionality as the legacy PLC-EMU UI. 
 Currently no ncurses dependency exists.
-
-<a name="ISSUES"/> 
-
-# ISSUES
-
-Please send feedback, questions, suggestions, requests, help(?) to:
-(kalamara AT users.sourceforge.net)
-
-

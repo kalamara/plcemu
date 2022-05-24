@@ -1,3 +1,6 @@
 [submodule "nacs"]
 	path = nacs
-	url = https://github.com/kalamara/nacs/
+	url = ../nacs
+[submodule "librelogic"]
+	path = librelogic
+	url = ../librelogic
