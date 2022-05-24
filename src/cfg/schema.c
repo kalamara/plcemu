@@ -45,7 +45,7 @@ struct entry ConfigSchema[N_CONFIG_VARIABLES] = {
          .type_tag = ENTRY_MAP,
          .name = "HW",
          .e = {
-              .conf = &HwSchema
+              .conf = NULL//&hw_config
          }
     },
     {//CONFIG_PROGRAM
