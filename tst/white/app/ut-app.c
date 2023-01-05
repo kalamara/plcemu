@@ -10,7 +10,7 @@
 
 #include "config.h"
 #include "schema.h"
-#include "hardware.h"
+//#include "hardware.h"
 #include "data.h"
 #include "instruction.h"
 #include "rung.h"

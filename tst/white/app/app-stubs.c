@@ -4,7 +4,7 @@
 
 
 #include "config.h"
-#include "hardware.h"
+//#include "hardware.h"
 #include "data.h"
 #include "instruction.h"
 #include "rung.h"
@@ -32,7 +32,7 @@ void ui_display_message(char *msgstr){
 
 plc_t declare_variable(const plc_t p, 
                         int var,
-                        BYTE idx,                          
+                        PLC_BYTE idx,                          
                         const char* val){
     Mock_op = var;
     Mock_idx = idx;                    
@@ -42,49 +42,49 @@ plc_t declare_variable(const plc_t p,
 
 plc_t configure_io_limit(const plc_t p, 
                         int io, 
-                        BYTE idx, 
+                        PLC_BYTE idx, 
                         const char* val,
-                        BYTE max){
+                        PLC_BYTE max){
     return p;
 }
 
-plc_t init_variable(const plc_t p, int var, BYTE idx, const char* val){
+plc_t init_variable(const plc_t p, int var, PLC_BYTE idx, const char* val){
     return p;
 }
 
 plc_t configure_variable_readonly(const plc_t p, 
                                 int var, 
-                                BYTE idx, 
+                                PLC_BYTE idx, 
                                 const char* val){
     return p;
 }
 
 plc_t configure_counter_direction(const plc_t p, 
-                                    BYTE idx, 
+                                    PLC_BYTE idx, 
                                     const char* val){
     return p;
 }
 
 plc_t configure_timer_scale(const plc_t p, 
-                     BYTE idx, 
+                     PLC_BYTE idx, 
                      const char* val){
     return p;
 }
 
 plc_t configure_timer_preset(const plc_t p, 
-                        BYTE idx, 
+                        PLC_BYTE idx, 
                         const char* val){
     return p;
 }
 
 plc_t configure_timer_delay_mode(const plc_t p, 
-                        BYTE idx, 
+                        PLC_BYTE idx, 
                         const char* val){
     return p;
 }
 
 plc_t configure_pulse_scale(const plc_t p, 
-                        BYTE idx, 
+                        PLC_BYTE idx, 
                         const char* val){
     return p;
 }
@@ -99,14 +99,14 @@ plc_t plc_stop(plc_t p){
     return p;
 }
 
-plc_t force(plc_t p, int op, BYTE i, char * val){
+plc_t force(plc_t p, int op, PLC_BYTE i, char * val){
     Mock_val = val;
     Mock_op = op;
     Mock_idx = i;
     return p;
 }
 
-plc_t unforce(plc_t p, int op, BYTE i){
+plc_t unforce(plc_t p, int op, PLC_BYTE i){
     Mock_val = NULL;
     if(Mock_op == op){
         Mock_op = 0xff;
@@ -164,7 +164,7 @@ int stub_flush()
     return PLC_OK;
 }
 
-void stub_dio_read(unsigned int n, BYTE* bit)
+void stub_dio_read(unsigned int n, PLC_BYTE* bit)
 {	
 }
 

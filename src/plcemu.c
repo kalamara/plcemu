@@ -7,7 +7,6 @@
 
 #include "config.h"
 #include "schema.h"
-#include "hardware.h"
 #include "util.h"
 #include "data.h"
 #include "instruction.h"
@@ -86,9 +85,7 @@ app_t init_emu(const config_t conf) {
     signal(SIGINT, sigkill);
     signal(SIGTERM, sigkill);
     
-    project_init();
-    
-    open_pipe("plcpipe", a->plc);
+    plc_project_init();
     
     return a;
 }
@@ -102,28 +99,28 @@ void print_error(int errcode)
 {
     const char * errmsg;
     switch(errcode) {
-        case ERR_BADCHAR:
+        case PLC_ERR_BADCHAR:
             errmsg = ErrMsg[MSG_BADCHAR];
             break;
-        case ERR_BADFILE:
+        case PLC_ERR_BADFILE:
             errmsg = ErrMsg[MSG_BADFILE];
             break;
-        case ERR_BADOPERAND:
+        case PLC_ERR_BADOPERAND:
             errmsg = ErrMsg[MSG_BADOPERAND];
             break;
-        case ERR_BADINDEX:
+        case PLC_ERR_BADINDEX:
             errmsg = ErrMsg[MSG_BADINDEX];
             break; 
-        case ERR_BADCOIL:
+        case PLC_ERR_BADCOIL:
             errmsg = ErrMsg[MSG_BADCOIL];
             break;
-        case ERR_BADOPERATOR:
+        case PLC_ERR_BADOPERATOR:
             errmsg = ErrMsg[MSG_BADOPERATOR];
             break;
-        case ERR_TIMEOUT:
+        case PLC_ERR_TIMEOUT:
             errmsg = ErrMsg[MSG_TIMEOUT];
             break;   
-        case ERR_OVFLOW:
+        case PLC_ERR_OVFLOW:
             errmsg = ErrMsg[MSG_OVFLOW];
             break;                 
         default://PLC_ERR

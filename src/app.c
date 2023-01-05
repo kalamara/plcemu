@@ -1,6 +1,6 @@
 #include "config.h"
 #include "schema.h"
-#include "hardware.h"
+//#include "hardware.h"
 #include "util.h"
 #include "data.h"
 #include "instruction.h"
@@ -31,7 +31,7 @@ static plc_t declare_names(int operand,
                 index = (unsigned char)idx;
             }
         }
-        return declare_variable(plc, operand, index, name); 
+        return plc_declare_variable(plc, operand, index, name); 
     } else return plc;
 } 
 
@@ -43,10 +43,10 @@ static plc_t configure_limits(int operand,
     char * min = NULL;
     
     if((max = get_param_val("MAX", var->params))){
-        p = configure_io_limit(p, operand, var->index, max, TRUE);
+        p = plc_configure_io_limit(p, operand, var->index, max, TRUE);
     }
     if((min = get_param_val("MIN", var->params))){
-        p = configure_io_limit(p, operand, var->index, min, FALSE);
+        p = plc_configure_io_limit(p, operand, var->index, min, FALSE);
     }   
     return p;                         
 }
@@ -57,7 +57,7 @@ static plc_t init_values(int operand,
     char * val = NULL;
     
     if((val = get_param_val("VALUE", var->params))){
-        return init_variable(plc, operand, var->index, val);
+        return plc_init_variable(plc, operand, var->index, val);
     }
     return plc;                         
 }
@@ -68,7 +68,7 @@ static plc_t configure_readonly(int operand,
     char * val = NULL;
     
     if((val = get_param_val("READONLY", var->params))){
-      return configure_variable_readonly(plc, operand, var->index, val);
+      return plc_configure_variable_readonly(plc, operand, var->index, val);
     } 
     return plc;               
 }
@@ -159,7 +159,7 @@ static plc_t configure_counters(const config_t conf, plc_t plc){
             p = configure_readonly(OP_MEMORY, &(seq->vars[i]), p);
             //directions    
             if((val = get_param_val("COUNT", seq->vars[i].params))){
-                p = configure_counter_direction(p, i, val);
+                p = plc_configure_counter_direction(p, i, val);
                 val = NULL;
             }
         }
@@ -204,19 +204,19 @@ static plc_t configure_timers(const config_t conf, plc_t plc){
             //scales
             if((scale = get_param_val("RESOLUTION", 
                                         seq->vars[i].params))){
-                p = configure_timer_scale(p, i, scale);
+                p = plc_configure_timer_scale(p, i, scale);
                 scale = NULL;
             }
             //presets            
             if((preset = get_param_val("PRESET", 
                                         seq->vars[i].params))){
-                p = configure_timer_preset(p, i, preset);
+                p = plc_configure_timer_preset(p, i, preset);
                 preset = NULL;
             }
             //modes
             if((ondelay = get_param_val("ONDELAY", 
                                         seq->vars[i].params))){
-                p = configure_timer_delay_mode(p, i, ondelay);
+                p = plc_configure_timer_delay_mode(p, i, ondelay);
                 ondelay = NULL;
             }
         }   
@@ -239,7 +239,7 @@ static plc_t configure_pulses(const config_t conf, plc_t plc){
             //scales
             if((scale = get_param_val("RESOLUTION",
                                      seq->vars[i].params))){
-                p = configure_pulse_scale(p, i, scale);
+                p = plc_configure_pulse_scale(p, i, scale);
                 scale = NULL;
             }
         }   
@@ -250,7 +250,7 @@ static plc_t configure_pulses(const config_t conf, plc_t plc){
 
 static config_t get_dio_values(const plc_t plc, 
                         const config_t state, 
-                        BYTE type){
+                        PLC_BYTE type){
     config_t ret = state;
     sequence_t dios = get_sequence_entry(type, ret);
     if(dios == NULL || (
@@ -261,7 +261,7 @@ static config_t get_dio_values(const plc_t plc,
     } 
     variable_t viter = dios->vars;
     int i = 0;
-    BYTE val = 0;
+    PLC_BYTE val = 0;
     while(i < dios->size){
         if(viter != NULL) {
            
@@ -283,7 +283,7 @@ static config_t get_dio_values(const plc_t plc,
 
 static config_t get_aio_values(const plc_t plc, 
                         const config_t state, 
-                        BYTE type){
+                        PLC_BYTE type){
     config_t ret = state;
     sequence_t aios = get_sequence_entry(type, ret);
     if(aios == NULL || (
@@ -359,7 +359,7 @@ static config_t get_timer_values(const plc_t plc,
     variable_t viter = timers->vars;
     int i = 0;
     long val = 0;
-    BYTE out = 0;
+    PLC_BYTE out = 0;
     while(i < timers->size){
         if(viter != NULL) {
            
@@ -393,7 +393,7 @@ static config_t get_pulse_values(const plc_t plc,
     } 
     variable_t viter = pulses->vars;
     int i = 0;
-    BYTE out = 0;
+    PLC_BYTE out = 0;
     while(i < pulses->size){
         if(viter != NULL) {
         
@@ -447,7 +447,7 @@ app_t configure(const config_t conf, app_t app){
 
     app_t a = app;
     a->conf = conf;
-    hardware_t hw = get_hardware(HW_TYPE);
+    hardware_t hw = plc_get_hardware(HW_TYPE);
     hw->status = hw->configure(conf);
   //TODO: handle NULL errors here 
     sequence_t s = get_sequence_entry(CONFIG_DI, conf);
@@ -469,7 +469,7 @@ app_t configure(const config_t conf, app_t app){
     
     int step = get_numeric_entry(CONFIG_STEP, conf);
     
-    plc_t p = new_plc(di, dq, ai, aq, nt, ns, nm, nr, step, hw);
+    plc_t p = plc_new(di, dq, ai, aq, nt, ns, nm, nr, step, hw);
 
     p->status = 0;
     p->update = TRUE;
@@ -484,7 +484,7 @@ app_t configure(const config_t conf, app_t app){
     p = configure_pulses(conf, p);
     
     if(a->plc != NULL){
-        clear_plc(a->plc);
+        plc_clear(a->plc);
     }
     a->plc = p;
         
@@ -614,8 +614,8 @@ app_t apply_command(const config_t com,
                     for(v = 0; seq && v < seq->size; v++){
                     //filter sequences who have a param "FORCE"
                         val = get_param_val("FORCE", seq->vars[v].params);
-                        if(val){  //apply force   
-                            p = force(a->plc, Lookup[s], v, val);
+                        if(val){  //apply plc_force   
+                            p = plc_force(a->plc, Lookup[s], v, val);
                             if(p){
                                 a->plc = p;
                             }
@@ -635,7 +635,7 @@ app_t apply_command(const config_t com,
                 //filter sequences who have a param "FORCE"
                         val = get_param_val("FORCE", seq->vars[v].params);
                         if(val){  //apply force   
-                            p = unforce(a->plc, Lookup[s], v);
+                            p = plc_unforce(a->plc, Lookup[s], v);
                             if(p){
                                 a->plc = p;
                             }
